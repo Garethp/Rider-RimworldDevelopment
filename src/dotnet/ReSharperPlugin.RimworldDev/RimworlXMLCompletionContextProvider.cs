@@ -1,15 +1,50 @@
+using System.Linq;
+using JetBrains.Annotations;
+using JetBrains.Application.Progress;
 using JetBrains.DocumentModel;
+using JetBrains.ProjectModel;
 using JetBrains.ReSharper.Feature.Services.CodeCompletion.Impl;
 using JetBrains.ReSharper.Feature.Services.CodeCompletion.Infrastructure;
+using JetBrains.ReSharper.Feature.Services.CSharp.CodeCompletion.Infrastructure;
+using JetBrains.ReSharper.Feature.Services.CSharp.CodeCompletion.Settings;
+using JetBrains.ReSharper.Feature.Services.Navigation.Requests;
 using JetBrains.ReSharper.Features.Intellisense.CodeCompletion.Xml;
 using JetBrains.ReSharper.Psi;
+using JetBrains.ReSharper.Psi.CSharp;
+using JetBrains.ReSharper.Psi.CSharp.Tree;
 using JetBrains.ReSharper.Psi.ExtensionsAPI.Resolve;
+using JetBrains.ReSharper.Psi.Modules;
 using JetBrains.ReSharper.Psi.Resolve;
 using JetBrains.ReSharper.Psi.Tree;
 using JetBrains.ReSharper.Psi.Xml.Tree;
+using ReSharperPlugin.RimworldDev;
 
 namespace ReSharperPlugin.RimworldDev
 {
+    public class RimworldXmlCodeCompletionContext : SpecificCodeCompletionContext
+    {
+        public IXmlFile File;
+        
+        [CanBeNull]
+        public ITreeNode TreeNode;
+        
+        public TextLookupRanges Ranges { get; private set; }
+
+        public RimworldXmlCodeCompletionContext(
+            CodeCompletionContext context,
+            IXmlFile file,
+            ITreeNode treeNode,
+            TextLookupRanges ranges)
+            : base(context)
+        {
+            File = file;
+            TreeNode = treeNode;
+            Ranges = ranges;
+        }
+
+        public override string ContextId => nameof (XmlCodeCompletionContext);
+    }
+
     [IntellisensePart]
     public class RimworlXMLCompletionContextProvider: XmlCodeCompletionContextProvider
     {
@@ -40,10 +75,9 @@ namespace ReSharperPlugin.RimworldDev
             if (!local1.Contains(in local2))
                 return (ISpecificCodeCompletionContext) null;
 
-            var symbolTable = new SymbolTable(context.Solution);
-            
             TextLookupRanges textLookupRanges = CodeCompletionContextProviderBase.GetTextLookupRanges(context, documentRange);
-            return this.CreateSpecificCompletionContext(context, textLookupRanges, unterminatedContext);
+            return new RimworldXmlCodeCompletionContext(context, xmlFile,
+                xmlFile.FindNodeAt(unterminatedContext.Range), textLookupRanges);
         }
     }
 }
