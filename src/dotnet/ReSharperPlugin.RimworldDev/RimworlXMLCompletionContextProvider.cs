@@ -19,6 +19,10 @@ using JetBrains.ReSharper.Psi.Tree;
 using JetBrains.ReSharper.Psi.Xml.Tree;
 using ReSharperPlugin.RimworldDev;
 
+// This is a copied/modified version of some CompletionContext thing from Jetbrains because the default completion
+// context doesn't provide for certain things that we need to get the symbol scope or the file or something like that
+// in XML contexts
+
 namespace ReSharperPlugin.RimworldDev
 {
     public class RimworldXmlCodeCompletionContext : SpecificCodeCompletionContext

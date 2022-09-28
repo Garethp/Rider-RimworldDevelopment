@@ -26,6 +26,9 @@ using JetBrains.Util.Special;
 
 namespace ReSharperPlugin.RimworldDev;
 
+// Note, this class is mostly copy-pasted from Jetbrains CSharpLookupFactory class, I just made some minor additions
+// so that the autocomplete would display a bit nicer
+
 public class RimworldCSharpLookupFactory
 {
   private readonly Func<LookupItem<CSharpDeclaredElementInfo>, ILookupItemPresentation> myFGetDeclaredElementPresentation = (item =>
