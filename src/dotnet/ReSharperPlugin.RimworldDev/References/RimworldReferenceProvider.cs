@@ -27,49 +27,45 @@ public class RimworldReferenceProvider : IReferenceProviderFactory
     public ISignal<IReferenceProviderFactory> Changed { get; }
 }
 
+/**
+ * The reference provider is just that, it provides a reference from XML into C# (And hopefully someday the other way
+ * around with Find Usages), where you can Ctrl+Click into the C# for a property or class
+ */
 public class RimworldReferenceFactory : IReferenceFactory
 {
     public ReferenceCollection GetReferences(ITreeNode element, ReferenceCollection oldReferences)
     {
-        // if (element is XmlFloatingTextToken && element.GetText() == "CannibalFuneral" && element.Parent is XmlTag parentTag && RimworldXMLItemProvider.GetTagName(parentTag) == "issue")
-        // {
-            // var a = 1 + 1;
-        // }
+        if (element is not XmlIdentifier identifier) return new ReferenceCollection();
+        if (element.GetSourceFile() is not { } sourceFile) return new ReferenceCollection();
         
-        if (element is XmlIdentifier identifier)
-        {
-            var solution = element.GetSourceFile().PsiModule.GetSolution();
+        var solution = sourceFile.PsiModule.GetSolution();
 
-            var rimWorldModule = solution.PsiModules().GetModules()
-                .First(assembly => assembly.DisplayName == "Assembly-CSharp");
+        // TODO: We should really collect all these up into a SymbolScope helper class
+        var rimWorldModule = solution.PsiModules().GetModules()
+            .First(assembly => assembly.DisplayName == "Assembly-CSharp");
 
-            var rimworldSymbolScope = rimWorldModule.GetPsiServices().Symbols.GetSymbolScope(rimWorldModule, true, true);
+        var rimworldSymbolScope = rimWorldModule.GetPsiServices().Symbols.GetSymbolScope(rimWorldModule, true, true);
 
-            var allSymbolScopes = solution.PsiModules().GetModules().Select(module =>
-                module.GetPsiServices().Symbols.GetSymbolScope(module, true, true)).ToList();
+        var allSymbolScopes = solution.PsiModules().GetModules().Select(module =>
+            module.GetPsiServices().Symbols.GetSymbolScope(module, true, true)).ToList();
             
-            var hierarchy = RimworldXMLItemProvider.GetHierarchy(element);
+        var hierarchy = RimworldXMLItemProvider.GetHierarchy(identifier);
 
-            if (hierarchy.Count == 0)
-            {
-                var @class = rimworldSymbolScope.GetElementsByShortName(identifier.GetText()).FirstOrDefault();
-                return new ReferenceCollection(new RimworldXmlReference(@class, element as XmlIdentifier));
-            }
-            else
-            {
-                var classContext = RimworldXMLItemProvider.GetContextFromHierachy(hierarchy, rimworldSymbolScope, allSymbolScopes);
-                if (classContext == null) return new ReferenceCollection();
-                
-                var field = RimworldXMLItemProvider.GetAllPublicFields(classContext, rimworldSymbolScope)
-                    .FirstOrDefault(field => field.ShortName == identifier.GetText());
-
-                if (field != null)
-                {
-                    return new ReferenceCollection(new RimworldXmlReference(field, element as XmlIdentifier));
-                }
-            }
+        if (hierarchy.Count == 0)
+        {
+            var @class = rimworldSymbolScope.GetElementsByShortName(identifier.GetText()).FirstOrDefault();
+            return new ReferenceCollection(new RimworldXmlReference(@class, identifier));
         }
-        return new ReferenceCollection();
+
+        var classContext = RimworldXMLItemProvider.GetContextFromHierachy(hierarchy, rimworldSymbolScope, allSymbolScopes);
+        if (classContext == null) return new ReferenceCollection();
+                
+        var field = RimworldXMLItemProvider.GetAllPublicFields(classContext, rimworldSymbolScope)
+            .FirstOrDefault(field => field.ShortName == identifier.GetText());
+
+        if (field == null) return new ReferenceCollection();
+        
+        return new ReferenceCollection(new RimworldXmlReference(field, identifier));
     }
 
     public bool HasReference(ITreeNode element, IReferenceNameContainer names)

@@ -1,22 +1,22 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using JetBrains.Annotations;
-using JetBrains.ProjectModel;
 using JetBrains.ReSharper.Psi;
 using JetBrains.ReSharper.Psi.CSharp.Conversions;
 using JetBrains.ReSharper.Psi.ExtensionsAPI.Resolve;
-using JetBrains.ReSharper.Psi.Html.Html;
 using JetBrains.ReSharper.Psi.Modules;
 using JetBrains.ReSharper.Psi.Resolve;
 using JetBrains.ReSharper.Psi.Tree;
-using JetBrains.ReSharper.Psi.Util;
-using JetBrains.ReSharper.Psi.Web.Resolve;
 using JetBrains.ReSharper.Psi.Xml.Impl.Tree;
 using JetBrains.Util;
 
 namespace ReSharperPlugin.RimworldDev.References;
 
+/**
+ * I don't really remember what this is doing or how it works.
+ *
+ * @TODO: Re-read and document this
+ */
 public class RimworldXmlReference : 
     TreeReferenceBase<XmlIdentifier>,
     ICompletableReference,
@@ -32,31 +32,31 @@ public class RimworldXmlReference :
         : base(owner)
     {
         myTypeElement = typeElement;
-        this.myExactNameFilter = (ISymbolFilter) new ExactNameFilter((string) this.myOwner.GetText());
-        this.myPropertyFilter = (ISymbolFilter) new PredicateFilter(new Func<ISymbolInfo, bool>(FilterToApplicableProperties));
+        myExactNameFilter = new ExactNameFilter(myOwner.GetText());
+        myPropertyFilter = new PredicateFilter(FilterToApplicableProperties);
     }
 
     private static bool FilterToApplicableProperties([NotNull] ISymbolInfo symbolInfo)
     {
         if (!(symbolInfo.GetDeclaredElement() is ITypeMember declaredElement))
             return false;
-        PredefinedType predefinedType = declaredElement.Module.GetPredefinedType();
+        var predefinedType = declaredElement.Module.GetPredefinedType();
         if (!(declaredElement is IProperty property) || property.GetAccessRights() != AccessRights.PUBLIC || !property.IsStatic)
             return false;
-        ICSharpTypeConversionRule typeConversionRule = declaredElement.Module.GetTypeConversionRule();
-        ITypeElement typeElement = predefinedType.GenericIEnumerable.GetTypeElement();
+        var typeConversionRule = declaredElement.Module.GetTypeConversionRule();
+        var typeElement = predefinedType.GenericIEnumerable.GetTypeElement();
         if (typeElement == null)
             return false;
-        IArrayType arrayType = TypeFactory.CreateArrayType((IType) predefinedType.Object, 1);
-        IType type = EmptySubstitution.INSTANCE.Extend(typeElement.TypeParameters[0], (IType) arrayType).Apply((IType) predefinedType.GenericIEnumerable);
-        return property.Type.IsImplicitlyConvertibleTo(type, (ITypeConversionRule) typeConversionRule);
+        var arrayType = TypeFactory.CreateArrayType(predefinedType.Object, 1);
+        var type = EmptySubstitution.INSTANCE.Extend(typeElement.TypeParameters[0], arrayType).Apply(predefinedType.GenericIEnumerable);
+        return property.Type.IsImplicitlyConvertibleTo(type, typeConversionRule);
     }
     
     public override string GetName() => this.myOwner.GetText();
 
     public override TreeTextRange GetTreeTextRange() => myOwner.GetTreeTextRange();
 
-    public override IAccessContext GetAccessContext() => (IAccessContext) new ElementAccessContext((ITreeNode) this.myOwner);
+    public override IAccessContext GetAccessContext() => new ElementAccessContext(myOwner);
 
     public override ISymbolTable GetReferenceSymbolTable(bool useReferenceName)
     {
@@ -99,7 +99,7 @@ public class RimworldXmlReference :
         IDeclaredElement element,
         ISubstitution substitution)
     {
-        return (IReference) this;
+        return this;
     }
 
     public override ResolveResultWithInfo ResolveWithoutCache()
