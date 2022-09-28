@@ -170,7 +170,7 @@ public class RimworldXMLItemProvider: ItemsProviderOfSpecificContext<RimworldXml
         }
 
         // We never actually want to autocomplete Defs, remove that. We autocomplete its list of children somewhere else
-        if (list.ElementAt(0).Equals("Defs"))
+        if (list.Count > 0 && list.ElementAt(0).Equals("Defs"))
         {
             list.RemoveAt(0);
         }
