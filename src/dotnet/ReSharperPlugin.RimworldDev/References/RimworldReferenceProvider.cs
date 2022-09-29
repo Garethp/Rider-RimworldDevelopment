@@ -1,4 +1,5 @@
 using System.Linq;
+using System.Xml;
 using JetBrains.DataFlow;
 using JetBrains.Lifetimes;
 using JetBrains.ReSharper.Psi;
@@ -9,6 +10,9 @@ using JetBrains.ReSharper.Psi.Resolve;
 using JetBrains.ReSharper.Psi.Tree;
 using JetBrains.ReSharper.Psi.Xml;
 using JetBrains.ReSharper.Psi.Xml.Impl.Tree;
+using JetBrains.ReSharper.Psi.Xml.Impl.Tree.References;
+using JetBrains.ReSharper.Psi.Xml.Tree.References;
+using JetBrains.ReSharper.Psi.Xml.Util;
 using JetBrains.ReSharper.UnitTesting.Analysis.Xunit.References;
 
 namespace ReSharperPlugin.RimworldDev.References;
@@ -35,6 +39,7 @@ public class RimworldReferenceFactory : IReferenceFactory
 {
     public ReferenceCollection GetReferences(ITreeNode element, ReferenceCollection oldReferences)
     {
+        if (element.NodeType.ToString() == "TEXT") return GetReferencesForText(element, oldReferences);
         if (element is not XmlIdentifier identifier) return new ReferenceCollection();
         if (element.GetSourceFile() is not { } sourceFile) return new ReferenceCollection();
         
@@ -68,8 +73,33 @@ public class RimworldReferenceFactory : IReferenceFactory
         return new ReferenceCollection(new RimworldXmlReference(field, identifier));
     }
 
+    private ReferenceCollection GetReferencesForText(ITreeNode element, ReferenceCollection oldReferences)
+    {
+        // Trying to figure out how to add references to other XML. Still no clue
+        if (element.GetText() == "EatAtCannibalFuneral" && false)
+        {
+            var tagId = $"DutyDef/{element.GetText()}";
+            if (!RimworldXMLDefUtil.DefTags.ContainsKey(tagId)) return new ReferenceCollection();
+            
+            var tag = RimworldXMLDefUtil.DefTags["DutyDef/EatAtCannibalFuneral"];
+
+            var symbolScope = tag.GetResolveContext().GetCaseSensitiveSymbolScopeWithReferences();
+            var test = symbolScope.GetAllTypeElementsGroupedByName().Where(typeElement =>
+                typeElement.HasMemberWithName("EatAtCannibalFuneral", false)).ToList();
+            
+            var allNames = symbolScope.GetAllTypeMemberNames();
+            
+            return tag.GetFirstClassReferences();
+            // return new ReferenceCollection(new RimworldXmlDefReference(tag, element));
+
+            var a = 1 + 1;
+        }
+        
+        return new ReferenceCollection();
+    }
+    
     public bool HasReference(ITreeNode element, IReferenceNameContainer names)
     {
-        return false;
+        return true;
     }
 }

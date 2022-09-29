@@ -17,6 +17,7 @@ using JetBrains.ReSharper.Psi.Modules;
 using JetBrains.ReSharper.Psi.Resolve;
 using JetBrains.ReSharper.Psi.Tree;
 using JetBrains.ReSharper.Psi.Xml.Tree;
+using JetBrains.ReSharper.Psi.Xml.Util;
 using ReSharperPlugin.RimworldDev;
 
 // This is a copied/modified version of some CompletionContext thing from Jetbrains because the default completion
@@ -70,6 +71,12 @@ namespace ReSharperPlugin.RimworldDev
             if (treeNode == null)
                 return (ISpecificCodeCompletionContext) null;
             TreeTextRange treeRange = reference == null ? XmlCodeCompletionContextProvider.GetElementRange(treeNode) : reference.GetTreeTextRange();
+
+            if (1 == 1)
+            {
+                RimworldXMLDefUtil.UpdateDefs(xmlFile.GetSolution());
+            }
+            
             DocumentRange documentRange = unterminatedContext.ToDocumentRange(treeRange);
             if (!documentRange.IsValid())
                 return (ISpecificCodeCompletionContext) null;
