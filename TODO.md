@@ -21,11 +21,8 @@
    * We're fetching symbol scopes a bit all over the place. Let's collect it into a SymbolScope helper class
    
  * Documentation
-   * Add a **useful** README that shows how the different classes work together
    * Re-read and document References.RimworldXmlReference
-   * Document the requirements for running the plugin in the first place (Having the Rimworld DLL as a C# Reference)
    * If you have an XML file open while Rider is still initializing, that file doesn't get autocompletion. Document that
-   * Add a Roadmap
    
  * Tests
    * It's not a serious plugin project without Tests IMO. Let's at least aim to get one or two unit tests to start with

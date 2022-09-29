@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using JetBrains.ProjectModel;
 using JetBrains.ReSharper.Psi;
+using JetBrains.ReSharper.Psi.Xaml.Impl.Tree.References;
 using JetBrains.ReSharper.Psi.Xml.Tree;
 using JetBrains.ReSharper.TestRunner.Abstractions.Extensions;
 
@@ -18,7 +19,7 @@ public class RimworldXMLDefUtil
     
         var mySolution = solution.GetAllProjects().FirstOrDefault(project => project.Name == "AshAndDust");
         if (mySolution is null) return;
-
+        
         var files = mySolution.GetAllProjectFiles(file => file.LanguageType.Name == "XML");
         
         foreach (var projectFile in files)

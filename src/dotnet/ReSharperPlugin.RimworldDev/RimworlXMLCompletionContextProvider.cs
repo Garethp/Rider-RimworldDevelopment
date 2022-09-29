@@ -1,24 +1,12 @@
-using System.Linq;
 using JetBrains.Annotations;
-using JetBrains.Application.Progress;
 using JetBrains.DocumentModel;
-using JetBrains.ProjectModel;
 using JetBrains.ReSharper.Feature.Services.CodeCompletion.Impl;
 using JetBrains.ReSharper.Feature.Services.CodeCompletion.Infrastructure;
-using JetBrains.ReSharper.Feature.Services.CSharp.CodeCompletion.Infrastructure;
-using JetBrains.ReSharper.Feature.Services.CSharp.CodeCompletion.Settings;
-using JetBrains.ReSharper.Feature.Services.Navigation.Requests;
 using JetBrains.ReSharper.Features.Intellisense.CodeCompletion.Xml;
 using JetBrains.ReSharper.Psi;
-using JetBrains.ReSharper.Psi.CSharp;
-using JetBrains.ReSharper.Psi.CSharp.Tree;
-using JetBrains.ReSharper.Psi.ExtensionsAPI.Resolve;
-using JetBrains.ReSharper.Psi.Modules;
 using JetBrains.ReSharper.Psi.Resolve;
 using JetBrains.ReSharper.Psi.Tree;
 using JetBrains.ReSharper.Psi.Xml.Tree;
-using JetBrains.ReSharper.Psi.Xml.Util;
-using ReSharperPlugin.RimworldDev;
 
 // This is a copied/modified version of some CompletionContext thing from Jetbrains because the default completion
 // context doesn't provide for certain things that we need to get the symbol scope or the file or something like that
