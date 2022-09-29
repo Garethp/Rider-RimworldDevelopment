@@ -189,8 +189,11 @@ public class RimworldXMLItemProvider: ItemsProviderOfSpecificContext<RimworldXml
             fields.Add(field.ShortName, field);
         });
         
-        desiredClass.GetSuperTypeElements().ForEach(superType =>
+        desiredClass.GetAllSuperClasses().ForEach(superClass =>
         {
+            if (superClass.GetClassType() is not Class superType) return;
+            if (superClass.GetClrName().FullName == "System.Object") return;
+            
             if (superType.ShortName == "Object") return;
 
             foreach (var classField in superType.Fields)
@@ -286,7 +289,8 @@ public class RimworldXMLItemProvider: ItemsProviderOfSpecificContext<RimworldXml
             }
 
             var fields = GetAllPublicFields(currentContext, symbolScope);
-            var field = fields.First(field => field.ShortName == currentNode);
+            var field = fields.FirstOrDefault(field => field.ShortName == currentNode);
+            if (field == null) return null;
             previousField = field;
             var clrName = field.Type.GetLongPresentableName(CSharpLanguage.Instance);
             

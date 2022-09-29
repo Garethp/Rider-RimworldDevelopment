@@ -1,26 +1,44 @@
 ```
-com.jetbrains.rdclient.util.BackendException: Sequence contains no matching element
+Must be executed on UI thread or background threads with special permissions
 
---- EXCEPTION #1/2 [InvalidOperationException]
-Message = “Sequence contains no matching element”
-ExceptionPath = Root.InnerException
-ClassName = System.InvalidOperationException
-HResult = COR_E_INVALIDOPERATION=80131509
-Source = System.Core
-StackTraceString = “
-at System.Linq.Enumerable.First[TSource](IEnumerable`1 source, Func`2 predicate)
-at ReSharperPlugin.RimworldDev.RimworldXMLItemProvider.GetContextFromHierachy(List`1 hierarchy, ISymbolScope symbolScope, List`1 allSymbolScopes) in C:\Users\Gareth\development\Rider-RimworldDevelopment\src\dotnet\ReSharperPlugin.RimworldDev\RimworldXMLItemProvider.cs:line 289
-at ReSharperPlugin.RimworldDev.References.RimworldReferenceFactory.GetReferences(ITreeNode element, ReferenceCollection oldReferences) in C:\Users\Gareth\development\Rider-RimworldDevelopment\src\dotnet\ReSharperPlugin.RimworldDev\References\RimworldReferenceProvider.cs:line 60
-at JetBrains.ReSharper.Psi.Files.ReferenceProviderFactory.CachingReferenceProvider.GetReferences(ITreeNode element, IReferenceNameContainer names)
-at JetBrains.ReSharper.Psi.Tree.TreeNodeExtensions.GetReferencesImpl(ITreeNode element, IReferenceProvider referenceProvider, IReferenceNameContainer names)
-at JetBrains.ReSharper.Psi.Tree.TreeNodeExtensions.GetReferences(ITreeNode element, IReferenceProvider referenceProvider, IReferenceNameContainer names)
-at JetBrains.ReSharper.Daemon.UsageChecking.UsageAnalyzer.ProcessElement(ITreeNode treeNode, IParameters parameters)
-at JetBrains.ReSharper.Daemon.UsageChecking.ScopeProcessor.ProcessElement(ITreeNode element)
-at JetBrains.ReSharper.Psi.RecursiveElementProcessorExtensions.ProcessDescendants[TContext](ITreeNode root, IRecursiveElementProcessor`1 processor, TContext context)
-at JetBrains.ReSharper.Daemon.UsageChecking.CommonCollectUsagesPsiFileProcessor.ProcessFile(IDaemonProcess daemonProcess, IFile psiFile, IScopeProcessor topLevelScopeProcessor)
-at JetBrains.ReSharper.Daemon.UsageChecking.CollectUsagesStageProcess.Execute(Action`1 committer)
-at JetBrains.ReSharper.Feature.Services.Daemon.DaemonProcessBase.RunStage(IDaemonStage stage, DaemonProcessKind processKind, Action`2 commiter, IContextBoundSettingsStore contextBoundSettingsStore, JetHashSet`1 disabledStages)
-”
-
---- Outer ---
+java.lang.IllegalStateException: |E| Wrong thread null
+	at com.jetbrains.rdclient.protocol.RdDispatcher.assertThread(RdDispatcher.kt:59)
+	at com.jetbrains.rd.util.reactive.IScheduler$DefaultImpls.assertThread$default(Scheduler.kt:16)
+	at com.jetbrains.rd.framework.base.RdReactiveBase.assertThreading(RdReactiveBase.kt:27)
+	at com.jetbrains.rd.framework.base.RdReactiveBase.localChange$rd_framework(RdReactiveBase.kt:46)
+	at com.jetbrains.rd.framework.impl.RdSet.add(RdSet.kt:81)
+	at com.jetbrains.rd.util.collections.ModificationCookieViewableSet.add(ModificationCookieViewableSet.kt:10)
+	at com.jetbrains.rd.framework.base.ExtWire$send$$inlined$lock$lambda$1.invoke(RdExtBase.kt:236)
+	at com.jetbrains.rd.framework.base.ExtWire$send$$inlined$lock$lambda$1.invoke(RdExtBase.kt:172)
+	at com.jetbrains.rd.framework.impl.ProtocolContexts.sendWithoutContexts$rd_framework(ProtocolContexts.kt:180)
+	at com.jetbrains.rd.framework.base.ExtWire.send(RdExtBase.kt:232)
+	at com.jetbrains.rd.framework.impl.RdCall.startInternal(RdTask.kt:254)
+	at com.jetbrains.rd.framework.impl.RdCall.start(RdTask.kt:234)
+	at com.jetbrains.rd.framework.impl.RdCall.start(RdTask.kt:231)
+	at com.jetbrains.rdclient.quickDoc.FrontendEditorMouseHoverPopupManager$scheduleProcessing$1$1.run(FrontendEditorMouseHoverPopupManager.kt:62)
+	at com.intellij.openapi.progress.impl.CoreProgressManager.registerIndicatorAndRun(CoreProgressManager.java:705)
+	at com.intellij.openapi.progress.impl.CoreProgressManager.executeProcessUnderProgress(CoreProgressManager.java:647)
+	at com.intellij.openapi.progress.impl.ProgressManagerImpl.executeProcessUnderProgress(ProgressManagerImpl.java:63)
+	at com.jetbrains.rdclient.quickDoc.FrontendEditorMouseHoverPopupManager$scheduleProcessing$1.run(FrontendEditorMouseHoverPopupManager.kt:58)
+	at com.intellij.util.concurrency.QueueProcessor.runSafely(QueueProcessor.java:240)
+	at com.intellij.util.Alarm$Request.lambda$runSafely$0(Alarm.java:388)
+	at com.intellij.codeWithMe.ClientId$Companion.withClientId(ClientId.kt:135)
+	at com.intellij.codeWithMe.ClientId.withClientId(ClientId.kt)
+	at com.intellij.util.Alarm$Request.runSafely(Alarm.java:388)
+	at com.intellij.util.Alarm$Request.run(Alarm.java:377)
+	at java.base/java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:515)
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:264)
+	at com.intellij.util.concurrency.SchedulingWrapper$MyScheduledFutureTask.run(SchedulingWrapper.java:220)
+	at com.intellij.util.concurrency.BoundedTaskExecutor.doRun(BoundedTaskExecutor.java:216)
+	at com.intellij.util.concurrency.BoundedTaskExecutor.access$200(BoundedTaskExecutor.java:27)
+	at com.intellij.util.concurrency.BoundedTaskExecutor$1.execute(BoundedTaskExecutor.java:195)
+	at com.intellij.util.ConcurrencyUtil.runUnderThreadName(ConcurrencyUtil.java:213)
+	at com.intellij.util.concurrency.BoundedTaskExecutor$1.run(BoundedTaskExecutor.java:184)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1128)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:628)
+	at java.base/java.util.concurrent.Executors$PrivilegedThreadFactory$1$1.run(Executors.java:668)
+	at java.base/java.util.concurrent.Executors$PrivilegedThreadFactory$1$1.run(Executors.java:665)
+	at java.base/java.security.AccessController.doPrivileged(Native Method)
+	at java.base/java.util.concurrent.Executors$PrivilegedThreadFactory$1.run(Executors.java:665)
+	at java.base/java.lang.Thread.run(Thread.java:829)
 ```
