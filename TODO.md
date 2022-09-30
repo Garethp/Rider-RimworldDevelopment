@@ -14,8 +14,9 @@
    * Reference **defNames**
 
  * XML Autocomplete
-   * Auto complete other XML Defs
-   * Link to those other XML Defs
+   * Make auto completing to other XMLTags look nicer and work faster
+   * When linking to other def (`<defaultDuty>DefNameHere</defaultDuty>`) also include defs where the tag is a custom class
+     that extends from the def we're looking for
    
  * Refactoring
    * We're fetching symbol scopes a bit all over the place. Let's collect it into a SymbolScope helper class

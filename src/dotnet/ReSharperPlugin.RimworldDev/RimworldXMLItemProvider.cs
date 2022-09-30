@@ -6,7 +6,6 @@ using JetBrains.ReSharper.Feature.Services.CodeCompletion.Infrastructure;
 using JetBrains.ReSharper.Feature.Services.CodeCompletion.Infrastructure.LookupItems;
 using JetBrains.ReSharper.Feature.Services.Navigation.Requests;
 using JetBrains.ReSharper.Feature.Services.Occurrences;
-using JetBrains.ReSharper.Features.Intellisense.CodeCompletion.CSharp;
 using JetBrains.ReSharper.Psi;
 using JetBrains.ReSharper.Psi.Caches;
 using JetBrains.ReSharper.Psi.CSharp;
@@ -18,6 +17,7 @@ using JetBrains.ReSharper.Psi.Util;
 using JetBrains.ReSharper.Psi.Xml;
 using JetBrains.ReSharper.Psi.Xml.Impl.Tree;
 using JetBrains.ReSharper.TestRunner.Abstractions.Extensions;
+using ReSharperPlugin.RimworldDev.TypeDeclaration;
 
 namespace ReSharperPlugin.RimworldDev;
 
@@ -35,6 +35,7 @@ public class RimworldXMLItemProvider: ItemsProviderOfSpecificContext<RimworldXml
     protected override bool IsAvailable(RimworldXmlCodeCompletionContext context)
     {
         if ((context.TreeNode is XmlIdentifier identifier && identifier.Parent is XmlTagHeaderNode) || context.TreeNode is XmlTagStartToken) return true;
+        if (context.TreeNode is XmlFloatingTextToken && context.TreeNode.NodeType.ToString() == "TEXT") return true;
         return false;
     }
 
@@ -61,6 +62,12 @@ public class RimworldXMLItemProvider: ItemsProviderOfSpecificContext<RimworldXml
     
     protected override bool AddLookupItems(RimworldXmlCodeCompletionContext context, IItemsCollector collector)
     {
+        if (context.TreeNode is XmlFloatingTextToken && context.TreeNode.NodeType.ToString() == "TEXT")
+        {
+            AddTextLookupItems(context, collector);
+            return base.AddLookupItems(context, collector);
+        }
+
         /**
          * <Defs>
          *  <{CARET HERE
@@ -101,6 +108,36 @@ public class RimworldXMLItemProvider: ItemsProviderOfSpecificContext<RimworldXml
 
             
         return base.AddLookupItems(context, collector);
+    }
+
+    protected void AddTextLookupItems(RimworldXmlCodeCompletionContext context, IItemsCollector collector)
+    {
+        var element= context.TreeNode;
+        var hierarchy = GetHierarchy(element);
+
+        if (hierarchy.Count == 0) return;
+
+        var classContext = GetContextFromHierachy(hierarchy, ScopeHelper.RimworldScope, ScopeHelper.AllScopes);
+        if (classContext == null) return;
+
+        if (!classContext.GetAllSuperClasses().Any(superClass => superClass.GetClrName().FullName == "Verse.Def"))
+            return;
+
+        var className = classContext.ShortName;
+
+        var keys = RimworldXMLDefUtil.DefTags.Keys
+            .Where(key => key.StartsWith($"{className}/"))
+            .Select(key => key.Substring(className.Length + 1));
+        
+        keys.ForEach(key =>
+        {
+            var item = RimworldXMLDefUtil.DefTags[$"{className}/{key}"];
+            
+            var lookup = LookupFactory.CreateDeclaredElementLookupItem(context, key, new DeclaredElementInstance(new XMLTagDeclaredElement(item, key, false)));
+            collector.Add(lookup);
+        });
+        
+        return;
     }
     
     protected void AddThingDefClasses(RimworldXmlCodeCompletionContext context, IItemsCollector collector, ISymbolScope symbolScope, IPsiModule module)
@@ -253,7 +290,7 @@ public class RimworldXMLItemProvider: ItemsProviderOfSpecificContext<RimworldXml
             
             // Taking a look at `GetHierarchy`, there are instances where we have `<li Class="">`, so we want to pull
             // the class name from that attribute instead of the previous field.
-            if (Regex.Match(currentNode, @"^li").Success)
+            if (Regex.Match(currentNode, @"^li<(.*?)>$").Success)
             {
                 var match = Regex.Match(currentNode, @"^li<(.*?)>$");
                 var classValue = match.Groups[1].Value;

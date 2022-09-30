@@ -8,6 +8,7 @@ using JetBrains.ReSharper.Psi.ExtensionsAPI.Caches2;
 using JetBrains.ReSharper.Psi.Modules;
 using JetBrains.ReSharper.Psi.Resolve;
 using JetBrains.ReSharper.Psi.Tree;
+using JetBrains.ReSharper.Psi.Util;
 using JetBrains.ReSharper.Psi.Xml;
 using JetBrains.ReSharper.Psi.Xml.Impl.Tree;
 using JetBrains.ReSharper.Psi.Xml.Impl.Tree.References;
@@ -15,7 +16,7 @@ using JetBrains.ReSharper.Psi.Xml.Tree.References;
 using JetBrains.ReSharper.Psi.Xml.Util;
 using JetBrains.ReSharper.UnitTesting.Analysis.Xunit.References;
 
-namespace ReSharperPlugin.RimworldDev.References;
+namespace ReSharperPlugin.RimworldDev.TypeDeclaration;
 
 [ReferenceProviderFactory]
 public class RimworldReferenceProvider : IReferenceProviderFactory
@@ -39,6 +40,8 @@ public class RimworldReferenceFactory : IReferenceFactory
 {
     public ReferenceCollection GetReferences(ITreeNode element, ReferenceCollection oldReferences)
     {
+        ScopeHelper.UpdateScopes(element.GetSolution());
+        
         if (element.NodeType.ToString() == "TEXT") return GetReferencesForText(element, oldReferences);
         if (element is not XmlIdentifier identifier) return new ReferenceCollection();
         if (element.GetSourceFile() is not { } sourceFile) return new ReferenceCollection();
@@ -75,27 +78,22 @@ public class RimworldReferenceFactory : IReferenceFactory
 
     private ReferenceCollection GetReferencesForText(ITreeNode element, ReferenceCollection oldReferences)
     {
-        // Trying to figure out how to add references to other XML. Still no clue
-        if (element.GetText() == "EatAtCannibalFuneral" && false)
-        {
-            var tagId = $"DutyDef/{element.GetText()}";
-            if (!RimworldXMLDefUtil.DefTags.ContainsKey(tagId)) return new ReferenceCollection();
-            
-            var tag = RimworldXMLDefUtil.DefTags["DutyDef/EatAtCannibalFuneral"];
+        var hierarchy = RimworldXMLItemProvider.GetHierarchy(element);
 
-            var symbolScope = tag.GetResolveContext().GetCaseSensitiveSymbolScopeWithReferences();
-            var test = symbolScope.GetAllTypeElementsGroupedByName().Where(typeElement =>
-                typeElement.HasMemberWithName("EatAtCannibalFuneral", false)).ToList();
-            
-            var allNames = symbolScope.GetAllTypeMemberNames();
-            
-            return tag.GetFirstClassReferences();
-            // return new ReferenceCollection(new RimworldXmlDefReference(tag, element));
+        if (hierarchy.Count == 0) return new ReferenceCollection();
 
-            var a = 1 + 1;
-        }
+        var classContext = RimworldXMLItemProvider.GetContextFromHierachy(hierarchy, ScopeHelper.RimworldScope, ScopeHelper.AllScopes);
+        if (classContext == null) return new ReferenceCollection();
+
+        if (!classContext.GetAllSuperClasses().Any(superClass => superClass.GetClrName().FullName == "Verse.Def"))
+            return new ReferenceCollection();
         
-        return new ReferenceCollection();
+        var tagId = $"{classContext.ShortName}/{element.GetText()}";
+        if (!RimworldXMLDefUtil.DefTags.ContainsKey(tagId)) return new ReferenceCollection();
+        
+        var tag = RimworldXMLDefUtil.DefTags[tagId];
+
+        return new ReferenceCollection(new RimworldXmlDefReference(element, tag, tagId));
     }
     
     public bool HasReference(ITreeNode element, IReferenceNameContainer names)

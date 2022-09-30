@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using System.Linq;
 using JetBrains.ProjectModel;
 using JetBrains.ReSharper.Psi;
-using JetBrains.ReSharper.Psi.Xaml.Impl.Tree.References;
 using JetBrains.ReSharper.Psi.Xml.Tree;
 using JetBrains.ReSharper.TestRunner.Abstractions.Extensions;
 
@@ -14,9 +13,6 @@ public class RimworldXMLDefUtil
 
     public static void UpdateDefs(ISolution solution)
     {
-        // Disabling for the moment until we get answers on turning XMLTags into IReference
-        return;
-    
         var mySolution = solution.GetAllProjects().FirstOrDefault(project => project.Name == "AshAndDust");
         if (mySolution is null) return;
         

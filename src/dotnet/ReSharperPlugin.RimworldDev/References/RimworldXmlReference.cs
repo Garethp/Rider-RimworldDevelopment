@@ -1,4 +1,3 @@
-using System;
 using System.Linq;
 using JetBrains.Annotations;
 using JetBrains.ReSharper.Psi;
@@ -10,7 +9,7 @@ using JetBrains.ReSharper.Psi.Tree;
 using JetBrains.ReSharper.Psi.Xml.Impl.Tree;
 using JetBrains.Util;
 
-namespace ReSharperPlugin.RimworldDev.References;
+namespace ReSharperPlugin.RimworldDev.TypeDeclaration;
 
 /**
  * I don't really remember what this is doing or how it works.
@@ -52,7 +51,7 @@ public class RimworldXmlReference :
         return property.Type.IsImplicitlyConvertibleTo(type, typeConversionRule);
     }
     
-    public override string GetName() => this.myOwner.GetText();
+    public override string GetName() => myOwner.GetText();
 
     public override TreeTextRange GetTreeTextRange() => myOwner.GetTreeTextRange();
 
@@ -83,7 +82,7 @@ public class RimworldXmlReference :
         if (!useReferenceName)
             return table;
 
-        return table.Filter(this.GetName(), new AllFilter(myOwner.GetText()));
+        return table.Filter(GetName(), new AllFilter(myOwner.GetText()));
 
         // ISymbolTable table = this.myOwner.GetSolution().GetComponent<IHtmlDeclaredElementsCache>().GetAllTagsSymbolTable(this.myOwner.GetSourceFile()).Distinct(SymbolInfoComparer.OrdinalIgnoreCase);
         // if (useReferenceName)
@@ -91,9 +90,9 @@ public class RimworldXmlReference :
         // return table;
     }
 
-    public ISymbolTable GetCompletionSymbolTable() => this.GetReferenceSymbolTable(false);
+    public ISymbolTable GetCompletionSymbolTable() => GetReferenceSymbolTable(false);
 
-    public override IReference BindTo(IDeclaredElement element) => this.BindTo(element, (ISubstitution) EmptySubstitution.INSTANCE);
+    public override IReference BindTo(IDeclaredElement element) => BindTo(element, EmptySubstitution.INSTANCE);
 
     public override IReference BindTo(
         IDeclaredElement element,
@@ -104,7 +103,7 @@ public class RimworldXmlReference :
 
     public override ResolveResultWithInfo ResolveWithoutCache()
     {
-        ResolveResultWithInfo resolveResult = this.GetReferenceSymbolTable(true).GetResolveResult(this.GetName());
+        ResolveResultWithInfo resolveResult = GetReferenceSymbolTable(true).GetResolveResult(GetName());
         return resolveResult;
         // return new ResolveResultWithInfo(resolveResult.Result, resolveResult.Info.CheckResolveInfo((ResolveErrorType) HtmlResolveErrorType.UNKNOWN_HTML_TAG));
     }
@@ -114,7 +113,7 @@ public class RimworldXmlReference :
         [NotNull]
         private readonly string myName;
 
-        public AllFilter([NotNull] string name) => this.myName = name;
+        public AllFilter([NotNull] string name) => myName = name;
 
         public override bool Accepts(ISymbolInfo info) => true;
 
