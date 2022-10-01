@@ -1,20 +1,15 @@
+using System;
 using System.Linq;
-using System.Xml;
 using JetBrains.DataFlow;
 using JetBrains.Lifetimes;
 using JetBrains.ReSharper.Psi;
 using JetBrains.ReSharper.Psi.Caches;
-using JetBrains.ReSharper.Psi.ExtensionsAPI.Caches2;
 using JetBrains.ReSharper.Psi.Modules;
 using JetBrains.ReSharper.Psi.Resolve;
 using JetBrains.ReSharper.Psi.Tree;
 using JetBrains.ReSharper.Psi.Util;
 using JetBrains.ReSharper.Psi.Xml;
 using JetBrains.ReSharper.Psi.Xml.Impl.Tree;
-using JetBrains.ReSharper.Psi.Xml.Impl.Tree.References;
-using JetBrains.ReSharper.Psi.Xml.Tree.References;
-using JetBrains.ReSharper.Psi.Xml.Util;
-using JetBrains.ReSharper.UnitTesting.Analysis.Xunit.References;
 
 namespace ReSharperPlugin.RimworldDev.TypeDeclaration;
 
@@ -22,7 +17,7 @@ namespace ReSharperPlugin.RimworldDev.TypeDeclaration;
 public class RimworldReferenceProvider : IReferenceProviderFactory
 {
     public RimworldReferenceProvider(Lifetime lifetime) => 
-        Changed =new Signal<IReferenceProviderFactory>(lifetime, GetType().FullName);
+        Changed = new Signal<IReferenceProviderFactory>(lifetime, GetType().FullName);
 
     public IReferenceFactory CreateFactory(IPsiSourceFile sourceFile, IFile file, IWordIndex wordIndexForChecks)
     {
@@ -46,17 +41,9 @@ public class RimworldReferenceFactory : IReferenceFactory
         if (element is not XmlIdentifier identifier) return new ReferenceCollection();
         if (element.GetSourceFile() is not { } sourceFile) return new ReferenceCollection();
         
-        var solution = sourceFile.PsiModule.GetSolution();
+        var rimworldSymbolScope = ScopeHelper.RimworldScope;
+        var allSymbolScopes = ScopeHelper.AllScopes;
 
-        // TODO: We should really collect all these up into a SymbolScope helper class
-        var rimWorldModule = solution.PsiModules().GetModules()
-            .First(assembly => assembly.DisplayName == "Assembly-CSharp");
-
-        var rimworldSymbolScope = rimWorldModule.GetPsiServices().Symbols.GetSymbolScope(rimWorldModule, true, true);
-
-        var allSymbolScopes = solution.PsiModules().GetModules().Select(module =>
-            module.GetPsiServices().Symbols.GetSymbolScope(module, true, true)).ToList();
-            
         var hierarchy = RimworldXMLItemProvider.GetHierarchy(identifier);
 
         if (hierarchy.Count == 0)

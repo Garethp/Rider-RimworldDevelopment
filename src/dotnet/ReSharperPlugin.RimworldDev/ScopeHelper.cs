@@ -10,6 +10,7 @@ public class ScopeHelper
 {
     private static List<ISymbolScope> allScopes = new();
     private static ISymbolScope rimworldScope;
+    private static IPsiModule rimworldModule;
     private static List<ISymbolScope> usedScopes;
 
     public static void UpdateScopes(ISolution solution)
@@ -21,14 +22,18 @@ public class ScopeHelper
 
         if (rimworldScope == null)
         {
-            var rimWorldModule = solution.PsiModules().GetModules()
-                .First(assembly => assembly.DisplayName == "Assembly-CSharp");
+            rimworldScope = allScopes.First(scope => scope.GetTypeElementByCLRName("Verse.ThingDef") != null);
+            
+            rimworldModule = solution.PsiModules().GetModules()
+                .First(module => module.GetPsiServices().Symbols.GetSymbolScope(module, true, true).GetTypeElementByCLRName("Verse.ThingDef") != null);
 
-            rimworldScope = rimWorldModule.GetPsiServices().Symbols.GetSymbolScope(rimWorldModule, true, true);
+            // rimworldScope = rimWorldModule.GetPsiServices().Symbols.GetSymbolScope(rimWorldModule, true, true);
         }
     }
 
     public static ISymbolScope RimworldScope => rimworldScope;
+
+    public static IPsiModule RimworldModule => rimworldModule;
 
     public static List<ISymbolScope> AllScopes => allScopes;
 }

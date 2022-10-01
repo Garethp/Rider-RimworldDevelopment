@@ -16,7 +16,7 @@ using JetBrains.ReSharper.Psi.Tree;
 using JetBrains.ReSharper.Psi.Util;
 using JetBrains.ReSharper.Psi.Xml;
 using JetBrains.ReSharper.Psi.Xml.Impl.Tree;
-using JetBrains.ReSharper.TestRunner.Abstractions.Extensions;
+using JetBrains.Util;
 using ReSharperPlugin.RimworldDev.TypeDeclaration;
 
 namespace ReSharperPlugin.RimworldDev;
@@ -62,6 +62,8 @@ public class RimworldXMLItemProvider: ItemsProviderOfSpecificContext<RimworldXml
     
     protected override bool AddLookupItems(RimworldXmlCodeCompletionContext context, IItemsCollector collector)
     {
+        ScopeHelper.UpdateScopes(context.TreeNode.GetSolution());
+        
         if (context.TreeNode is XmlFloatingTextToken && context.TreeNode.NodeType.ToString() == "TEXT")
         {
             AddTextLookupItems(context, collector);
@@ -92,10 +94,12 @@ public class RimworldXMLItemProvider: ItemsProviderOfSpecificContext<RimworldXml
         // Here we're fetching the CSharp Symbol Scope for Rimworld so that we can do our autocomplete.
         // TODO: Detect based on something else, maybe look for Rimworld's class
         // TODO: Don't crash if there's no scope
-        var rimWorldModule = solution.PsiModules().GetModules()
-            .First(assembly => assembly.DisplayName == "Assembly-CSharp");
+        // var rimWorldModule = solution.PsiModules().GetModules()
+            // .First(assembly => assembly.DisplayName == "Assembly-CSharp");
 
-        var rimworldSymbolScope = rimWorldModule.GetPsiServices().Symbols.GetSymbolScope(rimWorldModule, true, true);
+        var rimWorldModule = ScopeHelper.RimworldModule;
+        
+        var rimworldSymbolScope = ScopeHelper.RimworldScope;
 
         if (parentTagName == "Defs")
         {        
@@ -106,7 +110,6 @@ public class RimworldXMLItemProvider: ItemsProviderOfSpecificContext<RimworldXml
             AddProperties(context, collector, rimworldSymbolScope, rimWorldModule);
         }
 
-            
         return base.AddLookupItems(context, collector);
     }
 

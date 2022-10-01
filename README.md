@@ -20,7 +20,9 @@ into the definitions on which the XML sits.
 
 Other than being able to install the plugin (at the moment I'm not building or releasing it) into either Rider or
 ReSharper, the only other requirement is that you must have a C# Solution that has Rimworlds DLL as a reference, so that
-this plugin can look at the modules in your solution and find Rimworlds classes to use for it's auto completion.
+this plugin can look at the modules in your solution and find Rimworlds classes to use for it's auto completion. Optionally,
+for best results, it's also suggested to have the XML Defs for your Mod and the Vanilla Defs linked as a folder in your C#
+solution so that this plugin can see them as files that belong to the Solution.
 
 ## Roadmap
 

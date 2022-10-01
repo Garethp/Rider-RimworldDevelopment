@@ -22,6 +22,7 @@ using JetBrains.ReSharper.Psi.ExtensionsAPI.Resolve.Managed;
 using JetBrains.ReSharper.Psi.Resolve;
 using JetBrains.ReSharper.Psi.Util;
 using JetBrains.Util;
+using JetBrains.Util.Media;
 using JetBrains.Util.Special;
 
 namespace ReSharperPlugin.RimworldDev;
@@ -48,7 +49,7 @@ public class RimworldCSharpLookupFactory
     if (nullable.HasValue)
       presentation.IsObsolete = nullable.Value;
     if (unresolvedDeclaredElement != null)
-      presentation.TextColor = unresolvedDeclaredElement.IsDynamic ? Color.Blue : Color.Red;
+      presentation.TextColor = unresolvedDeclaredElement.IsDynamic ? JetRgbaColors.Blue : JetRgbaColors.Red;
     return presentation;
   });
   

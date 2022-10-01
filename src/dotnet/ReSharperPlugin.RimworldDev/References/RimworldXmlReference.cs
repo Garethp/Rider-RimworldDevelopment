@@ -59,9 +59,6 @@ public class RimworldXmlReference :
 
     public override ISymbolTable GetReferenceSymbolTable(bool useReferenceName)
     {
-        var module = myOwner.GetSolution().PsiModules().GetModules()
-            .First(assembly => assembly.DisplayName == "Assembly-CSharp");
-
         ISymbolTable table;
         if (myTypeElement is IClass @class) {
             table = ResolveUtil

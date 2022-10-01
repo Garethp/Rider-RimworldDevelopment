@@ -3,7 +3,7 @@ using System.Linq;
 using JetBrains.ProjectModel;
 using JetBrains.ReSharper.Psi;
 using JetBrains.ReSharper.Psi.Xml.Tree;
-using JetBrains.ReSharper.TestRunner.Abstractions.Extensions;
+using JetBrains.Util;
 
 namespace ReSharperPlugin.RimworldDev;
 
