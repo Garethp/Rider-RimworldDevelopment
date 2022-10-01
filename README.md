@@ -24,6 +24,66 @@ this plugin can look at the modules in your solution and find Rimworlds classes 
 for best results, it's also suggested to have the XML Defs for your Mod and the Vanilla Defs linked as a folder in your C#
 solution so that this plugin can see them as files that belong to the Solution.
 
+### Configuring your project
+If you have the Rimworld data folder attached you will get limited autocomplete of xml and ability to Ctrl+Click into the C#.
+Certain fields won't work due to a limitation with how Rider explores attached folder.
+To get full functionality you will need to add any Def folders as "existing items".
+Please note that sometimes the linked folders may not show everything as they do not update consistently.
+If you see a missing file, right click on your project and select `Reload Project` to force the links to update.
+
+Note that even though these are links you have to edit the file by clicking on the linked version for full functionality.
+Clicking on the original file may give reduced functionality.
+This is a bug and is tracked in [Issue: 1](https://github.com/Garethp/Rider-RimworldDevelopment/issues/1)
+
+#### Attaching Defs Via the UI
+Simply right click on your C# project in Rider and choose `Add -> Add Existing Item...`.
+Then select the Rimworld `Data` folder as well as your own mod's `Defs` folder and any others you'd like.
+You'll be asked if you want to `Copy`, `Move` or `Add Links`. Select `Add Links` to add the folder as a link. 
+
+Note that this adds a lot to your `.csproj` file as there is one entry per file.
+For a cleaner option see the below section on [Attaching Defs Manually](#attaching-defs-manually)
+
+#### Attaching Defs Manually
+Rather than adding each def file to the `.csproj` file it is possible to just attach the top level folders.
+From Rider you can right click on the project then go to `Edit` and choose the option to edit the `.csproj` file.
+Or simply use any normal test editor and add a new ItemGroup into your project which links to the top level folders to search.
+Something like this:
+
+```xml
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+...
+  <ItemGroup>
+    <Content Include="..\..\..\..\..\Data\">
+      <Link>Data</Link>
+    </Content>
+    <Content Include="..\..\Defs\">
+      <Link>Defs</Link>
+    </Content>
+  </ItemGroup>
+...
+</Project>
+```
+
+It is possible to group up all your imported defs into a folder for tidiness and use globs to select a lot at once e.g.
+```xml
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    ...
+  <ItemGroup>
+    <Content Include="..\..\..\..\..\Data\*\Defs\**\*">
+      <Link>AttachedDefs\Rimworld\%(RecursiveDir)/%(FileName)%(Extension)</Link>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\..\Defs\**\*">
+      <Link>AttachedDefs\Project\%(RecursiveDir)/%(FileName)%(Extension)</Link>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+...
+</Project>
+```
+
 ## Roadmap
 
 These are the features that I am planning on, or would like to build, into this plugin in the future:
