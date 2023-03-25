@@ -17,7 +17,7 @@ namespace ReSharperPlugin.RimworldDev.TypeDeclaration;
  * @TODO: Re-read and document this
  */
 public class RimworldXmlReference : 
-    TreeReferenceBase<XmlIdentifier>,
+    TreeReferenceBase<ITreeNode>,
     ICompletableReference,
     IReference,
     IUserDataHolder
@@ -27,7 +27,7 @@ public class RimworldXmlReference :
 
     private readonly IDeclaredElement myTypeElement;
 
-    public RimworldXmlReference(IDeclaredElement typeElement, [NotNull] XmlIdentifier owner)
+    public RimworldXmlReference(IDeclaredElement typeElement, [NotNull] ITreeNode owner)
         : base(owner)
     {
         myTypeElement = typeElement;
@@ -69,6 +69,12 @@ public class RimworldXmlReference :
         {
             table = ResolveUtil
                 .GetSymbolTableByTypeElement(field.GetContainingType(), SymbolTableMode.FULL, field.Module)
+                .Distinct();
+        }
+        else if (myTypeElement is IEnum enumerator)
+        {
+            table = ResolveUtil
+                .GetSymbolTableByTypeElement(enumerator, SymbolTableMode.FULL, enumerator.Module)
                 .Distinct();
         }
         else

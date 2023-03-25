@@ -24,6 +24,10 @@
     </PackageReference>
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="ProblemAnalyzers" />
+  </ItemGroup>
+
   <!-- TODO: uncomment for xaml icons -->
   <!--<ItemGroup>-->
     <!--<Reference Include="System.Xaml" />-->

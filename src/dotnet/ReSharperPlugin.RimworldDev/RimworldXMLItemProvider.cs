@@ -36,6 +36,10 @@ public class RimworldXMLItemProvider: ItemsProviderOfSpecificContext<RimworldXml
     {
         if ((context.TreeNode is XmlIdentifier identifier && identifier.Parent is XmlTagHeaderNode) || context.TreeNode is XmlTagStartToken) return true;
         if (context.TreeNode is XmlFloatingTextToken && context.TreeNode.NodeType.ToString() == "TEXT") return true;
+
+        if (context.TreeNode is XmlTagEndToken && context.TreeNode.PrevSibling is XmlIdentifier &&
+            context.TreeNode.PrevSibling.PrevSibling?.GetText() != "</") return true;
+        
         return false;
     }
 
@@ -65,6 +69,13 @@ public class RimworldXMLItemProvider: ItemsProviderOfSpecificContext<RimworldXml
         ScopeHelper.UpdateScopes(context.TreeNode.GetSolution());
         
         if (context.TreeNode is XmlFloatingTextToken && context.TreeNode.NodeType.ToString() == "TEXT")
+        {
+            AddTextLookupItems(context, collector);
+            return base.AddLookupItems(context, collector);
+        }
+        
+        if (context.TreeNode is XmlTagEndToken && context.TreeNode.PrevSibling is XmlIdentifier &&
+            context.TreeNode.PrevSibling.PrevSibling?.GetText() != "</")
         {
             AddTextLookupItems(context, collector);
             return base.AddLookupItems(context, collector);
@@ -123,6 +134,40 @@ public class RimworldXMLItemProvider: ItemsProviderOfSpecificContext<RimworldXml
         var classContext = GetContextFromHierachy(hierarchy, ScopeHelper.RimworldScope, ScopeHelper.AllScopes);
         if (classContext == null) return;
 
+        if (classContext.GetType().Name == "Struct")
+        {
+            var options = classContext.Fields.Where(field => field.IsStatic);
+            
+            foreach (var option in options)
+            {
+                var lookup = LookupFactory.CreateDeclaredElementLookupItem(
+                    context,
+                    option.ShortName,
+                    new DeclaredElementInstance(option, EmptySubstitution.INSTANCE)
+                );
+                collector.Add(lookup);
+            }
+
+            return;
+        }
+        
+        if (classContext.GetType().Name == "Enum")
+        {
+            var options = classContext.GetMembers();
+            
+            foreach (var option in options)
+            {
+                var lookup = LookupFactory.CreateDeclaredElementLookupItem(
+                    context,
+                    option.ShortName,
+                    new DeclaredElementInstance(option, EmptySubstitution.INSTANCE)
+                );
+                collector.Add(lookup);
+            }
+
+            return;
+        }
+        
         if (!classContext.GetAllSuperClasses().Any(superClass => superClass.GetClrName().FullName == "Verse.Def"))
             return;
 
@@ -297,7 +342,9 @@ public class RimworldXMLItemProvider: ItemsProviderOfSpecificContext<RimworldXml
             {
                 var match = Regex.Match(currentNode, @"^li<(.*?)>$");
                 var classValue = match.Groups[1].Value;
-
+                
+                if (classValue == "") return null;
+                
                 // First we try to look it up as a short name from the Rimworld DLL
                 currentContext = symbolScope.GetElementsByShortName(classValue).FirstOrDefault() as ITypeElement;
                 if (currentContext != null) continue;
