@@ -36,7 +36,7 @@ public class RimworldReferenceFactory : IReferenceFactory
 {
     public ReferenceCollection GetReferences(ITreeNode element, ReferenceCollection oldReferences)
     {
-        ScopeHelper.UpdateScopes(element.GetSolution());
+        if (!ScopeHelper.UpdateScopes(element.GetSolution())) return new ReferenceCollection();
 
         if (element.NodeType.ToString() == "TEXT") return GetReferencesForText(element, oldReferences);
         if (element is not XmlIdentifier identifier) return new ReferenceCollection();

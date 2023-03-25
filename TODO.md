@@ -4,8 +4,7 @@
    * Support LookupItems for Class="" attributes
    * Support LookupItems for things like <thoughtWorker> or <compClass>
    * If we know a bit of XML should be an enum like Gender, we should be able to check that it's a valid enum value
-   * Don't fail it there's no Rimworld Scope
-`   * Maybe bring out own Rimworld defs if there's no scope?
+`  * Maybe bring out own Rimworld defs if there's no scope?
    * Handle Defs with custom classes instead of Rimworld classes
 `   * Packaging. It shouldn't be too difficult, but I haven't done it yet
    * We need to be able to support "LoadAlias", such as "StorageSettings.priority"

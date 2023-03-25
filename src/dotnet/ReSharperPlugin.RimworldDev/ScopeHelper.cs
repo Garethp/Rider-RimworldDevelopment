@@ -13,22 +13,26 @@ public class ScopeHelper
     private static IPsiModule rimworldModule;
     private static List<ISymbolScope> usedScopes;
 
-    public static void UpdateScopes(ISolution solution)
+    public static bool UpdateScopes(ISolution solution)
     {
-        if (solution == null) return;
+        if (solution == null) return false;
         
         allScopes = solution.PsiModules().GetModules().Select(module =>
             module.GetPsiServices().Symbols.GetSymbolScope(module, true, true)).ToList();
 
         if (rimworldScope == null)
         {
-            rimworldScope = allScopes.First(scope => scope.GetTypeElementByCLRName("Verse.ThingDef") != null);
+            rimworldScope = allScopes.FirstOrDefault(scope => scope.GetTypeElementByCLRName("Verse.ThingDef") != null);
+
+            if (rimworldScope == null) return false;
             
             rimworldModule = solution.PsiModules().GetModules()
                 .First(module => module.GetPsiServices().Symbols.GetSymbolScope(module, true, true).GetTypeElementByCLRName("Verse.ThingDef") != null);
 
             // rimworldScope = rimWorldModule.GetPsiServices().Symbols.GetSymbolScope(rimWorldModule, true, true);
         }
+
+        return true;
     }
 
     public static ISymbolScope RimworldScope => rimworldScope;

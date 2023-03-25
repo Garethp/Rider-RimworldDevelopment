@@ -66,7 +66,7 @@ public class RimworldXMLItemProvider: ItemsProviderOfSpecificContext<RimworldXml
     
     protected override bool AddLookupItems(RimworldXmlCodeCompletionContext context, IItemsCollector collector)
     {
-        ScopeHelper.UpdateScopes(context.TreeNode.GetSolution());
+        if (!ScopeHelper.UpdateScopes(context.TreeNode.GetSolution())) return false;
         
         if (context.TreeNode is XmlFloatingTextToken && context.TreeNode.NodeType.ToString() == "TEXT")
         {

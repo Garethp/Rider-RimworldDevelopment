@@ -91,7 +91,6 @@ These are the features that I am planning on, or would like to build, into this 
  * Autocompleting and referencing classes in `Class=""` attributes in XML Tags
  * Packaging and releasing this plugin in an easy to install manner
  * Autocompleting and providing references when referring to C# classes in XML Values like in `<thoughtClass>` or `<compClass>`
- * When an XML value has to equal to an enum, autocomplete from that enum and provide error messages when an incorrect value exists
  * Handle Def tags with custom classes instead of just Rimworld classes (such as `<MyMod.CustomThingDef>`)
  * When referring to other XML Defs (such as `<thought>ThoughtDefName</thought>`), auto complete and link to that defs XML
 
