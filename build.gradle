@@ -3,9 +3,9 @@ import org.apache.tools.ant.taskdefs.condition.Os
 
 plugins {
     id 'java'
-    id 'org.jetbrains.kotlin.jvm' version '1.5.30'
-    id 'org.jetbrains.intellij' version '1.7.0'     // https://github.com/JetBrains/gradle-intellij-plugin/releases
-    id 'com.jetbrains.rdgen' version '0.213.391'    // https://www.myget.org/feed/rd-snapshots/package/maven/com.jetbrains.rd/rd-gen
+    id 'org.jetbrains.kotlin.jvm' version '1.8.20'
+    id 'org.jetbrains.intellij' version '1.13.3'     // https://github.com/JetBrains/gradle-intellij-plugin/releases
+    id 'com.jetbrains.rdgen' version '2023.2.0'    // https://www.myget.org/feed/rd-snapshots/package/maven/com.jetbrains.rd/rd-gen
 }
 
 ext {
@@ -21,7 +21,7 @@ repositories {
 }
 
 wrapper {
-    gradleVersion = '7.1'
+    gradleVersion = '7.3'
     distributionType = Wrapper.DistributionType.ALL
     distributionUrl = "https://cache-redirector.jetbrains.com/services.gradle.org/distributions/gradle-${gradleVersion}-all.zip"
 }
@@ -42,22 +42,26 @@ compileKotlin {
 
 task setBuildTool {
     doLast {
-        ext.args = []
-        ByteArrayOutputStream stdout = new ByteArrayOutputStream()
+        ext.executable = "dotnet"
+        ext.args = ["msbuild"]
+
         if (isWindows) {
+            ByteArrayOutputStream stdout = new ByteArrayOutputStream()
             exec {
                 executable "${rootDir}\\tools\\vswhere.exe"
                 args '-latest','-property','installationPath','-products','*'
                 standardOutput = stdout
                 workingDir rootDir
             }
-            List<String> files = new FileNameFinder().getFileNames("${stdout.toString().trim()}\\MSBuild", "**/MSBuild.exe")
-            ext.executable = files.get(0)
-            ext.args << "/v:minimal"
-        } else {
-            ext.executable = "dotnet"
-            ext.args << "msbuild"
+
+            def directory = "C:\\Users\\**\\.dotnet"
+            if (directory) {
+                List<String> files = new FileNameFinder().getFileNames("${directory}", "**/dotnet.exe")
+                ext.executable = files.get(0)
+                ext.args = ["/v:minimal"]
+            }
         }
+
         ext.args << "${DotnetSolution}"
         ext.args << "/p:Configuration=${BuildConfiguration}"
         ext.args << "/p:HostFullIdentifier="
@@ -77,6 +81,7 @@ task compileDotNet {
     }
 }
 
+
 buildPlugin {
     doLast {
         copy {
@@ -91,16 +96,16 @@ buildPlugin {
             it[1].replaceAll(/(?s)- /, "\u2022 ").replaceAll(/`/, "").replaceAll(/,/, "%2C").replaceAll(/;/, "%3B")
         }.take(1).join("")
 
-        def arguments = setBuildTool.args.clone()
-        arguments << "/t:Pack"
-        arguments << "/p:PackageOutputPath=${rootDir}/output"
-        arguments << "/p:PackageReleaseNotes=${changeNotes}"
-        arguments << "/p:PackageVersion=${version}"
-        exec {
-            executable setBuildTool.executable
-            args arguments
-            workingDir rootDir
-        }
+//        def arguments = setBuildTool.args.clone()
+//        arguments << "/t:Pack"
+//        arguments << "/p:PackageOutputPath=${rootDir}/output"
+//        arguments << "/p:PackageReleaseNotes=${changeNotes}"
+//        arguments << "/p:PackageVersion=${version}"
+//        exec {
+//            executable setBuildTool.executable
+//            args arguments
+//            workingDir rootDir
+//        }
     }
 }
 

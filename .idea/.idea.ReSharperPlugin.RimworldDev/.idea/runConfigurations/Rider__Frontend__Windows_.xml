@@ -5,7 +5,7 @@
     <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
     <option name="PASS_PARENT_ENVS" value="1" />
     <envs>
-      <env name="JAVA_HOME" value="C:\Users\Gareth\.jdks\corretto-11.0.14.1" />
+      <env name="JAVA_HOME" value="C:\Users\Gareth\.jdks\corretto-16.0.2" />
     </envs>
     <option name="USE_EXTERNAL_CONSOLE" value="0" />
     <method v="2" />

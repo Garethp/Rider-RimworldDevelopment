@@ -7,7 +7,7 @@
     <envs>
       <env name="RESHARPER_HOST_DEBUG_SELF" value="1" />
       <env name="RUNNING_FROM_RIDER" value="1" />
-      <env name="JAVA_HOME" value="C:\Users\Gareth\.jdks\corretto-11.0.14.1" />
+      <env name="JAVA_HOME" value="C:\Users\Gareth\.jdks\corretto-16.0.2" />
     </envs>
     <option name="USE_EXTERNAL_CONSOLE" value="0" />
     <method v="2">

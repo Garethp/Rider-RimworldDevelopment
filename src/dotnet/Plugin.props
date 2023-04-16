@@ -1,7 +1,7 @@
 ﻿<Project>
 
   <PropertyGroup>
-    <SdkVersion>2022.2.0</SdkVersion>
+    <SdkVersion>2023.1.0</SdkVersion>
 
     <Title>RimworldDev</Title>
     <Description>Description</Description>
