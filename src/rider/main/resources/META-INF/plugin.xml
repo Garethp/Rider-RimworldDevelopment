@@ -13,7 +13,7 @@
   </description>
 
   <extensions defaultExtensionNs="com.intellij">
-    <completion.contributor language="XML" order="first, before xml" implementationClass="com.jetbrains.rdclient.completion.ProtocolCompletionContributor" />
+    <completion.contributor language="XML" order="first, before xml" implementationClass="com.jetbrains.rider.completion.ProtocolCompletionContributor" />
     <lang.documentationProvider language="XML" implementationClass="com.jetbrains.rdclient.quickDoc.FrontendDocumentationProvider"/>
     <backend.actions.support language="XML" implementationClass="com.jetbrains.rider.actions.RiderActionSupportPolicy" />
   </extensions>
