@@ -87,7 +87,8 @@ public class RimworldReferenceFactory : IReferenceFactory
             // return new ReferenceCollection();
         }
 
-        if (!classContext.GetAllSuperClasses().Any(superClass => superClass.GetClrName().FullName == "Verse.Def"))
+        if (!classContext.GetAllSuperClasses().Any(superClass => superClass.GetClrName().FullName == "Verse.Def") &&
+            !classContext.GetAllSuperTypes().Any(superType => superType.GetClrName().FullName == "Verse.Def"))
             return new ReferenceCollection();
 
         var tagId = $"{classContext.ShortName}/{element.GetText()}";

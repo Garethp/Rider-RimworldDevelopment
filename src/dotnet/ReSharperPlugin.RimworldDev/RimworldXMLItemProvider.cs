@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -14,6 +15,7 @@ using JetBrains.ReSharper.Psi.Modules;
 using JetBrains.ReSharper.Psi.Resolve;
 using JetBrains.ReSharper.Psi.Tree;
 using JetBrains.ReSharper.Psi.Util;
+using JetBrains.ReSharper.Psi.VB.Util;
 using JetBrains.ReSharper.Psi.Xml;
 using JetBrains.ReSharper.Psi.Xml.Impl.Tree;
 using JetBrains.Util;
@@ -22,10 +24,10 @@ using ReSharperPlugin.RimworldDev.TypeDeclaration;
 namespace ReSharperPlugin.RimworldDev;
 
 [Language(typeof(XmlLanguage))]
-public class RimworldXMLItemProvider: ItemsProviderOfSpecificContext<RimworldXmlCodeCompletionContext>
+public class RimworldXMLItemProvider : ItemsProviderOfSpecificContext<RimworldXmlCodeCompletionContext>
 {
-    private static RimworldCSharpLookupFactory LookupFactory = new ();
-    
+    private static RimworldCSharpLookupFactory LookupFactory = new();
+
     /**
      * Defines whether this item provider is available in a given context. At the moment, it only provides lookups for
      * XML where it's a tag and you're working on the tag name, so `<{CARET_HERE}>`, but not
@@ -34,12 +36,13 @@ public class RimworldXMLItemProvider: ItemsProviderOfSpecificContext<RimworldXml
      */
     protected override bool IsAvailable(RimworldXmlCodeCompletionContext context)
     {
-        if ((context.TreeNode is XmlIdentifier identifier && identifier.Parent is XmlTagHeaderNode) || context.TreeNode is XmlTagStartToken) return true;
+        if ((context.TreeNode is XmlIdentifier identifier && identifier.Parent is XmlTagHeaderNode) ||
+            context.TreeNode is XmlTagStartToken) return true;
         if (context.TreeNode is XmlFloatingTextToken && context.TreeNode.NodeType.ToString() == "TEXT") return true;
 
         if (context.TreeNode is XmlTagEndToken && context.TreeNode.PrevSibling is XmlIdentifier &&
             context.TreeNode.PrevSibling.PrevSibling?.GetText() != "</") return true;
-        
+
         return false;
     }
 
@@ -52,7 +55,7 @@ public class RimworldXMLItemProvider: ItemsProviderOfSpecificContext<RimworldXml
             currentNode = currentNode.Parent;
             if (currentNode is XmlTag tagNode) return tagNode;
         }
-        
+
         return null;
     }
 
@@ -63,17 +66,18 @@ public class RimworldXMLItemProvider: ItemsProviderOfSpecificContext<RimworldXml
 
         return null;
     }
-    
+
     protected override bool AddLookupItems(RimworldXmlCodeCompletionContext context, IItemsCollector collector)
     {
         if (!ScopeHelper.UpdateScopes(context.TreeNode.GetSolution())) return false;
-        
+
         if (context.TreeNode is XmlFloatingTextToken && context.TreeNode.NodeType.ToString() == "TEXT")
         {
             AddTextLookupItems(context, collector);
+            var a = 1 + 1;
             return base.AddLookupItems(context, collector);
         }
-        
+
         if (context.TreeNode is XmlTagEndToken && context.TreeNode.PrevSibling is XmlIdentifier &&
             context.TreeNode.PrevSibling.PrevSibling?.GetText() != "</")
         {
@@ -96,24 +100,24 @@ public class RimworldXMLItemProvider: ItemsProviderOfSpecificContext<RimworldXml
         {
             currentTag = context.TreeNode;
         }
-        
+
         var parentTag = GetParentTag(currentTag);
         var parentTagName = GetTagName(parentTag);
-        
+
         var solution = context.TreeNode.GetSourceFile().PsiModule.GetSolution();
 
         // Here we're fetching the CSharp Symbol Scope for Rimworld so that we can do our autocomplete.
         // TODO: Detect based on something else, maybe look for Rimworld's class
         // TODO: Don't crash if there's no scope
         // var rimWorldModule = solution.PsiModules().GetModules()
-            // .First(assembly => assembly.DisplayName == "Assembly-CSharp");
+        // .First(assembly => assembly.DisplayName == "Assembly-CSharp");
 
         var rimWorldModule = ScopeHelper.RimworldModule;
-        
+
         var rimworldSymbolScope = ScopeHelper.RimworldScope;
 
         if (parentTagName == "Defs")
-        {        
+        {
             AddThingDefClasses(context, collector, rimworldSymbolScope, rimWorldModule);
         }
         else
@@ -126,8 +130,7 @@ public class RimworldXMLItemProvider: ItemsProviderOfSpecificContext<RimworldXml
 
     protected void AddTextLookupItems(RimworldXmlCodeCompletionContext context, IItemsCollector collector)
     {
-        var element= context.TreeNode;
-        var hierarchy = GetHierarchy(element);
+        var hierarchy = GetHierarchy(context.TreeNode);
 
         if (hierarchy.Count == 0) return;
 
@@ -137,7 +140,7 @@ public class RimworldXMLItemProvider: ItemsProviderOfSpecificContext<RimworldXml
         if (classContext.GetType().Name == "Struct")
         {
             var options = classContext.Fields.Where(field => field.IsStatic);
-            
+
             foreach (var option in options)
             {
                 var lookup = LookupFactory.CreateDeclaredElementLookupItem(
@@ -150,11 +153,11 @@ public class RimworldXMLItemProvider: ItemsProviderOfSpecificContext<RimworldXml
 
             return;
         }
-        
+
         if (classContext.GetType().Name == "Enum")
         {
             var options = classContext.GetMembers();
-            
+
             foreach (var option in options)
             {
                 var lookup = LookupFactory.CreateDeclaredElementLookupItem(
@@ -167,8 +170,9 @@ public class RimworldXMLItemProvider: ItemsProviderOfSpecificContext<RimworldXml
 
             return;
         }
-        
-        if (!classContext.GetAllSuperClasses().Any(superClass => superClass.GetClrName().FullName == "Verse.Def"))
+
+        if (!classContext.GetAllSuperClasses().Any(superClass => superClass.GetClrName().FullName == "Verse.Def") &&
+            !classContext.GetAllSuperTypes().Any(superType => superType.GetClrName().FullName == "Verse.Def"))
             return;
 
         var className = classContext.ShortName;
@@ -176,23 +180,25 @@ public class RimworldXMLItemProvider: ItemsProviderOfSpecificContext<RimworldXml
         var keys = RimworldXMLDefUtil.DefTags.Keys
             .Where(key => key.StartsWith($"{className}/"))
             .Select(key => key.Substring(className.Length + 1));
-        
-        keys.ForEach(key =>
+
+        foreach (var key in keys)
         {
             var item = RimworldXMLDefUtil.DefTags[$"{className}/{key}"];
-            
-            var lookup = LookupFactory.CreateDeclaredElementLookupItem(context, key, new DeclaredElementInstance(new XMLTagDeclaredElement(item, key, false)));
+
+            var lookup = LookupFactory.CreateDeclaredElementLookupItem(context, key,
+                new DeclaredElementInstance(new XMLTagDeclaredElement(item, key, false)));
             collector.Add(lookup);
-        });
-        
+        }
+
         return;
     }
-    
-    protected void AddThingDefClasses(RimworldXmlCodeCompletionContext context, IItemsCollector collector, ISymbolScope symbolScope, IPsiModule module)
+
+    protected void AddThingDefClasses(RimworldXmlCodeCompletionContext context, IItemsCollector collector,
+        ISymbolScope symbolScope, IPsiModule module)
     {
         var defType = symbolScope
             .GetTypeElementByCLRName("Verse.Def");
-            
+
         var consumer = new SearchResultsConsumer();
         var pi = NullProgressIndicator.Create();
         module.GetPsiServices().Finder.FindInheritors(defType, symbolScope, consumer, pi);
@@ -224,7 +230,7 @@ public class RimworldXMLItemProvider: ItemsProviderOfSpecificContext<RimworldXml
     public static List<string> GetHierarchy(ITreeNode treeNode)
     {
         var list = new List<string>();
-        
+
         var currentNode = treeNode;
         while (currentNode.NodeType.ToString() != "FILE" && currentNode.NodeType.ToString() != "SANDBOX")
         {
@@ -237,11 +243,12 @@ public class RimworldXMLItemProvider: ItemsProviderOfSpecificContext<RimworldXml
             if (!currentNode.FirstChild.Children().ElementAt(1).Equals(treeNode))
             {
                 // If we're in an <li> and there's a Class="" attribute, let's return it as li<Class> so that we can handle it later
-                if (currentNode.FirstChild.Children().ElementAt(1).GetText() == "li" && currentNode.FirstChild.Children().FirstOrDefault(child =>
-                    {
-                        if (child is not XmlAttribute attr) return false;
-                        return attr.AttributeName == "Class";
-                    }) is XmlAttribute classAttr)
+                if (currentNode.FirstChild.Children().ElementAt(1).GetText() == "li" && currentNode.FirstChild
+                        .Children().FirstOrDefault(child =>
+                        {
+                            if (child is not XmlAttribute attr) return false;
+                            return attr.AttributeName == "Class";
+                        }) is XmlAttribute classAttr)
                 {
                     list.Insert(0, $"li<{classAttr.Value.UnquotedValue}>");
                 }
@@ -268,17 +275,14 @@ public class RimworldXMLItemProvider: ItemsProviderOfSpecificContext<RimworldXml
     public static List<IField> GetAllPublicFields(ITypeElement desiredClass, ISymbolScope symbolScope)
     {
         var fields = new Dictionary<string, IField>();
-        
-        desiredClass.Fields.ForEach(field =>
-        {
-            fields.Add(field.ShortName, field);
-        });
-        
+
+        desiredClass.Fields.ForEach(field => { fields.Add(field.ShortName, field); });
+
         desiredClass.GetAllSuperClasses().ForEach(superClass =>
         {
             if (superClass.GetClassType() is not Class superType) return;
             if (superClass.GetClrName().FullName == "System.Object") return;
-            
+
             if (superType.ShortName == "Object") return;
 
             foreach (var classField in superType.Fields)
@@ -289,7 +293,7 @@ public class RimworldXMLItemProvider: ItemsProviderOfSpecificContext<RimworldXml
                 }
             }
         });
-        
+
         return fields.Values.ToList();
     }
 
@@ -301,7 +305,8 @@ public class RimworldXMLItemProvider: ItemsProviderOfSpecificContext<RimworldXml
      * which is a `StorageSettings` class which has `StorageSettings.filter` as a `ThingFilter` class, so we return the
      * `ThingFilter` class as a result of this method
      */
-    public static ITypeElement GetContextFromHierachy(List<string> hierarchy, ISymbolScope symbolScope, List<ISymbolScope> allSymbolScopes)
+    public static ITypeElement GetContextFromHierachy(List<string> hierarchy, ISymbolScope symbolScope,
+        List<ISymbolScope> allSymbolScopes)
     {
         ITypeElement currentContext = null;
         var isList = false;
@@ -327,7 +332,7 @@ public class RimworldXMLItemProvider: ItemsProviderOfSpecificContext<RimworldXml
                 {
                     return null;
                 }
-                
+
                 // Use regex to grab the className and then fetch it from the symbol scope
                 var classValue = Regex.Match(previousField.Type.GetLongPresentableName(CSharpLanguage.Instance),
                     @"^System.Collections.Generic.List<(.*?)>$").Groups[1].Value;
@@ -335,16 +340,16 @@ public class RimworldXMLItemProvider: ItemsProviderOfSpecificContext<RimworldXml
                 currentContext = symbolScope.GetTypeElementByCLRName(classValue);
                 continue;
             }
-            
+
             // Taking a look at `GetHierarchy`, there are instances where we have `<li Class="">`, so we want to pull
             // the class name from that attribute instead of the previous field.
             if (Regex.Match(currentNode, @"^li<(.*?)>$").Success)
             {
                 var match = Regex.Match(currentNode, @"^li<(.*?)>$");
                 var classValue = match.Groups[1].Value;
-                
+
                 if (classValue == "") return null;
-                
+
                 // First we try to look it up as a short name from the Rimworld DLL
                 currentContext = symbolScope.GetElementsByShortName(classValue).FirstOrDefault() as ITypeElement;
                 if (currentContext != null) continue;
@@ -369,7 +374,7 @@ public class RimworldXMLItemProvider: ItemsProviderOfSpecificContext<RimworldXml
 
             // I believe this is just for handling the first item in the hierarchy array, when we haven't set up a
             // current context to be diving into
-            if (currentContext is not Class)
+            if (!currentContext.IsClass())
             {
                 currentContext = symbolScope.GetElementsByShortName(currentNode).FirstOrDefault() as Class;
                 continue;
@@ -380,25 +385,27 @@ public class RimworldXMLItemProvider: ItemsProviderOfSpecificContext<RimworldXml
             if (field == null) return null;
             previousField = field;
             var clrName = field.Type.GetLongPresentableName(CSharpLanguage.Instance);
-            
+
             currentContext = symbolScope.GetTypeElementByCLRName(clrName);
         }
 
         return currentContext;
     }
 
-    protected ITypeElement GetCurrentClass(RimworldXmlCodeCompletionContext context, ISymbolScope symbolScope, List<ISymbolScope> allSymbolScopes)
+    protected ITypeElement GetCurrentClass(RimworldXmlCodeCompletionContext context, ISymbolScope symbolScope,
+        List<ISymbolScope> allSymbolScopes)
     {
         var hierarchy = GetHierarchy(context.TreeNode);
         var currentClass = GetContextFromHierachy(hierarchy, symbolScope, allSymbolScopes);
         return currentClass;
     }
 
-    protected void AddProperties(RimworldXmlCodeCompletionContext context, IItemsCollector collector, ISymbolScope symbolScope, IPsiModule module)
+    protected void AddProperties(RimworldXmlCodeCompletionContext context, IItemsCollector collector,
+        ISymbolScope symbolScope, IPsiModule module)
     {
         var allSymbolScopes = module.GetSolution().PsiModules().GetModules().Select(module =>
             module.GetPsiServices().Symbols.GetSymbolScope(module, true, true)).ToList();
-        
+
         var parentClass = GetCurrentClass(context, symbolScope, allSymbolScopes);
         if (parentClass is null) return;
 
@@ -409,7 +416,8 @@ public class RimworldXMLItemProvider: ItemsProviderOfSpecificContext<RimworldXml
             if (!field.IsField || field.AccessibilityDomain.DomainType !=
                 AccessibilityDomain.AccessibilityDomainType.PUBLIC) continue;
 
-            var lookup = LookupFactory.CreateDeclaredElementLookupItem(context, field.ShortName, new DeclaredElementInstance(field), true, false, QualifierKind.NONE);
+            var lookup = LookupFactory.CreateDeclaredElementLookupItem(context, field.ShortName,
+                new DeclaredElementInstance(field), true, false, QualifierKind.NONE);
             collector.Add(lookup);
         }
     }

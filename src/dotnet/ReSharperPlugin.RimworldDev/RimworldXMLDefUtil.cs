@@ -13,30 +13,30 @@ public class RimworldXMLDefUtil
 
     public static void UpdateDefs(ISolution solution)
     {
-        var mySolution = solution.GetAllProjects().FirstOrDefault(project => project.Name == "AshAndDust");
-        if (mySolution is null) return;
-        
-        var files = mySolution.GetAllProjectFiles(file => file.LanguageType.Name == "XML");
-        
-        foreach (var projectFile in files)
+        foreach (var project in solution.GetAllProjects())
         {
-            if (projectFile.GetPrimaryPsiFile() is not IXmlFile xmlFile) continue;
-            
-            xmlFile.GetNestedTags<IXmlTag>("Defs/*").Where(tag =>
-            {
-                var defNameTag = tag.GetNestedTags<IXmlTag>("defName").FirstOrDefault();
-                if (defNameTag is null) return false;
+            var files = project.GetAllProjectFiles(file => file.LanguageType.Name == "XML");
 
-                return true;
-            }).ForEach(tag =>
+            foreach (var projectFile in files)
             {
-                var defName = tag.GetNestedTags<IXmlTag>("defName").FirstOrDefault()?.InnerText;
-                if (defName is null || DefTags.ContainsKey($"{tag.GetTagName()}/{defName}")) return;
+                if (projectFile.GetPrimaryPsiFile() is not IXmlFile xmlFile) continue;
+
+                var tags = xmlFile.GetNestedTags<IXmlTag>("Defs/*").Where(tag =>
+                {
+                    var defNameTag = tag.GetNestedTags<IXmlTag>("defName").FirstOrDefault();
+                    if (defNameTag is null) return false;
+
+                    return true;
+                });
                 
-                DefTags.Add($"{tag.GetTagName()}/{defName}", tag);
-            });
+                foreach (var tag in tags)
+                {
+                    var defName = tag.GetNestedTags<IXmlTag>("defName").FirstOrDefault()?.InnerText;
+                    if (defName is null || DefTags.ContainsKey($"{tag.GetTagName()}/{defName}")) continue;
+
+                    DefTags.Add($"{tag.GetTagName()}/{defName}", tag);
+                }
+            }
         }
-        
-        return;
     }
 }
