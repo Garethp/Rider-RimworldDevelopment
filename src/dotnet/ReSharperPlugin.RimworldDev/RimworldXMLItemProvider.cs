@@ -103,15 +103,7 @@ public class RimworldXMLItemProvider : ItemsProviderOfSpecificContext<RimworldXm
 
         var parentTag = GetParentTag(currentTag);
         var parentTagName = GetTagName(parentTag);
-
-        var solution = context.TreeNode.GetSourceFile().PsiModule.GetSolution();
-
-        // Here we're fetching the CSharp Symbol Scope for Rimworld so that we can do our autocomplete.
-        // TODO: Detect based on something else, maybe look for Rimworld's class
-        // TODO: Don't crash if there's no scope
-        // var rimWorldModule = solution.PsiModules().GetModules()
-        // .First(assembly => assembly.DisplayName == "Assembly-CSharp");
-
+        
         var rimWorldModule = ScopeHelper.RimworldModule;
 
         var rimworldSymbolScope = ScopeHelper.RimworldScope;
@@ -276,14 +268,17 @@ public class RimworldXMLItemProvider : ItemsProviderOfSpecificContext<RimworldXm
     {
         var fields = new Dictionary<string, IField>();
 
-        desiredClass.Fields.ForEach(field => { fields.Add(field.ShortName, field); });
-
-        desiredClass.GetAllSuperClasses().ForEach(superClass =>
+        foreach (var field in desiredClass.Fields)
         {
-            if (superClass.GetClassType() is not Class superType) return;
-            if (superClass.GetClrName().FullName == "System.Object") return;
+            fields.Add(field.ShortName, field);
+        }
 
-            if (superType.ShortName == "Object") return;
+        foreach (var superClass in desiredClass.GetAllSuperClasses())
+        {
+            if (superClass.GetClassType() is not { } superType) continue;
+            if (superClass.GetClrName().FullName == "System.Object") continue;
+
+            if (superType.ShortName == "Object") continue;
 
             foreach (var classField in superType.Fields)
             {
@@ -292,7 +287,7 @@ public class RimworldXMLItemProvider : ItemsProviderOfSpecificContext<RimworldXm
                     fields.Add(classField.ShortName, classField);
                 }
             }
-        });
+        }
 
         return fields.Values.ToList();
     }

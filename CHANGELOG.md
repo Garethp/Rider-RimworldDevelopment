@@ -1,8 +1,7 @@
 # Changelog
-All notable changes to this project will be documented in this file.
 
-The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
-and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
+## 2023.1-Alpha-3
+ * Fixed some instances of certain classes not being queried for their properties
 
 ## 2023.1-Alpha-2
  * Minimum Rider version is now 2023.1
