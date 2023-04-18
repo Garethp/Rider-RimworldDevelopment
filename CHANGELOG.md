@@ -2,6 +2,8 @@
 
 ## 2023.1-Alpha-3
  * Fixed some instances of certain classes not being queried for their properties
+ * If you've got a project without the Assembly-CSharp.dll referenced (If you're on Linux for example), it should now be
+   able to find the DLL file on disk and reference that directly as a fall-back
 
 ## 2023.1-Alpha-2
  * Minimum Rider version is now 2023.1
