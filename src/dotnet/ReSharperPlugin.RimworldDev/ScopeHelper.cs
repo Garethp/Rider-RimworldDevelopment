@@ -1,16 +1,11 @@
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
-using JetBrains.Application.Threading;
 using JetBrains.Application.Threading.Tasks;
 using JetBrains.Metadata.Reader.API;
 using JetBrains.ProjectModel;
-using JetBrains.ProjectModel.Assemblies.Impl;
 using JetBrains.ProjectModel.model2.Assemblies.Interfaces;
-using JetBrains.ProjectModel.Model2.Assemblies.Interfaces;
 using JetBrains.ReSharper.Psi.Caches;
 using JetBrains.ReSharper.Psi.Modules;
-using JetBrains.ReSharper.TestFramework;
 using JetBrains.Util;
 using JetBrains.Util.Threading.Tasks;
 
