@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using JetBrains.Application.Threading;
+using JetBrains.Application.Threading.Tasks;
 using JetBrains.Metadata.Reader.API;
 using JetBrains.ProjectModel;
 using JetBrains.ProjectModel.Assemblies.Impl;
@@ -10,6 +12,7 @@ using JetBrains.ReSharper.Psi.Caches;
 using JetBrains.ReSharper.Psi.Modules;
 using JetBrains.ReSharper.TestFramework;
 using JetBrains.Util;
+using JetBrains.Util.Threading.Tasks;
 
 namespace ReSharperPlugin.RimworldDev;
 
@@ -24,7 +27,7 @@ public class ScopeHelper
     public static bool UpdateScopes(ISolution solution)
     {
         if (solution == null) return false;
-        
+
         allScopes = solution.PsiModules().GetModules().Select(module =>
             module.GetPsiServices().Symbols.GetSymbolScope(module, true, true)).ToList();
 
@@ -34,34 +37,36 @@ public class ScopeHelper
 
             if (rimworldScope == null)
             {
-                if (!adding)
-                {
-                    var location =
-                        "C:\\Program Files (x86)\\Steam\\steamapps\\common\\RimWorld\\RimWorldWin64_Data\\Managed\\Assembly-CSharp.dll";
-                    var path = FileSystemPath.TryParse(location);
-
-                    var moduleReferenceResolveContext =
-                        (IModuleReferenceResolveContext)UniversalModuleReferenceContext.Instance;
-
-                    IShellLocks shellLocks = solution.GetComponent<IShellLocks>();
-
-                    // using (shellLocks.UsingWriteLock("Src\\TestFramework\\BaseTestWithSolution.cs"))
-                        solution.GetComponent<IAssemblyFactory>().AddRef(path.ToAssemblyLocation(),
-                            "SolutionTestExtensions::AddAssembly", moduleReferenceResolveContext);
-
-                    adding = true;
-                }
+                AddRef(solution);
 
                 return false;
-            };
+            }
             
             rimworldModule = solution.PsiModules().GetModules()
-                .First(module => module.GetPsiServices().Symbols.GetSymbolScope(module, true, true).GetTypeElementByCLRName("Verse.ThingDef") != null);
-
-            // rimworldScope = rimWorldModule.GetPsiServices().Symbols.GetSymbolScope(rimWorldModule, true, true);
+                .First(module =>
+                    module.GetPsiServices().Symbols.GetSymbolScope(module, true, true)
+                        .GetTypeElementByCLRName("Verse.ThingDef") != null);
         }
 
         return true;
+    }
+
+    private static async void AddRef(ISolution solution)
+    {
+        if (adding) return;
+        adding = true;
+
+        var location =
+            "C:\\Program Files (x86)\\Steam\\steamapps\\common\\RimWorld\\RimWorldWin64_Data\\Managed\\Assembly-CSharp.dll";
+        var path = FileSystemPath.TryParse(location);
+
+        var moduleReferenceResolveContext =
+            (IModuleReferenceResolveContext)UniversalModuleReferenceContext.Instance;
+
+        await solution.Locks.Tasks.YieldTo(solution.GetLifetime(), Scheduling.MainDispatcher, TaskPriority.Low);
+
+        solution.GetComponent<IAssemblyFactory>().AddRef(path.ToAssemblyLocation(), "ScopeHelper::AddRef",
+            moduleReferenceResolveContext);
     }
 
     public static ISymbolScope RimworldScope => rimworldScope;
