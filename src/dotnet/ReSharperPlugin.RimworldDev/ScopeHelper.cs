@@ -56,8 +56,18 @@ public class ScopeHelper
         if (adding) return;
         adding = true;
 
-        var location =
-            "C:\\Program Files (x86)\\Steam\\steamapps\\common\\RimWorld\\RimWorldWin64_Data\\Managed\\Assembly-CSharp.dll";
+        var locations = new List<string>
+        {
+            "C:\\Program Files (x86)\\Steam\\steamapps\\common\\RimWorld\\RimWorldWin64_Data\\Managed\\Assembly-CSharp.dll",
+            "C:\\Program Files\\Steam\\steamapps\\common\\RimWorld\\RimWorldWin64_Data\\Managed\\Assembly-CSharp.dll",
+            "~/.steam/steam/SteamApps/common/RimWorld/RimWorldWin64_Data/Managed/Assembly-CSharp.dll"
+        };
+
+
+        var location = locations.FirstOrDefault(location => FileSystemPath.TryParse(location).ExistsFile);
+
+        if (location == null) return;
+        
         var path = FileSystemPath.TryParse(location);
 
         var moduleReferenceResolveContext =
