@@ -1,7 +1,7 @@
 <idea-plugin require-restart="true">
   <id>com.jetbrains.rider.plugins.rimworlddev</id>
   <name>RimworldDev</name>
-  <version>2023.1-ALPHA-3</version>
+  <version>2023.1-ALPHA-4</version>
   <vendor url="https://github.com/Garethp/Rider-RimworldDevelopment">Garethp</vendor>
   <idea-version since-build="231" />
   <depends>com.intellij.modules.rider</depends>

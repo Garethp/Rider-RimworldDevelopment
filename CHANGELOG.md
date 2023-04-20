@@ -1,5 +1,8 @@
 # Changelog
 
+## 2023.1-Alpha-4
+ * Added support for auto-completing booleans. Not strictly useful, but why not
+
 ## 2023.1-Alpha-3
  * Fixed some instances of certain classes not being queried for their properties
  * If you've got a project without the Assembly-CSharp.dll referenced (If you're on Linux for example), it should now be

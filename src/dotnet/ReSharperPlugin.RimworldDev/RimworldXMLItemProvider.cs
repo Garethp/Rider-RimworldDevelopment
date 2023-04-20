@@ -5,8 +5,10 @@ using System.Text.RegularExpressions;
 using JetBrains.Application.Progress;
 using JetBrains.ReSharper.Feature.Services.CodeCompletion.Infrastructure;
 using JetBrains.ReSharper.Feature.Services.CodeCompletion.Infrastructure.LookupItems;
+using JetBrains.ReSharper.Feature.Services.CodeCompletion.Infrastructure.LookupItems.Impl;
 using JetBrains.ReSharper.Feature.Services.Navigation.Requests;
 using JetBrains.ReSharper.Feature.Services.Occurrences;
+using JetBrains.ReSharper.Features.Intellisense.CodeCompletion.CSharp;
 using JetBrains.ReSharper.Psi;
 using JetBrains.ReSharper.Psi.Caches;
 using JetBrains.ReSharper.Psi.CSharp;
@@ -103,7 +105,7 @@ public class RimworldXMLItemProvider : ItemsProviderOfSpecificContext<RimworldXm
 
         var parentTag = GetParentTag(currentTag);
         var parentTagName = GetTagName(parentTag);
-        
+
         var rimWorldModule = ScopeHelper.RimworldModule;
 
         var rimworldSymbolScope = ScopeHelper.RimworldScope;
@@ -128,6 +130,14 @@ public class RimworldXMLItemProvider : ItemsProviderOfSpecificContext<RimworldXm
 
         var classContext = GetContextFromHierachy(hierarchy, ScopeHelper.RimworldScope, ScopeHelper.AllScopes);
         if (classContext == null) return;
+
+        if (classContext.GetClrName().FullName == "System.Boolean")
+        {
+            collector.Add(CSharpLookupItemFactory.Instance.CreateTextLookupItem(context.Ranges, "true", true));
+            collector.Add(CSharpLookupItemFactory.Instance.CreateTextLookupItem(context.Ranges, "false", true));
+            
+            return;
+        }
 
         if (classContext.GetType().Name == "Struct")
         {
@@ -382,6 +392,11 @@ public class RimworldXMLItemProvider : ItemsProviderOfSpecificContext<RimworldXm
             var clrName = field.Type.GetLongPresentableName(CSharpLanguage.Instance);
 
             currentContext = symbolScope.GetTypeElementByCLRName(clrName);
+
+            if (clrName == "bool")
+            {
+                currentContext = symbolScope.GetTypeElementByCLRName("System.Boolean");
+            }
         }
 
         return currentContext;
