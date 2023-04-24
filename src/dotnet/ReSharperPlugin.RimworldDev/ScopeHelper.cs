@@ -26,6 +26,12 @@ public class ScopeHelper
         allScopes = solution.PsiModules().GetModules().Select(module =>
             module.GetPsiServices().Symbols.GetSymbolScope(module, true, true)).ToList();
 
+        // If we haven't determined the Rimworld scope yet, our scopes may not be ready for querying. Since I'd rather
+        // that we were able to pull the scope from the dependencies than try to find it ourselves, let's check if the
+        // scopes are ready for querying first. Ofcourse, if we have no scopes at all, there's nothing to wait for
+        if (rimworldScope == null && allScopes.Any() && allScopes.Any(scope => !scope.GetAllShortNames().Any())) 
+            return false;
+        
         if (rimworldScope == null)
         {
             rimworldScope = allScopes.FirstOrDefault(scope => scope.GetTypeElementByCLRName("Verse.ThingDef") != null);
@@ -55,13 +61,48 @@ public class ScopeHelper
         {
             "C:\\Program Files (x86)\\Steam\\steamapps\\common\\RimWorld\\RimWorldWin64_Data\\Managed\\Assembly-CSharp.dll",
             "C:\\Program Files\\Steam\\steamapps\\common\\RimWorld\\RimWorldWin64_Data\\Managed\\Assembly-CSharp.dll",
-            "~/.steam/steam/SteamApps/common/RimWorld/RimWorldWin64_Data/Managed/Assembly-CSharp.dll"
+            "~/.steam/steam/steamapps/common/RimWorld/RimWorldLinux_Data/Managed/Assembly-CSharp.dll"
         };
-
-
+        
         var location = locations.FirstOrDefault(location => FileSystemPath.TryParse(location).ExistsFile);
 
-        if (location == null) return;
+        // If we're not able to find the Assembly file in the common locations, let's look for it through relative paths
+        if (location == null)
+        {
+            var fileRelativePaths = new List<string>
+            {
+                "RimWorldWin64_Data/Managed/Assembly-CSharp.dll",
+                "RimWorldWin_Data/Managed/Assembly-CSharp.dll",
+                "RimWorldLinux_Data/Managed/Assembly-CSharp.dll",
+                "Data/Managed/Assembly-CSharp.dll"
+            };
+            
+            var currentDirectory = FileSystemPath.TryParse(solution.SolutionDirectory.FullPath);
+            
+            // we're going to look up parent directories 5 times
+            for (var i = 0; i < 5; i++)
+            {
+                currentDirectory = currentDirectory.Parent;
+                
+                // If we spot UnityPlayer.dll, we're in the correct directory, we'll either find our Assembly-CSharp.dll
+                // relative to here or not at all
+                if (currentDirectory.GetDirectoryEntries()
+                    .Any(entry => entry.IsFile && entry.RelativePath.Name is "UnityPlayer.dll" or "UnityPlayer.so"))
+                {
+                    // We've got a few different possible relative locations for Assembly-CSharp.dll, let's check there
+                    var rimworldLocation = currentDirectory;
+                    location = fileRelativePaths.FirstOrDefault(path =>
+                        FileSystemPath.ParseRelativelyTo(path, rimworldLocation).ExistsFile);
+
+                    if (location != null)
+                        location = FileSystemPath.ParseRelativelyTo(location, rimworldLocation).FullPath;
+
+                    break;
+                }
+            }
+            
+            if (location == null) return;
+        };
         
         var path = FileSystemPath.TryParse(location);
 
