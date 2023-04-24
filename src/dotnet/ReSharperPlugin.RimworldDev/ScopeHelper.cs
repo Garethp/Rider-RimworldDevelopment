@@ -74,7 +74,7 @@ public class ScopeHelper
                 "RimWorldWin64_Data/Managed/Assembly-CSharp.dll",
                 "RimWorldWin_Data/Managed/Assembly-CSharp.dll",
                 "RimWorldLinux_Data/Managed/Assembly-CSharp.dll",
-                "Data/Managed/Assembly-CSharp.dll"
+                "Contents/Resources/Data/Managed/Assembly-CSharp.dll"
             };
             
             var currentDirectory = FileSystemPath.TryParse(solution.SolutionDirectory.FullPath);
@@ -86,7 +86,7 @@ public class ScopeHelper
                 
                 // If we spot UnityPlayer.dll, we're in the correct directory, we'll either find our Assembly-CSharp.dll
                 // relative to here or not at all
-                if (currentDirectory.GetDirectoryEntries()
+                if (currentDirectory.Name.EndsWith(".app") || currentDirectory.GetDirectoryEntries()
                     .Any(entry => entry.IsFile && entry.RelativePath.Name is "UnityPlayer.dll" or "UnityPlayer.so"))
                 {
                     // We've got a few different possible relative locations for Assembly-CSharp.dll, let's check there

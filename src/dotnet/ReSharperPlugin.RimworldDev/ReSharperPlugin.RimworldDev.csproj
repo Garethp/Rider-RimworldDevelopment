@@ -27,11 +27,6 @@
     <!-- TODO: add additional assemblies -->
   </ItemGroup>
 
-
-  <ItemGroup>
-    <Folder Include="ProblemAnalyzers" />
-  </ItemGroup>
-
   <!-- WARNING: ReSharper plugins with icons must be compiled using PowerShell scripts -->
   <!-- TODO: uncomment for xaml icons -->
 <!--  <ItemGroup>-->
