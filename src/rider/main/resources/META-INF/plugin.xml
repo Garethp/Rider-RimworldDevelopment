@@ -30,6 +30,7 @@ in your mods!</p>
     <backend.actions.support language="XML" implementationClass="com.jetbrains.rider.actions.RiderActionSupportPolicy" />
 
     <configurationType implementation="RimworldDev.Rider.run.ConfigurationType"/>
+    <backend.markup.adapterFactory language="XML" implementationClass="com.jetbrains.rider.daemon.RiderCacheAwareMarkupAdapterFactory" />
   </extensions>
   
 </idea-plugin>
