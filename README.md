@@ -15,25 +15,15 @@ into the definitions on which the XML sits.
  * Enjoy autocompletion of DefTypes and their properties
  * Ctrl+Click into a tag in order to view the Class or Property that the tag is referring to
  * Autocomplete from classes defined in `Class=""` attributes, such as for comps.
-
-## Requirements for running this plugin
-
-Other than being able to install the plugin (at the moment I'm not building or releasing it) into either Rider or
-ReSharper, the only other requirement is that you must have a C# Solution that has Rimworlds DLL as a reference, so that
-this plugin can look at the modules in your solution and find Rimworlds classes to use for it's auto completion. Optionally,
-for best results, it's also suggested to have the XML Defs for your Mod and the Vanilla Defs linked as a folder in your C#
-solution so that this plugin can see them as files that belong to the Solution.
+ * When referring to other XML Defs (such as `<thought>ThoughtDefName</thought>`), auto complete and link to that defs XML
+ * Autocomplete certain values for properties with fixed options (Such as Altitude Layer, boolean and directions)
 
 ### Configuring your project
-If you have the Rimworld data folder attached you will get limited autocomplete of xml and ability to Ctrl+Click into the C#.
-Certain fields won't work due to a limitation with how Rider explores attached folder.
-To get full functionality you will need to add any Def folders as "existing items".
-Please note that sometimes the linked folders may not show everything as they do not update consistently.
+To give Rider all the information it needs to not only auto-complete and reference C# but also XML Defs, it's suggested
+that you add the XML Defs of your project and Vanilla Rimworld to your C# Project. Adding both the necessary folders into
+the project itself allows Rider to scan them for all the existing Defs and provide information about them as you try to
+refer to them.  Please note that sometimes the linked folders may not show everything as they do not update consistently.
 If you see a missing file, right click on your project and select `Reload Project` to force the links to update.
-
-Note that even though these are links you have to edit the file by clicking on the linked version for full functionality.
-Clicking on the original file may give reduced functionality.
-This is a bug and is tracked in [Issue: 1](https://github.com/Garethp/Rider-RimworldDevelopment/issues/1)
 
 #### Attaching Defs Via the UI
 Simply right click on your C# project in Rider and choose `Add -> Add Existing Item...`.
@@ -86,13 +76,18 @@ It is possible to group up all your imported defs into a folder for tidiness and
 
 ## Roadmap
 
-These are the features that I am planning on, or would like to build, into this plugin in the future:
+The major feature for the next version of this plugin (Version 1.1) is custom error reporting for your XML. For example
+if you try to use `<facing>NorthSouth</facing>` it will point out that's an invalid option. Likewise, if you pass in 
+`<visualSizeRange>2.5</visualSizeRange>` it will tell you that you need to pass in a range of numbers, not a single number.
+
+Additionally, here are some other features I intend to include at some point. These features are not slated for the 1.1
+release and are a list of things to do "at some point in time". In no particular order, they are:
 
  * Autocompleting and referencing classes in `Class=""` attributes in XML Tags
- * Packaging and releasing this plugin in an easy to install manner
  * Autocompleting and providing references when referring to C# classes in XML Values like in `<thoughtClass>` or `<compClass>`
  * Handle Def tags with custom classes instead of just Rimworld classes (such as `<MyMod.CustomThingDef>`)
- * When referring to other XML Defs (such as `<thought>ThoughtDefName</thought>`), auto complete and link to that defs XML
+ * Adding a Rimworld Mod template under New Solution
+ * Supporting Patches
 
 
 ## Quick Architecture For Developers
