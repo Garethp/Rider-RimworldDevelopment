@@ -30,3 +30,17 @@
    
  * Tests
    * It's not a serious project without Tests IMO. Let's at least aim to get one or two unit tests to start with
+
+ * Adding custom project structure
+   * Kotlin
+     * RiderProjectTypesProvider
+     * RiderProjectType
+   * ReSharper
+     * ProjectHost
+       * WebSiteProjectHost
+       * Implement Reload & Define Descriptors
+     * Project Reference Descriptors
+     * ProjectMark
+       * The entry in SolutionFile
+       * VirtualProjectMark
+       * It's the entry point to our project model
