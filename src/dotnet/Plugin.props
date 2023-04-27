@@ -3,15 +3,15 @@
   <PropertyGroup>
     <SdkVersion>2023.1.0</SdkVersion>
 
-    <Title>RimworldDev</Title>
-    <Description>Description</Description>
+    <Title>Rimworld Development Environment</Title>
+    <Description>Bring the intelligence of your IDE to Rimworld XML files. Use information backed by Rimworlds DLL file to autocomplete your XML, Ctrl+Click into the C# that your XML gets translated into and see what options you have when adding items in your mods!</Description>
 
-    <Authors>Author</Authors>
-    <Copyright>Copyright $([System.DateTime]::Now.Year) Maintainers of RimworldDev</Copyright>
-    <PackageTags>resharper plugin</PackageTags>
+    <Authors>Garethp</Authors>
+    <Copyright>Copyright $([System.DateTime]::Now.Year) Maintainers of Rimworld Development Environment</Copyright>
+    <PackageTags>rimworld</PackageTags>
 
-    <PackageProjectUrl></PackageProjectUrl>
-    <PackageLicenseUrl></PackageLicenseUrl>
+    <PackageProjectUrl>https://github.com/Garethp/Rider-RimworldDevelopment</PackageProjectUrl>
+    <PackageLicenseUrl>https://opensource.org/license/mit/</PackageLicenseUrl>
     <PackageIconUrl></PackageIconUrl>
   </PropertyGroup>
 

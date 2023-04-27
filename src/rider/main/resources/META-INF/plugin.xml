@@ -1,16 +1,24 @@
 <idea-plugin require-restart="true">
   <id>com.jetbrains.rider.plugins.rimworlddev</id>
-  <name>RimworldDev</name>
-  <version>2023.1</version>
+  <name>Rimworld Development Environment</name>
+  <version>2023.1.0</version>
   <vendor url="https://github.com/Garethp/Rider-RimworldDevelopment">Garethp</vendor>
   <idea-version since-build="231" />
   <depends>com.intellij.modules.rider</depends>
 
   <description>
 <![CDATA[
-<p>A plugin to enhance your development environment for creating Rimworld Mods</p>
+<p>Bring the intelligence of your IDE to Rimworld XML files. Use information backed by Rimworlds DLL file to autocomplete
+your XML, Ctrl+Click into the C# that your XML gets translated into and see what options you have when adding items
+in your mods!</p>
 ]]>
   </description>
+  
+  <change-notes>
+<![CDATA[
+<p>First release, first set of features</p>
+]]>
+  </change-notes>
 
   <extensions defaultExtensionNs="com.intellij">
     <completion.contributor language="XML" order="first, before xml" implementationClass="com.jetbrains.rider.completion.ProtocolCompletionContributor" />
