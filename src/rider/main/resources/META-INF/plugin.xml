@@ -16,7 +16,7 @@ in your mods!</p>
   
   <change-notes>
 <![CDATA[
-<p>First release, first set of features</p>
+<p>Massive performance update that stems from better caching of XML Defs</p>
 ]]>
   </change-notes>
 

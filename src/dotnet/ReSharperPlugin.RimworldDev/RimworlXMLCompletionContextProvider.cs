@@ -59,11 +59,6 @@ namespace ReSharperPlugin.RimworldDev
             if (treeNode == null)
                 return (ISpecificCodeCompletionContext) null;
             TreeTextRange treeRange = reference == null ? XmlCodeCompletionContextProvider.GetElementRange(treeNode) : reference.GetTreeTextRange();
-
-            if (1 == 1)
-            {
-                RimworldXMLDefUtil.UpdateDefs(xmlFile.GetSolution());
-            }
             
             DocumentRange documentRange = unterminatedContext.ToDocumentRange(treeRange);
             if (!documentRange.IsValid())

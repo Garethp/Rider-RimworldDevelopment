@@ -160,16 +160,6 @@ rdgen {
     }
 }
 
-patchPluginXml {
-    // TODO: See also org.jetbrains.changelog: https://github.com/JetBrains/gradle-changelog-plugin
-    def changelogText = file("${rootDir}/CHANGELOG.md").text
-    def changelogMatches = changelogText =~ /(?s)(-.+?)(?=##|$)/
-
-    changeNotes = changelogMatches.collect {
-        it[1].replaceAll(/(?s)\r?\n/, "<br />\n")
-    }.take(1).join('')
-}
-
 prepareSandbox {
     dependsOn compileDotNet
 

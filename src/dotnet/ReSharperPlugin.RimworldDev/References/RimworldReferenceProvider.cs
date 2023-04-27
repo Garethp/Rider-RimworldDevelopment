@@ -2,15 +2,16 @@ using System;
 using System.Linq;
 using JetBrains.DataFlow;
 using JetBrains.Lifetimes;
+using JetBrains.ProjectModel;
 using JetBrains.ReSharper.Psi;
 using JetBrains.ReSharper.Psi.Caches;
-using JetBrains.ReSharper.Psi.Modules;
 using JetBrains.ReSharper.Psi.Resolve;
 using JetBrains.ReSharper.Psi.Tree;
 using JetBrains.ReSharper.Psi.Util;
 using JetBrains.ReSharper.Psi.Xml;
 using JetBrains.ReSharper.Psi.Xml.Impl.Tree;
 using JetBrains.ReSharper.Psi.Xml.Tree;
+using ReSharperPlugin.RimworldDev.Cache;
 
 namespace ReSharperPlugin.RimworldDev.TypeDeclaration;
 
@@ -91,12 +92,12 @@ public class RimworldReferenceFactory : IReferenceFactory
             !classContext.GetAllSuperTypes().Any(superType => superType.GetClrName().FullName == "Verse.Def"))
             return new ReferenceCollection();
 
+        var xmlSymbolTable = element.GetSolution().GetComponent<RimworldXMLCache>();
+
         var tagId = $"{classContext.ShortName}/{element.GetText()}";
-        if (!RimworldXMLDefUtil.DefTags.ContainsKey(tagId)) return new ReferenceCollection();
-
-        var tag = RimworldXMLDefUtil.DefTags[tagId];
-
-
+        if (xmlSymbolTable.GetTagByDef(classContext.ShortName, element.GetText()) is not { } tag)
+            return new ReferenceCollection();
+        
         return new ReferenceCollection(new RimworldXmlDefReference(element,
             tag.GetNestedTags<IXmlTag>("defName").FirstOrDefault() ?? tag, tagId));
     }
