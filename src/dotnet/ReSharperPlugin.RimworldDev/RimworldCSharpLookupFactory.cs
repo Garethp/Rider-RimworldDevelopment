@@ -87,7 +87,7 @@ public class RimworldCSharpLookupFactory
     if (presentationCache1 != null)
       return presentationCache1;
     var presentationCache2 = ourPresentationCache = solution.GetComponent<LookupItemPresentationCache>();
-    solution.GetLifetime().OnTermination(() => ourPresentationCache = null);
+    solution.GetSolutionLifetimes().MaximumLifetime.OnTermination(() => ourPresentationCache = null);
     return presentationCache2;
   }
   

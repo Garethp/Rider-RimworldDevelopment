@@ -1,12 +1,10 @@
-using System.Linq;
 using JetBrains.Annotations;
+using JetBrains.Metadata.Reader.API;
 using JetBrains.ReSharper.Psi;
 using JetBrains.ReSharper.Psi.CSharp.Conversions;
 using JetBrains.ReSharper.Psi.ExtensionsAPI.Resolve;
-using JetBrains.ReSharper.Psi.Modules;
 using JetBrains.ReSharper.Psi.Resolve;
 using JetBrains.ReSharper.Psi.Tree;
-using JetBrains.ReSharper.Psi.Xml.Impl.Tree;
 using JetBrains.Util;
 
 namespace ReSharperPlugin.RimworldDev.TypeDeclaration;
@@ -46,7 +44,7 @@ public class RimworldXmlReference :
         var typeElement = predefinedType.GenericIEnumerable.GetTypeElement();
         if (typeElement == null)
             return false;
-        var arrayType = TypeFactory.CreateArrayType(predefinedType.Object, 1);
+        var arrayType = TypeFactory.CreateArrayType(predefinedType.Object, 1, NullableAnnotation.Unknown);
         var type = EmptySubstitution.INSTANCE.Extend(typeElement.TypeParameters[0], arrayType).Apply(predefinedType.GenericIEnumerable);
         return property.Type.IsImplicitlyConvertibleTo(type, typeConversionRule);
     }

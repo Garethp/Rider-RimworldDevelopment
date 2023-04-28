@@ -109,7 +109,7 @@ public class ScopeHelper
         var moduleReferenceResolveContext =
             (IModuleReferenceResolveContext)UniversalModuleReferenceContext.Instance;
 
-        await solution.Locks.Tasks.YieldTo(solution.GetLifetime(), Scheduling.MainDispatcher, TaskPriority.Low);
+        await solution.Locks.Tasks.YieldTo(solution.GetSolutionLifetimes().MaximumLifetime, Scheduling.MainDispatcher, TaskPriority.Low);
 
         solution.GetComponent<IAssemblyFactory>().AddRef(path.ToAssemblyLocation(), "ScopeHelper::AddRef",
             moduleReferenceResolveContext);
