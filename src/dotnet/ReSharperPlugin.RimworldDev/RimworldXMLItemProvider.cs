@@ -1,11 +1,10 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using JetBrains.Application.Progress;
+using JetBrains.ProjectModel;
 using JetBrains.ReSharper.Feature.Services.CodeCompletion.Infrastructure;
 using JetBrains.ReSharper.Feature.Services.CodeCompletion.Infrastructure.LookupItems;
-using JetBrains.ReSharper.Feature.Services.CodeCompletion.Infrastructure.LookupItems.Impl;
 using JetBrains.ReSharper.Feature.Services.Navigation.Requests;
 using JetBrains.ReSharper.Feature.Services.Occurrences;
 using JetBrains.ReSharper.Features.Intellisense.CodeCompletion.CSharp;
@@ -20,7 +19,7 @@ using JetBrains.ReSharper.Psi.Util;
 using JetBrains.ReSharper.Psi.VB.Util;
 using JetBrains.ReSharper.Psi.Xml;
 using JetBrains.ReSharper.Psi.Xml.Impl.Tree;
-using JetBrains.Util;
+using ReSharperPlugin.RimworldDev.SymbolScope;
 using ReSharperPlugin.RimworldDev.TypeDeclaration;
 
 namespace ReSharperPlugin.RimworldDev;
@@ -179,13 +178,15 @@ public class RimworldXMLItemProvider : ItemsProviderOfSpecificContext<RimworldXm
 
         var className = classContext.ShortName;
 
-        var keys = RimworldXMLDefUtil.DefTags.Keys
+        var xmlSymbolTable = context.TreeNode!.GetSolution().GetSolution().GetComponent<RimworldSymbolScope>();
+
+        var keys = xmlSymbolTable.DefTags.Keys
             .Where(key => key.StartsWith($"{className}/"))
             .Select(key => key.Substring(className.Length + 1));
 
         foreach (var key in keys)
         {
-            var item = RimworldXMLDefUtil.DefTags[$"{className}/{key}"];
+            var item = xmlSymbolTable.GetTagByDef(className, key);
 
             var lookup = LookupFactory.CreateDeclaredElementLookupItem(context, key,
                 new DeclaredElementInstance(new XMLTagDeclaredElement(item, key, false)));

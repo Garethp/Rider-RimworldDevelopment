@@ -1,5 +1,8 @@
 # Changelog
 
+## 2023.1.1
+* Taking some advice from the Jetbrains team, I've pushed the XML Def detection/storage into a `SimpleICache`, massively improving performance
+
 ## 2023.1
 * The first release of this plugin.
 * On top of the features from the Alphas, it also includes automatically detecting and using Rimworlds `Assembly-CSharp.dll` if it's not already part of your project
