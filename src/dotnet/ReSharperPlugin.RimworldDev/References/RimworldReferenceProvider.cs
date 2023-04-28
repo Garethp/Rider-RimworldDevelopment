@@ -11,7 +11,7 @@ using JetBrains.ReSharper.Psi.Util;
 using JetBrains.ReSharper.Psi.Xml;
 using JetBrains.ReSharper.Psi.Xml.Impl.Tree;
 using JetBrains.ReSharper.Psi.Xml.Tree;
-using ReSharperPlugin.RimworldDev.Cache;
+using ReSharperPlugin.RimworldDev.SymbolScope;
 
 namespace ReSharperPlugin.RimworldDev.TypeDeclaration;
 
@@ -92,7 +92,7 @@ public class RimworldReferenceFactory : IReferenceFactory
             !classContext.GetAllSuperTypes().Any(superType => superType.GetClrName().FullName == "Verse.Def"))
             return new ReferenceCollection();
 
-        var xmlSymbolTable = element.GetSolution().GetComponent<RimworldXMLCache>();
+        var xmlSymbolTable = element.GetSolution().GetComponent<RimworldSymbolScope>();
 
         var tagId = $"{classContext.ShortName}/{element.GetText()}";
         if (xmlSymbolTable.GetTagByDef(classContext.ShortName, element.GetText()) is not { } tag)

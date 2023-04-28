@@ -19,7 +19,7 @@ using JetBrains.ReSharper.Psi.Util;
 using JetBrains.ReSharper.Psi.VB.Util;
 using JetBrains.ReSharper.Psi.Xml;
 using JetBrains.ReSharper.Psi.Xml.Impl.Tree;
-using ReSharperPlugin.RimworldDev.Cache;
+using ReSharperPlugin.RimworldDev.SymbolScope;
 using ReSharperPlugin.RimworldDev.TypeDeclaration;
 
 namespace ReSharperPlugin.RimworldDev;
@@ -178,7 +178,7 @@ public class RimworldXMLItemProvider : ItemsProviderOfSpecificContext<RimworldXm
 
         var className = classContext.ShortName;
 
-        var xmlSymbolTable = context.TreeNode!.GetSolution().GetSolution().GetComponent<RimworldXMLCache>();
+        var xmlSymbolTable = context.TreeNode!.GetSolution().GetSolution().GetComponent<RimworldSymbolScope>();
 
         var keys = xmlSymbolTable.DefTags.Keys
             .Where(key => key.StartsWith($"{className}/"))

@@ -10,16 +10,16 @@ using JetBrains.ReSharper.Psi.Caches;
 using JetBrains.ReSharper.Psi.Files;
 using JetBrains.ReSharper.Psi.Xml.Tree;
 
-namespace ReSharperPlugin.RimworldDev.Cache;
+namespace ReSharperPlugin.RimworldDev.SymbolScope;
 
 [PsiComponent]
-public class RimworldXMLCache : SimpleICache<List<RimworldXMLCacheItem>>
+public class RimworldSymbolScope : SimpleICache<List<RimworldXmlDefSymbol>>
 {
     public Dictionary<string, IXmlTag> DefTags = new();
     
-    public RimworldXMLCache
+    public RimworldSymbolScope
         (Lifetime lifetime, [NotNull] IShellLocks locks, [NotNull] IPersistentIndexManager persistentIndexManager, long? version = null) 
-        : base(lifetime, locks, persistentIndexManager, RimworldXMLCacheItem.Marshaller, version)
+        : base(lifetime, locks, persistentIndexManager, RimworldXmlDefSymbol.Marshaller, version)
     {
     }
 
@@ -56,14 +56,14 @@ public class RimworldXMLCache : SimpleICache<List<RimworldXMLCacheItem>>
             return defNameTag is not null;
         });
 
-        List<RimworldXMLCacheItem> defs = new();
+        List<RimworldXmlDefSymbol> defs = new();
 
         foreach (var tag in tags)
         {
             var defName = tag.GetNestedTags<IXmlTag>("defName").FirstOrDefault()?.InnerText;
             if (defName is null) continue;
 
-            defs.Add(new RimworldXMLCacheItem(tag, defName, tag.GetTagName()));
+            defs.Add(new RimworldXmlDefSymbol(tag, defName, tag.GetTagName()));
         }
 
         return defs;
@@ -72,7 +72,7 @@ public class RimworldXMLCache : SimpleICache<List<RimworldXMLCacheItem>>
     public override void Merge(IPsiSourceFile sourceFile, object builtPart)
     {
         RemoveFromLocalCache(sourceFile);
-        AddToLocalCache(sourceFile, builtPart as List<RimworldXMLCacheItem>);
+        AddToLocalCache(sourceFile, builtPart as List<RimworldXmlDefSymbol>);
         base.Merge(sourceFile, builtPart);
     }
     
@@ -88,7 +88,7 @@ public class RimworldXMLCache : SimpleICache<List<RimworldXMLCacheItem>>
         base.Drop(sourceFile);
     }
     
-    private void AddToLocalCache(IPsiSourceFile sourceFile, [CanBeNull] List<RimworldXMLCacheItem> cacheItem)
+    private void AddToLocalCache(IPsiSourceFile sourceFile, [CanBeNull] List<RimworldXmlDefSymbol> cacheItem)
     {
         if (sourceFile.GetPrimaryPsiFile() is not IXmlFile xmlFile) return;
         

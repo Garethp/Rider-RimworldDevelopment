@@ -3,12 +3,12 @@ using JetBrains.ReSharper.Psi.Xml.Tree;
 using JetBrains.Serialization;
 using JetBrains.Util.PersistentMap;
 
-namespace ReSharperPlugin.RimworldDev.Cache;
+namespace ReSharperPlugin.RimworldDev.SymbolScope;
 
-public class RimworldXMLCacheItem
+public class RimworldXmlDefSymbol
 {
-    public static readonly IUnsafeMarshaller<List<RimworldXMLCacheItem>> Marshaller =
-        UnsafeMarshallers.GetCollectionMarshaller(new UniversalMarshaller<RimworldXMLCacheItem>(Read, Write), (size) => new List<RimworldXMLCacheItem>());
+    public static readonly IUnsafeMarshaller<List<RimworldXmlDefSymbol>> Marshaller =
+        UnsafeMarshallers.GetCollectionMarshaller(new UniversalMarshaller<RimworldXmlDefSymbol>(Read, Write), (size) => new List<RimworldXmlDefSymbol>());
     
     public string DefName { get; }
     public string DefType { get; }
@@ -17,30 +17,30 @@ public class RimworldXMLCacheItem
     
     // public IXmlTag Tag { get; }
 
-    public RimworldXMLCacheItem(IXmlTag tag, string defName, string defType)
+    public RimworldXmlDefSymbol(IXmlTag tag, string defName, string defType)
     {
         DefName = defName;
         DefType = defType;
         DocumentOffset = tag.GetTreeStartOffset().Offset;
     }
     
-    public RimworldXMLCacheItem(int documentOffset, string defName, string defType)
+    public RimworldXmlDefSymbol(int documentOffset, string defName, string defType)
     {
         DefName = defName;
         DefType = defType;
         DocumentOffset = documentOffset;
     }
     
-    private static RimworldXMLCacheItem Read(UnsafeReader reader)
+    private static RimworldXmlDefSymbol Read(UnsafeReader reader)
     {
         var defType = reader.ReadString();
         var defName = reader.ReadString();
         var documentOffset = reader.ReadInt();
         
-        return new RimworldXMLCacheItem(documentOffset, defName, defType);
+        return new RimworldXmlDefSymbol(documentOffset, defName, defType);
     }
 
-    private static void Write(UnsafeWriter writer, RimworldXMLCacheItem value)
+    private static void Write(UnsafeWriter writer, RimworldXmlDefSymbol value)
     {
         writer.Write(value.DefType);
         writer.Write(value.DefName);
