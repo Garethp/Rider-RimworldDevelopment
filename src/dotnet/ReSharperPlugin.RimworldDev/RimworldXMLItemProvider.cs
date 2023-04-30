@@ -394,9 +394,17 @@ public class RimworldXMLItemProvider : ItemsProviderOfSpecificContext<RimworldXm
 
             currentContext = symbolScope.GetTypeElementByCLRName(clrName);
 
-            if (clrName == "bool")
+            switch (clrName)
             {
-                currentContext = symbolScope.GetTypeElementByCLRName("System.Boolean");
+                case "bool":
+                    currentContext = symbolScope.GetTypeElementByCLRName("System.Boolean");
+                    break;
+                case "string":
+                    currentContext = symbolScope.GetTypeElementByCLRName("System.String");
+                    break;
+                case "int":
+                    currentContext = symbolScope.GetTypeElementByCLRName("System.Int32");
+                    break;
             }
         }
 
