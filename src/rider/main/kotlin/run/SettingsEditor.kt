@@ -20,12 +20,12 @@ class SettingsEditor: SettingsEditor<RimworldRunConfiguration> {
         myPanel = FormBuilder.createFormBuilder().addLabeledComponent("Script file", scriptPathField).panel;
     }
 
-    override fun resetEditorFrom(p0: RimworldRunConfiguration) {
-
+    override fun resetEditorFrom(demoRunConfiguration: RimworldRunConfiguration) {
+        scriptPathField.text = demoRunConfiguration.getScriptName()
     }
 
-    override fun applyEditorTo(p0: RimworldRunConfiguration) {
-
+    override fun applyEditorTo(demoRunConfiguration: RimworldRunConfiguration) {
+        demoRunConfiguration.setScriptName(scriptPathField.text)
     }
 
     override fun createEditor(): JComponent {

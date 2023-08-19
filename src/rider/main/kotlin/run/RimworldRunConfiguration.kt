@@ -1,7 +1,6 @@
 package RimworldDev.Rider.run
 
 import com.intellij.execution.Executor
-import com.intellij.execution.RunManager
 import com.intellij.execution.configurations.*
 import com.intellij.execution.configurations.ConfigurationFactory
 import com.intellij.execution.process.ProcessHandler
@@ -17,6 +16,18 @@ import org.jetbrains.concurrency.Promise
 
 
 class RimworldRunConfiguration(project: Project, factory: ConfigurationFactory, name: String) : RunConfigurationBase<RimworldRunConfigurationOptions>(project, factory, name), RunConfigurationWithSuppressedDefaultDebugAction, AsyncRunConfiguration, IRiderDebuggable {
+
+    override fun getOptions(): RimworldRunConfigurationOptions {
+        return super.getOptions() as RimworldRunConfigurationOptions
+    }
+
+    fun getScriptName(): String {
+        return options.getScriptName()
+    }
+
+    fun setScriptName(scriptName: String?) {
+        options.setScriptName(scriptName ?: "")
+    }
 
     override fun getState(executor: Executor, environment: ExecutionEnvironment): RunProfileState {
         val attachToDebugFactory = UnityAttachToPlayerFactory(UnityPlayerDebugConfigurationType());
@@ -58,7 +69,7 @@ class RimworldRunConfiguration(project: Project, factory: ConfigurationFactory, 
     private fun getRimworldState(environment: ExecutionEnvironment): RunProfileState {
         return object : CommandLineState(environment) {
             override fun startProcess(): ProcessHandler {
-                val commandLine = GeneralCommandLine("D:\\SteamLibrary\\steamapps\\common\\RimWorld\\RimWorldWin64.exe")
+                val commandLine = GeneralCommandLine(getScriptName())
                 val processHandler = ProcessHandlerFactory.getInstance()
                         .createColoredProcessHandler(commandLine)
                 ProcessTerminatedListener.attach(processHandler)
