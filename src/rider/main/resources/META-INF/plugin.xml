@@ -5,6 +5,7 @@
   <vendor url="https://github.com/Garethp/Rider-RimworldDevelopment">Garethp</vendor>
   <idea-version since-build="231" />
   <depends>com.intellij.modules.rider</depends>
+  <depends>com.intellij.resharper.unity</depends>
 
   <description>
 <![CDATA[
@@ -24,6 +25,8 @@ in your mods!</p>
     <completion.contributor language="XML" order="first, before xml" implementationClass="com.jetbrains.rider.completion.ProtocolCompletionContributor" />
     <lang.documentationProvider language="XML" implementationClass="com.jetbrains.rdclient.quickDoc.FrontendDocumentationProvider"/>
     <backend.actions.support language="XML" implementationClass="com.jetbrains.rider.actions.RiderActionSupportPolicy" />
+
+    <configurationType implementation="RimworldDev.Rider.run.ConfigurationType"/>
   </extensions>
   
 </idea-plugin>
