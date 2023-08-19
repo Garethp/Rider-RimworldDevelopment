@@ -83,6 +83,7 @@ public class ScopeHelper
             for (var i = 0; i < 5; i++)
             {
                 currentDirectory = currentDirectory.Parent;
+                if (currentDirectory.Exists == FileSystemPath.Existence.Missing) break;
                 
                 // If we spot UnityPlayer.dll, we're in the correct directory, we'll either find our Assembly-CSharp.dll
                 // relative to here or not at all
