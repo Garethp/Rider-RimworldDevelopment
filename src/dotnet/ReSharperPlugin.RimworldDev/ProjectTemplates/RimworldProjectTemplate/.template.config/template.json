@@ -1,0 +1,104 @@
+{
+  "$schema": "http://json.schemastore.org/template",
+  "author": "Garethp",
+  "name": "Rimworld Mod",
+  "description": "A mod for Rimworld",
+  "defaultName": "RimworldMod",
+  "classifications": [
+    "Rimworld"
+  ],
+  "identity": "RimworldDev.Template",
+  "shortName": "rimworldmodtemplate",
+  "tags": {
+    "type": "solution",
+    "language": "C#",
+    "platform": "Rimworld"
+  },
+  "sourceName": "MyRimworldMod",
+  "preferNameDirectory": true,
+  "guids": [
+    "FFFFFFFF-FFFF-FFFF-FFFF-FFFFFFFFFFFF"
+  ],
+  "symbols": {
+    "ModName": {
+      "type": "parameter",
+      "datatype": "text",
+      "replaces": "ModName",
+      "isRequired": "false",
+      "defaultValue": "teds"
+    },
+    "ModAuthor": {
+      "type": "parameter",
+      "datatype": "text",
+      "replaces": "ModAuthor",
+      "isRequired": "true",
+      "defaultValue": ""
+    },
+    "RimworldDLL": {
+      "type": "parameter",
+      "datatype": "text",
+      "replaces": "Assembly-CSharp.dll",
+      "isRequired": "false",
+      "defaultValue": ""
+    },
+    "AssemblyDir": {
+      "type": "derived",
+      "valueSource": "RimworldDLL",
+      "valueTransform": "BaseDirectory",
+      "replaces": "AssemblyDir",
+      "description": "The directory containing the Rimworld DLL"
+    }
+  },
+  "forms": {
+    "BaseDirectory": {
+      "identifier": "replace",
+      "pattern": "^(.*)\\\\([^\\\\]+)$",
+      "replacement": "$1"
+    }
+  },
+  "primaryOutputs": [
+    {
+      "path": "About/About.xml"
+    },
+    {
+      "path": "About/Preview.png"
+    },
+    {
+      "path": "Source/MyRimworldMod.csproj"
+    },
+    {
+      "path": "Source/MyRimworldMod.cs"
+    },
+    {
+      "path": "Defs/MyRimworldMod.xml"
+    },
+    {
+      "path": ".gitignore"
+    },
+    {
+      "path": "Languages/Keyed/English.xml"
+    }
+  ],
+  "postActions": [
+    {
+      "description": "Opens About.xml in the editor",
+      "manualInstructions": [],
+      "actionId": "84C0DA21-51C8-4541-9940-6CA19AF04EE6",
+      "args": {
+        "files": "3"
+      },
+      "continueOnError": true
+    },
+    {
+      "description": "Adding Rimworld Reference",
+      "actionId": "B17581D1-C5C9-4489-8F0A-004BE667B814",
+      "continueOnError": true,
+      "manualInstructions": [],
+      "args": {
+        "referenceType": "project",
+        "reference": "Assembly-CSharp.dll",
+        "projectFileExtensions": ".csproj"
+      }
+    }
+  ]
+}

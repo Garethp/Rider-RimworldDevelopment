@@ -175,6 +175,8 @@ prepareSandbox {
         from(file, { into "${rootProject.name}/dotnet" })
     })
 
+    from("${rootDir}/src/dotnet/${DotnetPluginId}/projectTemplates", { into "${rootProject.name}/projectTemplates"})
+
     doLast {
         dllFiles.forEach({ f ->
             def file = file(f)

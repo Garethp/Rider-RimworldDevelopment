@@ -1,34 +1,51 @@
 package RimworldDev.Rider.run
 
+import com.intellij.execution.configuration.EnvironmentVariablesComponent
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory
 import com.intellij.openapi.options.SettingsEditor
 import com.intellij.openapi.ui.TextFieldWithBrowseButton
+import com.intellij.ui.RawCommandLineEditor
 import com.intellij.util.ui.FormBuilder
 import javax.swing.JComponent
 import javax.swing.JPanel
 
 
-class SettingsEditor: SettingsEditor<RimworldRunConfiguration> {
-    private var myPanel: JPanel;
-    private var scriptPathField: TextFieldWithBrowseButton;
+class SettingsEditor : SettingsEditor<RunConfiguration>() {
+    private var myPanel: JPanel = JPanel()
+    private val exePath: TextFieldWithBrowseButton = TextFieldWithBrowseButton()
+    private val commandLineOptions: RawCommandLineEditor = RawCommandLineEditor()
+    private val environmentVariables: EnvironmentVariablesComponent = EnvironmentVariablesComponent()
 
-    constructor(): super() {
-        scriptPathField = TextFieldWithBrowseButton()
-        scriptPathField.addBrowseFolderListener("Select Script File", null, null,
-        FileChooserDescriptorFactory.createSingleFileDescriptor());
+    init {
+        exePath.addBrowseFolderListener(
+            "Executable Path",
+            "",
+            null,
+            FileChooserDescriptorFactory.createSingleFileDescriptor()
+        )
 
-        myPanel = FormBuilder.createFormBuilder().addLabeledComponent("Script file", scriptPathField).panel;
+        myPanel = FormBuilder
+            .createFormBuilder()
+            .addLabeledComponent("Rimworld path:", exePath)
+            .addLabeledComponent("Program arguments:", commandLineOptions)
+            .addLabeledComponent("Environment variables:", environmentVariables.component)
+            .panel
     }
 
-    override fun resetEditorFrom(demoRunConfiguration: RimworldRunConfiguration) {
-        scriptPathField.text = demoRunConfiguration.getScriptName()
+    override fun resetEditorFrom(configuration: RunConfiguration) {
+        exePath.text = configuration.getScriptName()
+        commandLineOptions.text = configuration.getCommandLineOptions()
+        environmentVariables.envs = configuration.getEnvData();
     }
 
-    override fun applyEditorTo(demoRunConfiguration: RimworldRunConfiguration) {
-        demoRunConfiguration.setScriptName(scriptPathField.text)
+    override fun applyEditorTo(configuration: RunConfiguration) {
+        configuration.setScriptName(exePath.text)
+
+        configuration.setEnvData(environmentVariables.envData.envs)
+        configuration.setCommandLineOptions(commandLineOptions.text)
     }
 
     override fun createEditor(): JComponent {
-        return myPanel;
+        return myPanel
     }
 }

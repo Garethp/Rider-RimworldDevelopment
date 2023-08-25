@@ -8,18 +8,18 @@ import com.intellij.openapi.project.Project
 
 class ConfigurationFactory(type: ConfigurationType): ConfigurationFactory(type) {
     override fun createTemplateConfiguration(project: Project): RunConfiguration {
-        return RimworldRunConfiguration(project, this, "Rimworld");
+        return RunConfiguration(project, this, "Rimworld")
     }
 
     override fun createTemplateConfiguration(project: Project, runManager: RunManager): RunConfiguration {
-        return RimworldRunConfiguration(project, this, "Rimworld");
+        return RunConfiguration(project, this, "Rimworld")
     }
 
     override fun getOptionsClass(): Class<out BaseState> {
-        return RimworldRunConfigurationOptions::class.java;
+        return ConfigurationOptions::class.java
     }
 
     override fun getId(): String {
-        return "RimworldRunConfiguration";
+        return "RimworldRunConfiguration"
     }
 }
