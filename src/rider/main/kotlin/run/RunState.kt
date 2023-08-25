@@ -8,7 +8,6 @@ import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.execution.runners.ProgramRunner
 import com.jetbrains.rider.debugger.DebuggerWorkerProcessHandler
 import com.jetbrains.rider.plugins.unity.run.configurations.UnityAttachProfileState
-import com.jetbrains.rider.plugins.unity.run.configurations.UnityPlayerDebugConfiguration
 import com.jetbrains.rider.run.configurations.remote.RemoteConfiguration
 import com.jetbrains.rider.run.getProcess
 import java.io.File

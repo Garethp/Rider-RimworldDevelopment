@@ -1,7 +1,6 @@
 package RimworldDev.Rider.run
 
 import com.intellij.execution.Executor
-import com.intellij.execution.RunManager
 import com.intellij.execution.configuration.EnvironmentVariablesData
 import com.intellij.execution.configurations.*
 import com.intellij.execution.configurations.ConfigurationFactory
@@ -33,7 +32,7 @@ class RunConfiguration(project: Project, factory: ConfigurationFactory, name: St
     IRiderDebuggable {
 
 
-    override fun isGeneratedName(): Boolean = false;
+    override fun isGeneratedName(): Boolean = false
     override fun suggestedName(): String = "Rimworld"
 
     override fun getOptions(): ConfigurationOptions {
@@ -46,8 +45,8 @@ class RunConfiguration(project: Project, factory: ConfigurationFactory, name: St
     fun getCommandLineOptions(): String = options.getCommandLineOptions()
     fun setCommandLineOptions(scriptName: String?) = options.setCommandLineOptions(scriptName ?: "")
 
-    fun getEnvData(): Map<String, String> = options.getEnvironmentVariables();
-    fun setEnvData(data: MutableMap<String, String>) = options.setEnvironmentVariables(data);
+    fun getEnvData(): Map<String, String> = options.getEnvironmentVariables()
+    fun setEnvData(data: MutableMap<String, String>) = options.setEnvironmentVariables(data)
 
     override fun getState(executor: Executor, environment: ExecutionEnvironment): RunProfileState {
         return getRimworldState(environment)
@@ -55,8 +54,6 @@ class RunConfiguration(project: Project, factory: ConfigurationFactory, name: St
 
     @OptIn(ExperimentalCoroutinesApi::class)
     override fun getStateAsync(executor: Executor, environment: ExecutionEnvironment): Promise<RunProfileState> {
-        var manager = RunManager.getInstance(project)
-
         val attachToDebugFactory = UnityAttachToPlayerFactory(UnityPlayerDebugConfigurationType())
         val attachToDebug = attachToDebugFactory.createTemplateConfiguration(project)
         attachToDebug.name = "Custom Player"
@@ -89,7 +86,7 @@ class RunConfiguration(project: Project, factory: ConfigurationFactory, name: St
                 val commandLine = GeneralCommandLine(getScriptName())
                     .withParameters(getCommandLineOptions())
 
-                EnvironmentVariablesData.create(getEnvData(), true).configureCommandLine(commandLine, true);
+                EnvironmentVariablesData.create(getEnvData(), true).configureCommandLine(commandLine, true)
 
                 val processHandler = ProcessHandlerFactory.getInstance()
                     .createColoredProcessHandler(commandLine)

@@ -35,7 +35,7 @@ class SettingsEditor : SettingsEditor<RunConfiguration>() {
     override fun resetEditorFrom(configuration: RunConfiguration) {
         exePath.text = configuration.getScriptName()
         commandLineOptions.text = configuration.getCommandLineOptions()
-        environmentVariables.envs = configuration.getEnvData();
+        environmentVariables.envs = configuration.getEnvData()
     }
 
     override fun applyEditorTo(configuration: RunConfiguration) {
