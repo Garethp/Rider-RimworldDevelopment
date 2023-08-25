@@ -7,8 +7,8 @@ import com.intellij.openapi.util.NotNullLazyValue
 
 class ConfigurationType : ConfigurationTypeBase(
     "RimworldRunConfiguration",
-    "Rimworld",
-    "Rimworld Run Configuration",
+    "RimWorld",
+    "RimWorld Run Configuration",
     NotNullLazyValue.createValue { PluginIcons.RIMWORLD }) {
     init {
         addFactory(ConfigurationFactory(this))

@@ -1,20 +1,20 @@
 {
   "$schema": "http://json.schemastore.org/template",
   "author": "Garethp",
-  "name": "Rimworld Mod",
-  "description": "A mod for Rimworld",
-  "defaultName": "RimworldMod",
+  "name": "RimWorld Mod",
+  "description": "A mod for RimWorld",
+  "defaultName": "RimWorldMod",
   "classifications": [
-    "Rimworld"
+    "RimWorld"
   ],
   "identity": "RimworldDev.Template",
   "shortName": "rimworldmodtemplate",
   "tags": {
     "type": "solution",
     "language": "C#",
-    "platform": "Rimworld"
+    "platform": "RimWorld"
   },
-  "sourceName": "MyRimworldMod",
+  "sourceName": "MyRimWorldMod",
   "preferNameDirectory": true,
   "guids": [
     "FFFFFFFF-FFFF-FFFF-FFFF-FFFFFFFFFFFF"
@@ -46,7 +46,33 @@
       "valueSource": "RimworldDLL",
       "valueTransform": "BaseDirectory",
       "replaces": "AssemblyDir",
-      "description": "The directory containing the Rimworld DLL"
+      "description": "The directory containing the RimWorld DLL"
+    },
+    "assemblyExists": {
+      "type": "generated",
+      "generator": "regexMatch",
+      "datatype": "bool",
+      "parameters": {
+        "pattern": "[a-zA-Z0-9]",
+        "source": "RimworldDLL"
+      }
+    }
+  },
+  "SpecialCustomOperations": {
+    "**/*.csproj": {
+      "operations": [
+        {
+          "type": "conditional",
+          "configuration": {
+            "if": [ "<!--#if" ],
+            "else": [ "#else", "<!--#else" ],
+            "elseif": [ "#elseif", "<!--#elseif" ],
+            "endif": [ "#endif", "<!--#endif" ],
+            "trim" : "true",
+            "wholeLine": "true"
+          }
+        }
+      ]
     }
   },
   "forms": {
@@ -64,13 +90,13 @@
       "path": "About/Preview.png"
     },
     {
-      "path": "Source/MyRimworldMod.csproj"
+      "path": "Source/MyRimWorldMod.csproj"
     },
     {
-      "path": "Source/MyRimworldMod.cs"
+      "path": "Source/MyRimWorldMod.cs"
     },
     {
-      "path": "Defs/MyRimworldMod.xml"
+      "path": "Defs/MyRimWorldMod.xml"
     },
     {
       "path": ".gitignore"
@@ -90,7 +116,7 @@
       "continueOnError": true
     },
     {
-      "description": "Adding Rimworld Reference",
+      "description": "Adding RimWorld Reference",
       "actionId": "B17581D1-C5C9-4489-8F0A-004BE667B814",
       "continueOnError": true,
       "manualInstructions": [],

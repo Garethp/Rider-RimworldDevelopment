@@ -8,11 +8,11 @@ import com.intellij.openapi.project.Project
 
 class ConfigurationFactory(type: ConfigurationType): ConfigurationFactory(type) {
     override fun createTemplateConfiguration(project: Project): RunConfiguration {
-        return RunConfiguration(project, this, "Rimworld")
+        return RunConfiguration(project, this, "RimWorld")
     }
 
     override fun createTemplateConfiguration(project: Project, runManager: RunManager): RunConfiguration {
-        return RunConfiguration(project, this, "Rimworld")
+        return RunConfiguration(project, this, "RimWorld")
     }
 
     override fun getOptionsClass(): Class<out BaseState> {

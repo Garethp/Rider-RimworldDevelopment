@@ -33,7 +33,7 @@ class RunConfiguration(project: Project, factory: ConfigurationFactory, name: St
 
 
     override fun isGeneratedName(): Boolean = false
-    override fun suggestedName(): String = "Rimworld"
+    override fun suggestedName(): String = "RimWorld"
 
     override fun getOptions(): ConfigurationOptions {
         return super.getOptions() as ConfigurationOptions

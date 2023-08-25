@@ -26,7 +26,7 @@ class SettingsEditor : SettingsEditor<RunConfiguration>() {
 
         myPanel = FormBuilder
             .createFormBuilder()
-            .addLabeledComponent("Rimworld path:", exePath)
+            .addLabeledComponent("RimWorld path:", exePath)
             .addLabeledComponent("Program arguments:", commandLineOptions)
             .addLabeledComponent("Environment variables:", environmentVariables.component)
             .panel

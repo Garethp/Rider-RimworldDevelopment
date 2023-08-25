@@ -30,17 +30,29 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <Reference Include="System"/>
+        <Reference Include="System.Core"/>
+        <Reference Include="System.Xml"/>
+    </ItemGroup>
+
+<!--#if(assemblyExists)-->
+    <ItemGroup>
         <Reference Include="Assembly-CSharp">
             <HintPath>Assembly-CSharp.dll</HintPath>
             <Private>False</Private>
         </Reference>
-        <Reference Include="System"/>
-        <Reference Include="System.Core"/>
-        <Reference Include="System.Xml"/>
         <Reference Include="UnityEngine.CoreModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
             <HintPath>AssemblyDir\UnityEngine.CoreModule.dll</HintPath>
             <Private>False</Private>
         </Reference>
+    </ItemGroup>
+<!--#endif-->
+
+    <!-- The below condition will check if you've defined a reference called "Assembly-CSharp" and if that reference exists on disk.
+        If that reference does not exist, it will add Krafs Rimworld Ref to the project. If it does exist, Krafs won't be added
+        as a reference. This basically means that Krafs is treated as a fallback if Assembly-CSharp is not found -->
+    <ItemGroup Condition="'@(Reference->WithMetadataValue('Identity', 'Assembly-CSharp')->Metadata('HintPath')->Exists())' == ''">
+        <PackageReference Include="Krafs.Rimworld.Ref" Version="1.4-*" />
     </ItemGroup>
 
     <!-- To modify your build process, add your task inside one of the targets below and uncomment it.
