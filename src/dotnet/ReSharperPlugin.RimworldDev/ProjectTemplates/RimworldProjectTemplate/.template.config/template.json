@@ -116,15 +116,12 @@
       "continueOnError": true
     },
     {
-      "description": "Adding RimWorld Reference",
-      "actionId": "B17581D1-C5C9-4489-8F0A-004BE667B814",
-      "continueOnError": true,
-      "manualInstructions": [],
-      "args": {
-        "referenceType": "project",
-        "reference": "Assembly-CSharp.dll",
-        "projectFileExtensions": ".csproj"
-      }
+      "description": "Restore NuGet packages required by this project.",
+      "manualInstructions": [{
+        "text": "Run 'dotnet restore'"
+      }],
+      "actionId": "210D431B-A78B-4D2F-B762-4ED3E3EA9025",
+      "continueOnError": true
     }
   ]
 }
