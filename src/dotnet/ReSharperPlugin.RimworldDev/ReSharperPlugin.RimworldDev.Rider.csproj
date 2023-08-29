@@ -25,7 +25,19 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="ProblemAnalyzers" />
+    <Folder Include="ProjectTemplates\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Remove="projectTemplates\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Remove="projectTemplates\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="projectTemplates\**" />
   </ItemGroup>
 
   <!-- TODO: uncomment for xaml icons -->

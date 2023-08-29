@@ -1,0 +1,127 @@
+{
+  "$schema": "http://json.schemastore.org/template",
+  "author": "Garethp",
+  "name": "RimWorld Mod",
+  "description": "A mod for RimWorld",
+  "defaultName": "RimWorldMod",
+  "classifications": [
+    "RimWorld"
+  ],
+  "identity": "RimworldDev.Template",
+  "shortName": "rimworldmodtemplate",
+  "tags": {
+    "type": "solution",
+    "language": "C#",
+    "platform": "RimWorld"
+  },
+  "sourceName": "MyRimWorldMod",
+  "preferNameDirectory": true,
+  "guids": [
+    "FFFFFFFF-FFFF-FFFF-FFFF-FFFFFFFFFFFF"
+  ],
+  "symbols": {
+    "ModName": {
+      "type": "parameter",
+      "datatype": "text",
+      "replaces": "ModName",
+      "isRequired": "false",
+      "defaultValue": "teds"
+    },
+    "ModAuthor": {
+      "type": "parameter",
+      "datatype": "text",
+      "replaces": "ModAuthor",
+      "isRequired": "true",
+      "defaultValue": ""
+    },
+    "RimworldDLL": {
+      "type": "parameter",
+      "datatype": "text",
+      "replaces": "Assembly-CSharp.dll",
+      "isRequired": "false",
+      "defaultValue": ""
+    },
+    "AssemblyDir": {
+      "type": "derived",
+      "valueSource": "RimworldDLL",
+      "valueTransform": "BaseDirectory",
+      "replaces": "AssemblyDir",
+      "description": "The directory containing the RimWorld DLL"
+    },
+    "assemblyExists": {
+      "type": "generated",
+      "generator": "regexMatch",
+      "datatype": "bool",
+      "parameters": {
+        "pattern": "[a-zA-Z0-9]",
+        "source": "RimworldDLL"
+      }
+    }
+  },
+  "SpecialCustomOperations": {
+    "**/*.csproj": {
+      "operations": [
+        {
+          "type": "conditional",
+          "configuration": {
+            "if": [ "<!--#if" ],
+            "else": [ "#else", "<!--#else" ],
+            "elseif": [ "#elseif", "<!--#elseif" ],
+            "endif": [ "#endif", "<!--#endif" ],
+            "trim" : "true",
+            "wholeLine": "true"
+          }
+        }
+      ]
+    }
+  },
+  "forms": {
+    "BaseDirectory": {
+      "identifier": "replace",
+      "pattern": "^(.*)\\\\([^\\\\]+)$",
+      "replacement": "$1"
+    }
+  },
+  "primaryOutputs": [
+    {
+      "path": "About/About.xml"
+    },
+    {
+      "path": "About/Preview.png"
+    },
+    {
+      "path": "Source/MyRimWorldMod.csproj"
+    },
+    {
+      "path": "Source/MyRimWorldMod.cs"
+    },
+    {
+      "path": "Defs/MyRimWorldMod.xml"
+    },
+    {
+      "path": ".gitignore"
+    },
+    {
+      "path": "Languages/Keyed/English.xml"
+    }
+  ],
+  "postActions": [
+    {
+      "description": "Opens About.xml in the editor",
+      "manualInstructions": [],
+      "actionId": "84C0DA21-51C8-4541-9940-6CA19AF04EE6",
+      "args": {
+        "files": "3"
+      },
+      "continueOnError": true
+    },
+    {
+      "description": "Restore NuGet packages required by this project.",
+      "manualInstructions": [{
+        "text": "Run 'dotnet restore'"
+      }],
+      "actionId": "210D431B-A78B-4D2F-B762-4ED3E3EA9025",
+      "continueOnError": true
+    }
+  ]
+}
