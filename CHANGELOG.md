@@ -1,5 +1,10 @@
 # Changelog
 
+## 2023.2
+ * Add a Run Configuration for Rimworld
+ * On Windows, running the above configuration in Debug Mode will automatically copy in files from UnityDebug and attach the debugger to the Rimworld process
+ * Add a new Rimworld Mod template to the New Solution screen
+
 ## 2023.1.1
 * Taking some advice from the Jetbrains team, I've pushed the XML Def detection/storage into a `SimpleICache`, massively improving performance
 
