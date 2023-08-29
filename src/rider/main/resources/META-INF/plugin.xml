@@ -1,7 +1,7 @@
 <idea-plugin require-restart="true">
   <id>com.jetbrains.rider.plugins.rimworlddev</id>
   <name>Rimworld Development Environment</name>
-  <version>2023.1.3</version>
+  <version>2023.2</version>
   <vendor url="https://github.com/Garethp/Rider-RimworldDevelopment">Garethp</vendor>
   <idea-version since-build="231" />
   <depends>com.intellij.modules.rider</depends>
@@ -17,7 +17,11 @@ in your mods!</p>
   
   <change-notes>
 <![CDATA[
-<p>Massive performance update that stems from better caching of XML Defs</p>
+<p><ul>
+<li>Add a Rimworld Run Configuration</li>
+<li>If you're on Windows, running this Run Configuration in debug will set up the necessary files for debugging Rimworld and automatically attach a debugger to Rimworld</li>
+<li>Added a new Rimworld Mod template. Please remember to check "Put solution and project in the same folder"</li>
+</ul></p>
 ]]>
   </change-notes>
 
