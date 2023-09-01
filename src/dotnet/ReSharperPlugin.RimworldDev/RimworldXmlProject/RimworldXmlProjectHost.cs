@@ -49,7 +49,7 @@ public class RimworldXmlProjectHost : SolutionFileProjectHostBase
         var projectMark = change.ProjectMark;
         var siteProjectLocation = GetProjectLocation(projectMark);
 
-        var projectName = projectMark.Name;
+        var projectName = projectMark.Location.Parent.Parent.Name;
         var targetFramework =
             TargetFrameworkId.Create(FrameworkIdentifier.NetFramework, null, ProfileIdentifier.Default);
         var defaultLanguage = ProjectLanguage.JAVASCRIPT;
@@ -59,26 +59,65 @@ public class RimworldXmlProjectHost : SolutionFileProjectHostBase
                 targetFramework
             }, defaultLanguage, EmptyList<Guid>.InstanceList);
         
-        var projectFileProperties = this.myProjectFilePropertiesFactory.CreateProjectFileProperties(projectProperties);
-        var byProjectLocation = ProjectDescriptor.CreateByProjectLocation(projectMark.Guid,projectProperties, null, siteProjectLocation, projectName);
-        myStructureBuilder.Build(byProjectLocation, ProjectFolderFilter.Instance);
-        myWildcardService.RegisterDirectory(projectMark, siteProjectLocation, targetFramework, ProjectFolderFilter.Instance);
+        var customDescriptor = new RimworldProjectDescriptor(projectMark.Guid, projectProperties, null, projectName,
+            siteProjectLocation, projectMark.Location);
         
-        // byProjectLocation.Items.Add(new ProjectFileDescriptor("About/About.xml", projectMark.Location, projectFileProperties));
+        var byProjectLocation = ProjectDescriptor.CreateWithoutItemsByProjectDescriptor(customDescriptor);
+        
+        Build(byProjectLocation, ProjectFolderFilter.Instance);
+        myWildcardService.RegisterDirectory(projectMark, siteProjectLocation, targetFramework, ProjectFolderFilter.Instance);
         
         change.Descriptors = new ProjectHostChangeDescriptors(byProjectLocation)
         {
             ProjectReferencesDescriptor =
                 BuildReferences(targetFramework)
         };
-        
-        return;
     }
+
+    private void Build([NotNull] ProjectDescriptor descriptor, [CanBeNull] IFolderFilter filter = null)
+    {
+        if (!descriptor.Location.ExistsDirectory)
+            return;
+
+        var realParent = new ProjectFolderDescriptor(descriptor.Location.Parent); 
+        BuildInternal(realParent, descriptor.ProjectProperties, filter);
+        foreach (var projectItem in realParent.Items)
+        {
+            descriptor.Items.Add(projectItem);
+        }
+    }
+
+    private void BuildInternal(
+        [NotNull] IProjectFolderDescriptor parent,
+        [NotNull] IProjectProperties projectProperties,
+        [CanBeNull] IFolderFilter filter)
+    {
+        foreach (var child in parent.Location.GetChildren())
+        {
+            var absolutePath = parent.Location.TryCombine(child.ToString());
+            if (Filter(absolutePath) || (filter != null && filter.Filter(absolutePath))) continue;
+            if (child.IsDirectory)
+            {
+                var parent1 = new ProjectFolderDescriptor(absolutePath, Array.Empty<IProjectItemDescriptor>());
+                parent.Items.Add(parent1);
+                BuildInternal(parent1, projectProperties, filter);
+            }
+            else if (child.IsFile)
+            {
+                var projectFileProperties = myProjectFilePropertiesFactory.CreateProjectFileProperties(projectProperties);
+                var projectFileDescriptor = new ProjectFileDescriptor(null, absolutePath, projectFileProperties);
+                parent.Items.Add(projectFileDescriptor);
+            }
+        }
+    }
+
+    private bool Filter(VirtualFileSystemPath path) => FileSystemWellKnownFilter.WellKnownExcludeDirectories.Contains(path.Name) || FileSystemWellKnownFilter.IsWellKnownExcludeFiles(path.Name);
+
 
     [NotNull]
     private static VirtualFileSystemPath GetProjectLocation([NotNull] IProjectMark projectMark)
     {
-        var location = projectMark.Location.Parent.Parent;
+        var location = projectMark.Location.Parent;
         return location;
     }
 
