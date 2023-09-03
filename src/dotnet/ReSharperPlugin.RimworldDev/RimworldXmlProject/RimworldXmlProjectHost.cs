@@ -2,13 +2,14 @@ using System;
 using System.Collections.Generic;
 using JetBrains.Annotations;
 using JetBrains.Application.platforms;
-using JetBrains.ProjectModel;
+using JetBrains.ProjectModel.MSBuild;
 using JetBrains.ProjectModel.Platforms;
 using JetBrains.ProjectModel.ProjectsHost;
 using JetBrains.ProjectModel.ProjectsHost.Impl;
 using JetBrains.ProjectModel.ProjectsHost.Impl.FileSystem;
 using JetBrains.ProjectModel.ProjectsHost.LiveTracking;
 using JetBrains.ProjectModel.Properties;
+using JetBrains.ProjectModel.Properties.Managed;
 using JetBrains.ProjectModel.Update;
 using JetBrains.Util;
 using JetBrains.Util.Dotnet.TargetFrameworkIds;
@@ -22,8 +23,7 @@ public class RimworldXmlProjectHost : SolutionFileProjectHostBase
     private readonly FileSystemStructureBuilder myStructureBuilder;
     private readonly FileSystemWildcardService myWildcardService;
     private readonly ProjectFilePropertiesFactory myProjectFilePropertiesFactory;
-
-
+    
     public RimworldXmlProjectHost(
         IPlatformManager platformManager,
         ProjectFilePropertiesFactory projectFilePropertiesFactory,
@@ -58,10 +58,15 @@ public class RimworldXmlProjectHost : SolutionFileProjectHostBase
             {
                 targetFramework
             }, defaultLanguage, EmptyList<Guid>.InstanceList);
+
+        // This is a quick fix suggested by Jetbrains to fix where Files/Folders get created when adding them to our project
+        var config = projectProperties.TryGetConfiguration<IManagedProjectConfiguration>(projectProperties.ActiveConfigurations.TargetFrameworkIds.FirstNotNull());
+        config?.UpdatePropertyCollection(x =>
+            x[MSBuildProjectUtil.BaseDirectoryProperty] = projectMark.Location.Parent.Parent.FullPath);
         
         var customDescriptor = new RimworldProjectDescriptor(projectMark.Guid, projectProperties, null, projectName,
             siteProjectLocation, projectMark.Location);
-        
+
         var byProjectLocation = ProjectDescriptor.CreateWithoutItemsByProjectDescriptor(customDescriptor);
         
         Build(byProjectLocation, ProjectFolderFilter.Instance);
