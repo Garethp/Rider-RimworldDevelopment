@@ -8,6 +8,7 @@ using JetBrains.ReSharper.Psi.Caches;
 using JetBrains.ReSharper.Psi.Resolve;
 using JetBrains.ReSharper.Psi.Tree;
 using JetBrains.ReSharper.Psi.Util;
+using JetBrains.ReSharper.Psi.Web.WebConfig;
 using JetBrains.ReSharper.Psi.Xml;
 using JetBrains.ReSharper.Psi.Xml.Impl.Tree;
 using JetBrains.ReSharper.Psi.Xml.Tree;
@@ -23,7 +24,10 @@ public class RimworldReferenceProvider : IReferenceProviderFactory
 
     public IReferenceFactory CreateFactory(IPsiSourceFile sourceFile, IFile file, IWordIndex wordIndexForChecks)
     {
-        return sourceFile.PrimaryPsiLanguage.Is<XmlLanguage>() ? new RimworldReferenceFactory() : null;
+        return sourceFile.PrimaryPsiLanguage.Is<XmlLanguage>() && sourceFile.GetExtensionWithDot()
+            .Equals(".xml", StringComparison.CurrentCultureIgnoreCase)
+            ? new RimworldReferenceFactory()
+            : null;
     }
 
     public ISignal<IReferenceProviderFactory> Changed { get; }
@@ -97,7 +101,7 @@ public class RimworldReferenceFactory : IReferenceFactory
         var tagId = $"{classContext.ShortName}/{element.GetText()}";
         if (xmlSymbolTable.GetTagByDef(classContext.ShortName, element.GetText()) is not { } tag)
             return new ReferenceCollection();
-        
+
         return new ReferenceCollection(new RimworldXmlDefReference(element,
             tag.GetNestedTags<IXmlTag>("defName").FirstOrDefault() ?? tag, tagId));
     }
