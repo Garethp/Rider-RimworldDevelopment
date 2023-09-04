@@ -17,6 +17,8 @@ into the definitions on which the XML sits.
  * Autocomplete from classes defined in `Class=""` attributes, such as for comps.
  * When referring to other XML Defs (such as `<thought>ThoughtDefName</thought>`), auto complete and link to that defs XML
  * Autocomplete certain values for properties with fixed options (Such as Altitude Layer, boolean and directions)
+ * A Rimworld Run Configuration with a Debug option
+ * Rimworld Mod support in New Solution
 
 ### Configuring your project
 To give Rider all the information it needs to not only auto-complete and reference C# but also XML Defs, it's suggested
@@ -86,7 +88,6 @@ release and are a list of things to do "at some point in time". In no particular
  * Autocompleting and referencing classes in `Class=""` attributes in XML Tags
  * Autocompleting and providing references when referring to C# classes in XML Values like in `<thoughtClass>` or `<compClass>`
  * Handle Def tags with custom classes instead of just Rimworld classes (such as `<MyMod.CustomThingDef>`)
- * Adding a Rimworld Mod template under New Solution
  * Supporting Patches
 
 
