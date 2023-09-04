@@ -1,7 +1,7 @@
 <idea-plugin require-restart="true">
   <id>com.jetbrains.rider.plugins.rimworlddev</id>
   <name>Rimworld Development Environment</name>
-  <version>2023.2.1</version>
+  <version>2023.3</version>
   <vendor url="https://github.com/Garethp/Rider-RimworldDevelopment">Garethp</vendor>
   <idea-version since-build="231" />
   <depends>com.intellij.modules.rider</depends>
@@ -18,7 +18,7 @@ in your mods!</p>
   <change-notes>
 <![CDATA[
 <p><ul>
-<li>Fixed an issue for non-Rimworld projects that caused a hang on solution wide analysis</li>
+<li>Rimworld XML will now exist as it's own project</li>
 </ul></p>
 ]]>
   </change-notes>

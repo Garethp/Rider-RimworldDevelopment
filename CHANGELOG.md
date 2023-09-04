@@ -1,5 +1,8 @@
 # Changelog
 
+## 2023.3
+ * Rimworld XML will now exist as it's own project
+
 ## 2023.2.1
  * Fixed an issue for non-Rimworld projects that caused a hang on solution wide analysis
 
