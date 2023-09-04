@@ -13,6 +13,7 @@ using JetBrains.ProjectModel.ProjectsHost.Impl.FileSystem;
 using JetBrains.ProjectModel.ProjectsHost.LiveTracking;
 using JetBrains.ProjectModel.Properties;
 using JetBrains.ProjectModel.Properties.Managed;
+using JetBrains.ProjectModel.Search;
 using JetBrains.ProjectModel.Update;
 using JetBrains.ReSharper.Psi.Xml.Impl.Tree;
 using JetBrains.Util;
@@ -53,10 +54,12 @@ public class RimworldXmlProjectHost : SolutionFileProjectHostBase
         var projectMark = change.ProjectMark;
         var document = GetXmlDocument(projectMark.Location.FullPath);
 
-        var modName = document?.GetElementsByTagName("ModMetaData")[0]?.GetChildElements("name").First()?.InnerText;
+        var modName = document?.GetElementsByTagName("ModMetaData")[0]?.GetChildElements("name").FirstOrDefault()?.InnerText;
+        var modId = document?.GetElementsByTagName("ModMetaData")[0]?.GetChildElements("name").FirstOrDefault()?.InnerText;
+        
         var siteProjectLocation = GetProjectLocation(projectMark);
 
-        var projectName = modName ?? projectMark.Location.Parent.Parent.Name;
+        var projectName = modName ?? modId ?? projectMark.Location.Parent.Parent.Name;
         var targetFramework =
             TargetFrameworkId.Create(FrameworkIdentifier.NetFramework, null, ProfileIdentifier.Default);
         var defaultLanguage = ProjectLanguage.JAVASCRIPT;
@@ -65,7 +68,7 @@ public class RimworldXmlProjectHost : SolutionFileProjectHostBase
             {
                 targetFramework
             }, defaultLanguage, EmptyList<Guid>.InstanceList);
-
+        
         // This is a quick fix suggested by Jetbrains to fix where Files/Folders get created when adding them to our project
         var config = projectProperties.TryGetConfiguration<IManagedProjectConfiguration>(projectProperties.ActiveConfigurations.TargetFrameworkIds.FirstNotNull());
         config?.UpdatePropertyCollection(x =>
@@ -81,8 +84,7 @@ public class RimworldXmlProjectHost : SolutionFileProjectHostBase
         
         change.Descriptors = new ProjectHostChangeDescriptors(byProjectLocation)
         {
-            ProjectReferencesDescriptor =
-                BuildReferences(targetFramework)
+            ProjectReferencesDescriptor = BuildReferences(targetFramework, projectMark)
         };
     }
 
@@ -129,10 +131,14 @@ public class RimworldXmlProjectHost : SolutionFileProjectHostBase
         return location;
     }
 
-    private static ProjectReferencesDescriptor BuildReferences([NotNull] TargetFrameworkId targetFrameworkId)
+    private static ProjectReferencesDescriptor BuildReferences([NotNull] TargetFrameworkId targetFrameworkId, [NotNull] IProjectMark projectMark)
     {
-        List<Pair<IProjectReferenceDescriptor, IProjectReferenceProperties>> pairList =
-            new List<Pair<IProjectReferenceDescriptor, IProjectReferenceProperties>>();
+        var pairList = new List<Pair<IProjectReferenceDescriptor, IProjectReferenceProperties>>();
+
+        var first = new ProjectToProjectReferenceBySearchDescriptor(targetFrameworkId, ProjectSearchDescriptor.CreateByProjectFileLocation(projectMark.Location.Parent.Parent.Parent.TryCombine("The-Pathfinders/About/About.xml")));
+        
+        // pairList.Add(new Pair<IProjectReferenceDescriptor, IProjectReferenceProperties>(first, ProjectReferenceProperties.Instance));
+
         
         return !pairList.IsEmpty()
             ? new ProjectReferencesDescriptor(pairList)

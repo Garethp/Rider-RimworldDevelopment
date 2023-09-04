@@ -25,7 +25,9 @@ public class RimworldSolutionMark : SolutionMark
     {
         var change = base.Update(request);
         
-        change.AddedProjects.Add(new RimworldProjectMark(this, AboutFile));
+        change.AddedProjects.Add(new RimworldProjectMark(this, AboutFile, change));
+        // change.AddedProjects.Add(new RimworldProjectMark(this,
+        //     AboutFile.Parent.Parent.Parent.TryCombine("The-Pathfinders/About/About.xml")));
         
         return change;
     }
