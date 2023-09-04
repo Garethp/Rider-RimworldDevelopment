@@ -1,5 +1,8 @@
 # Changelog
 
+## 2023.2.1
+ * Fixed an issue for non-Rimworld projects that caused a hang on solution wide analysis
+
 ## 2023.2
  * Add a Run Configuration for Rimworld
  * On Windows, running the above configuration in Debug Mode will automatically copy in files from UnityDebug and attach the debugger to the Rimworld process
