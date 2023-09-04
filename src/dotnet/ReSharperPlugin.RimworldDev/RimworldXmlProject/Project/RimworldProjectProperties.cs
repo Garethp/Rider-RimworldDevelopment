@@ -16,7 +16,7 @@ using JetBrains.Serialization;
 using JetBrains.Util;
 using JetBrains.Util.Dotnet.TargetFrameworkIds;
 
-namespace ReSharperPlugin.RimworldDev.RimworldXmlProject;
+namespace ReSharperPlugin.RimworldDev.RimworldXmlProject.Project;
 
 public class RimworldProjectProperties<TProjectConfiguration> : ProjectPropertiesBase<TProjectConfiguration>
     where TProjectConfiguration : ProjectConfigurationBase, new()

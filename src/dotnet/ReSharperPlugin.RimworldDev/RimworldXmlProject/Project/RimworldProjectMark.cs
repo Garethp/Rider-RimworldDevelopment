@@ -5,7 +5,7 @@ using JetBrains.ProjectModel.ProjectsHost.Impl;
 using JetBrains.ProjectModel.SolutionStructure.SolutionConfigurations;
 using JetBrains.Util;
 
-namespace ReSharperPlugin.RimworldDev.RimworldXmlProject;
+namespace ReSharperPlugin.RimworldDev.RimworldXmlProject.Project;
 
 public class RimworldProjectMark : ProjectMarkBase
 {

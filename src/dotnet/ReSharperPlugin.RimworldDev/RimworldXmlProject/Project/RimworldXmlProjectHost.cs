@@ -1,5 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Xml;
 using JetBrains.Annotations;
 using JetBrains.Application.platforms;
 using JetBrains.ProjectModel.MSBuild;
@@ -11,23 +14,24 @@ using JetBrains.ProjectModel.ProjectsHost.LiveTracking;
 using JetBrains.ProjectModel.Properties;
 using JetBrains.ProjectModel.Properties.Managed;
 using JetBrains.ProjectModel.Update;
+using JetBrains.ReSharper.Psi.Xml.Impl.Tree;
 using JetBrains.Util;
 using JetBrains.Util.Dotnet.TargetFrameworkIds;
+using ReSharperPlugin.RimworldDev.RimworldXmlProject.Project;
 
-namespace ReSharperPlugin.RimworldDev.RimworldXmlProject;
+namespace ReSharperPlugin.RimworldDev.RimworldXmlProject.Project;
 
 [ProjectsHostComponent]
 public class RimworldXmlProjectHost : SolutionFileProjectHostBase
 {
     private readonly IPlatformManager myPlatformManager;
-    private readonly FileSystemStructureBuilder myStructureBuilder;
+    private readonly RimworldProjectStructureBuilder myStructureBuilder;
     private readonly FileSystemWildcardService myWildcardService;
     private readonly ProjectFilePropertiesFactory myProjectFilePropertiesFactory;
     
     public RimworldXmlProjectHost(
         IPlatformManager platformManager,
         ProjectFilePropertiesFactory projectFilePropertiesFactory,
-        FileSystemStructureBuilder structureBuilder,
         FileSystemWildcardService wildcardService,
         ISolutionMark solutionMark,
         FileContentTracker fileContentTracker)
@@ -35,7 +39,7 @@ public class RimworldXmlProjectHost : SolutionFileProjectHostBase
     {
         myProjectFilePropertiesFactory = projectFilePropertiesFactory;
         myPlatformManager = platformManager;
-        myStructureBuilder = structureBuilder;
+        myStructureBuilder = new RimworldProjectStructureBuilder(myProjectFilePropertiesFactory);
         myWildcardService = wildcardService;
     }
 
@@ -47,9 +51,12 @@ public class RimworldXmlProjectHost : SolutionFileProjectHostBase
     protected override void Reload(ProjectHostReloadChange change, FileSystemPath logPath)
     {
         var projectMark = change.ProjectMark;
+        var document = GetXmlDocument(projectMark.Location.FullPath);
+
+        var modName = document?.GetElementsByTagName("ModMetaData")[0]?.GetChildElements("name").First()?.InnerText;
         var siteProjectLocation = GetProjectLocation(projectMark);
 
-        var projectName = projectMark.Location.Parent.Parent.Name;
+        var projectName = modName ?? projectMark.Location.Parent.Parent.Name;
         var targetFramework =
             TargetFrameworkId.Create(FrameworkIdentifier.NetFramework, null, ProfileIdentifier.Default);
         var defaultLanguage = ProjectLanguage.JAVASCRIPT;
@@ -69,7 +76,7 @@ public class RimworldXmlProjectHost : SolutionFileProjectHostBase
 
         var byProjectLocation = ProjectDescriptor.CreateWithoutItemsByProjectDescriptor(customDescriptor);
         
-        Build(byProjectLocation, ProjectFolderFilter.Instance);
+        myStructureBuilder.Build(byProjectLocation, ProjectFolderFilter.Instance);
         myWildcardService.RegisterDirectory(projectMark, siteProjectLocation, targetFramework, ProjectFolderFilter.Instance);
         
         change.Descriptors = new ProjectHostChangeDescriptors(byProjectLocation)
@@ -78,46 +85,6 @@ public class RimworldXmlProjectHost : SolutionFileProjectHostBase
                 BuildReferences(targetFramework)
         };
     }
-
-    private void Build([NotNull] ProjectDescriptor descriptor, [CanBeNull] IFolderFilter filter = null)
-    {
-        if (!descriptor.Location.ExistsDirectory)
-            return;
-
-        var realParent = new ProjectFolderDescriptor(descriptor.Location.Parent); 
-        BuildInternal(realParent, descriptor.ProjectProperties, filter);
-        foreach (var projectItem in realParent.Items)
-        {
-            descriptor.Items.Add(projectItem);
-        }
-    }
-
-    private void BuildInternal(
-        [NotNull] IProjectFolderDescriptor parent,
-        [NotNull] IProjectProperties projectProperties,
-        [CanBeNull] IFolderFilter filter)
-    {
-        foreach (var child in parent.Location.GetChildren())
-        {
-            var absolutePath = parent.Location.TryCombine(child.ToString());
-            if (Filter(absolutePath) || (filter != null && filter.Filter(absolutePath))) continue;
-            if (child.IsDirectory)
-            {
-                var parent1 = new ProjectFolderDescriptor(absolutePath, Array.Empty<IProjectItemDescriptor>());
-                parent.Items.Add(parent1);
-                BuildInternal(parent1, projectProperties, filter);
-            }
-            else if (child.IsFile)
-            {
-                var projectFileProperties = myProjectFilePropertiesFactory.CreateProjectFileProperties(projectProperties);
-                var projectFileDescriptor = new ProjectFileDescriptor(null, absolutePath, projectFileProperties);
-                parent.Items.Add(projectFileDescriptor);
-            }
-        }
-    }
-
-    private bool Filter(VirtualFileSystemPath path) => FileSystemWellKnownFilter.WellKnownExcludeDirectories.Contains(path.Name) || FileSystemWellKnownFilter.IsWellKnownExcludeFiles(path.Name);
-
 
     [NotNull]
     private static VirtualFileSystemPath GetProjectLocation([NotNull] IProjectMark projectMark)
@@ -150,5 +117,20 @@ public class RimworldXmlProjectHost : SolutionFileProjectHostBase
             path.Name.EndsWith(".DotSettings.user", StringComparison.OrdinalIgnoreCase) ||
             path.Name.Equals("node_modules", StringComparison.OrdinalIgnoreCase) ||
             (!path.FullPath.Contains("About") && !path.FullPath.Contains("Defs"));
+    }
+    
+    [CanBeNull]
+    public static XmlDocument GetXmlDocument(string fileLocation)
+    {
+        if (!File.Exists(fileLocation)) return null;
+
+        using var reader = new StreamReader(fileLocation);
+        using var xmlReader = new XmlTextReader(reader);
+        var document = new XmlDocument();
+        document.Load(xmlReader);
+        xmlReader.Close();
+        reader.Close();
+
+        return document;
     }
 }

@@ -9,6 +9,7 @@ using JetBrains.ProjectModel.ProjectsHost.Impl;
 using JetBrains.ProjectModel.SolutionStructure.SolutionConfigurations;
 using JetBrains.ProjectModel.SolutionStructure.SolutionDefinitions;
 using JetBrains.Util;
+using ReSharperPlugin.RimworldDev.RimworldXmlProject.Project;
 
 namespace ReSharperPlugin.RimworldDev.RimworldXmlProject.Solution;
 

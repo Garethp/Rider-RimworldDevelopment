@@ -3,6 +3,7 @@ using JetBrains.Annotations;
 using JetBrains.ProjectModel.ProjectsHost;
 using JetBrains.ProjectModel.ProjectsHost.Impl;
 using JetBrains.Util;
+using ReSharperPlugin.RimworldDev.RimworldXmlProject.Project;
 
 namespace ReSharperPlugin.RimworldDev.RimworldXmlProject.Solution;
 

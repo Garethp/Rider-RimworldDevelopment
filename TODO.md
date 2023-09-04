@@ -31,19 +31,4 @@
  * Tests
    * It's not a serious project without Tests IMO. Let's at least aim to get one or two unit tests to start with
 
- * Adding custom project structure
-   * Kotlin
-     * RiderProjectTypesProvider
-     * RiderProjectType
-   * ReSharper
-     * ProjectHost
-       * WebSiteProjectHost
-       * Implement Reload & Define Descriptors
-     * Project Reference Descriptors
-     * ProjectMark
-       * The entry in SolutionFile
-       * VirtualProjectMark
-       * It's the entry point to our project model
- * Set the name of the XML Project to be loaded from the `About.xml`
- * Refactor `RimworldXmlProjectHost` to pull `Build`, `BuildInternal` and `Filter` into a `RimworldXmlProjectStructureBuilder` class
  * When the issue with the project location is fixed, move to 2023.3 to take advantage of that so that we don't need to build the structure ourselves
