@@ -32,7 +32,6 @@
    * It's not a serious project without Tests IMO. Let's at least aim to get one or two unit tests to start with
 
  * Project Structure
-   * Add project references to allow mods to reference other mods
    * When the issue with the project location is fixed, move to 2023.3 to take advantage of that so that we don't need to build the structure ourselves
    * Refactor `RimworldProjectMark::GetModsList` to accept a list of desired ModIds so we can filter them down sooner, which should be more efficient
 
