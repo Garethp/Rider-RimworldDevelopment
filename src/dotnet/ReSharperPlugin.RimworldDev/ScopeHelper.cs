@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Xml;
 using JetBrains.Annotations;
 using JetBrains.Application.Threading.Tasks;
 using JetBrains.Metadata.Reader.API;
@@ -10,6 +11,7 @@ using JetBrains.ReSharper.Psi.Caches;
 using JetBrains.ReSharper.Psi.Modules;
 using JetBrains.Util;
 using JetBrains.Util.Threading.Tasks;
+using ReSharperPlugin.RimworldDev.RimworldXmlProject.Project;
 
 namespace ReSharperPlugin.RimworldDev;
 
@@ -173,4 +175,55 @@ public class ScopeHelper
     public static IPsiModule RimworldModule => rimworldModule;
 
     public static List<ISymbolScope> AllScopes => allScopes;
+
+    public static Dictionary<string, string> GetModLocations(string basePath, List<string> desiredModIds)
+    {
+        var directoriesToCheck = FindModDirectories(basePath);
+        var foundMods = new Dictionary<string, string>();
+
+        foreach (var directory in directoriesToCheck)
+        {
+            var path = FileSystemPath.TryParse(directory);
+            if (!path.ExistsDirectory) continue;
+
+            foreach (var child in path.GetChildren())
+            {
+                if (!child.IsDirectory) continue;
+
+                var aboutFile = FileSystemPath.TryParse($@"{directory}\{child.ToString()}\About\About.xml");
+                if (!aboutFile.ExistsFile) continue;
+
+                var document = GetXmlDocument(aboutFile.FullPath);
+                var modId = document?.GetElementsByTagName("ModMetaData")[0]?.GetChildElements("packageId")
+                    .FirstOrDefault()?.InnerText;
+                
+                if (modId == null || !desiredModIds.Contains(modId)) continue;
+
+                desiredModIds.Remove(modId);
+                if (foundMods.ContainsKey(modId)) continue;
+                
+                foundMods.Add(modId, aboutFile.FullPath);
+
+                if (desiredModIds.Count == 0) return foundMods;
+            }
+        }
+
+        return foundMods;
+    }
+    
+    
+    [CanBeNull]
+    public static XmlDocument GetXmlDocument(string fileLocation)
+    {
+        if (!File.Exists(fileLocation)) return null;
+
+        using var reader = new StreamReader(fileLocation);
+        using var xmlReader = new XmlTextReader(reader);
+        var document = new XmlDocument();
+        document.Load(xmlReader);
+        xmlReader.Close();
+        reader.Close();
+
+        return document;
+    }
 }

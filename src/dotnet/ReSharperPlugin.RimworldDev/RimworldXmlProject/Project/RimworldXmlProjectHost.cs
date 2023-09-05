@@ -43,7 +43,7 @@ public class RimworldXmlProjectHost : SolutionFileProjectHostBase
         myStructureBuilder = new RimworldProjectStructureBuilder(myProjectFilePropertiesFactory);
         myWildcardService = wildcardService;
     }
-
+    
     public override bool IsApplicable(IProjectMark projectMark)
     {
         return projectMark.Guid.ToString() == "f2a71f9b-5d33-465a-a702-920d77279781";
@@ -52,7 +52,6 @@ public class RimworldXmlProjectHost : SolutionFileProjectHostBase
     protected override void Reload(ProjectHostReloadChange change, FileSystemPath logPath)
     {
         var projectMark = change.ProjectMark;
-        var document = GetXmlDocument(projectMark.Location.FullPath);
         
         var siteProjectLocation = GetProjectLocation(projectMark);
 
@@ -92,7 +91,7 @@ public class RimworldXmlProjectHost : SolutionFileProjectHostBase
 
         try
         {
-            var document = GetXmlDocument(loadFoldersFile.FullPath);
+            var document = ScopeHelper.GetXmlDocument(loadFoldersFile.FullPath);
             if (document == null) return loadFolders;
 
             var versionList = new List<string>();
@@ -129,16 +128,17 @@ public class RimworldXmlProjectHost : SolutionFileProjectHostBase
 
     private static ProjectReferencesDescriptor BuildReferences([NotNull] TargetFrameworkId targetFrameworkId, [NotNull] IProjectMark projectMark)
     {
+        if (projectMark is not RimworldProjectMark rimworldProjectMark || rimworldProjectMark.Dependencies.Count == 0) return null;
+
         var pairList = new List<Pair<IProjectReferenceDescriptor, IProjectReferenceProperties>>();
 
-        var first = new ProjectToProjectReferenceBySearchDescriptor(targetFrameworkId, ProjectSearchDescriptor.CreateByProjectFileLocation(projectMark.Location.Parent.Parent.Parent.TryCombine("The-Pathfinders/About/About.xml")));
-        
-        // pairList.Add(new Pair<IProjectReferenceDescriptor, IProjectReferenceProperties>(first, ProjectReferenceProperties.Instance));
+        rimworldProjectMark.Dependencies.ForEach(dependency =>
+        {
+            var reference = new ProjectToProjectReferenceBySearchDescriptor(targetFrameworkId, dependency.ToProjectSearchDescriptor());
+            pairList.Add(new Pair<IProjectReferenceDescriptor, IProjectReferenceProperties>(reference, ProjectReferenceProperties.Instance) );
+        });
 
-        
-        return !pairList.IsEmpty()
-            ? new ProjectReferencesDescriptor(pairList)
-            : null;
+        return new ProjectReferencesDescriptor(pairList);
     }
 
     private class ProjectFolderFilter : IFolderFilter
@@ -155,20 +155,5 @@ public class RimworldXmlProjectHost : SolutionFileProjectHostBase
             path.Name.EndsWith(".DotSettings.user", StringComparison.OrdinalIgnoreCase) ||
             path.Name.Equals("node_modules", StringComparison.OrdinalIgnoreCase) ||
             (!path.FullPath.Contains("About") && !path.FullPath.Contains("Defs"));
-    }
-    
-    [CanBeNull]
-    public static XmlDocument GetXmlDocument(string fileLocation)
-    {
-        if (!File.Exists(fileLocation)) return null;
-
-        using var reader = new StreamReader(fileLocation);
-        using var xmlReader = new XmlTextReader(reader);
-        var document = new XmlDocument();
-        document.Load(xmlReader);
-        xmlReader.Close();
-        reader.Close();
-
-        return document;
     }
 }

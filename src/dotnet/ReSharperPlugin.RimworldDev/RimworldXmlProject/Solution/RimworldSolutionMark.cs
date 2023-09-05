@@ -24,10 +24,11 @@ public class RimworldSolutionMark : SolutionMark
     public override SolutionStructureChange Update(SolutionMarkUpdateRequest request)
     {
         var change = base.Update(request);
+
+        var rimworldMark = new RimworldProjectMark(this, AboutFile, this);
         
-        change.AddedProjects.Add(new RimworldProjectMark(this, AboutFile, change));
-        // change.AddedProjects.Add(new RimworldProjectMark(this,
-        //     AboutFile.Parent.Parent.Parent.TryCombine("The-Pathfinders/About/About.xml")));
+        change.AddedProjects.Add(rimworldMark);
+        change.AddedProjects.AddRange(rimworldMark.Dependencies);
         
         return change;
     }
