@@ -81,7 +81,8 @@ public class RimworldProjectMark : ProjectMarkBase
                     .FirstOrDefault()?.InnerText;
 
                 if (modName == null) continue;
-
+                if (foundMods.ContainsKey(modName)) continue;
+                
                 foundMods.Add(modName, aboutFile.FullPath);
             }
         }

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using JetBrains.Annotations;
 using JetBrains.Application.Threading.Tasks;
@@ -58,7 +59,7 @@ public class ScopeHelper
         if (adding) return;
         adding = true;
 
-        var path = FindRimworldDLL(solution.SolutionDirectory.FullPath);
+        var path = FindRimworldDll(solution.SolutionDirectory.FullPath);
         if (path == null) return;
 
         var moduleReferenceResolveContext =
@@ -74,58 +75,41 @@ public class ScopeHelper
     [CanBeNull]
     public static FileSystemPath FindRimworldDirectory(string currentPath)
     {
-        var locations = new List<string>
-        {
-            "C:\\Program Files (x86)\\Steam\\steamapps\\common\\RimWorld\\RimWorldWin64_Data\\Managed\\Assembly-CSharp.dll",
-            "C:\\Program Files\\Steam\\steamapps\\common\\RimWorld\\RimWorldWin64_Data\\Managed\\Assembly-CSharp.dll",
-            "~/.steam/steam/steamapps/common/RimWorld/RimWorldLinux_Data/Managed/Assembly-CSharp.dll"
-        };
+        var locations = new List<FileSystemPath>();
 
-        var location = locations.FirstOrDefault(location => FileSystemPath.TryParse(location).ExistsFile);
+        locations.AddRange(GetSteamLocations()
+            .Select(baseDir => FileSystemPath.TryParse($@"{baseDir}/common/RimWorld/")));
+
+        var location = locations.FirstOrDefault(location => location.ExistsDirectory);
+        if (location != null) return location;
 
         // If we're not able to find the Assembly file in the common locations, let's look for it through relative paths
-        if (location == null)
+        var currentDirectory = FileSystemPath.TryParse(currentPath);
+
+        // we're going to look up parent directories 5 times
+        for (var i = 0; i < 5; i++)
         {
-            var fileRelativePaths = new List<string>
+            currentDirectory = currentDirectory.Parent;
+            if (currentDirectory.Exists == FileSystemPath.Existence.Missing) break;
+
+            // If we spot UnityPlayer.dll, we're in the correct directory, we'll either find our Assembly-CSharp.dll
+            // relative to here or not at all
+            if (currentDirectory.Name.EndsWith(".app") || currentDirectory.GetDirectoryEntries()
+                    .Any(entry => entry.IsFile && entry.RelativePath.Name is "UnityPlayer.dll" or "UnityPlayer.so"))
             {
-                "RimWorldWin64_Data/Managed/Assembly-CSharp.dll",
-                "RimWorldWin_Data/Managed/Assembly-CSharp.dll",
-                "RimWorldLinux_Data/Managed/Assembly-CSharp.dll",
-                "Contents/Resources/Data/Managed/Assembly-CSharp.dll"
-            };
-
-            var currentDirectory = FileSystemPath.TryParse(currentPath);
-
-            // we're going to look up parent directories 5 times
-            for (var i = 0; i < 5; i++)
-            {
-                currentDirectory = currentDirectory.Parent;
-                if (currentDirectory.Exists == FileSystemPath.Existence.Missing) break;
-
-                // If we spot UnityPlayer.dll, we're in the correct directory, we'll either find our Assembly-CSharp.dll
-                // relative to here or not at all
-                if (currentDirectory.Name.EndsWith(".app") || currentDirectory.GetDirectoryEntries()
-                        .Any(entry => entry.IsFile && entry.RelativePath.Name is "UnityPlayer.dll" or "UnityPlayer.so"))
-                {
-                    // We've got a few different possible relative locations for Assembly-CSharp.dll, let's check there
-                    location = currentDirectory.FullPath;
-
-                    break;
-                }
+                // We've got a few different possible relative locations for Assembly-CSharp.dll, let's check there
+                return currentDirectory;
             }
-
-            if (location == null) return null;
         }
 
-        var path = FileSystemPath.TryParse(location);
-        return !path.ExistsDirectory ? null : path;
+        return null;
     }
 
     [CanBeNull]
-    public static FileSystemPath FindRimworldDLL(string currentPath)
+    public static FileSystemPath FindRimworldDll(string currentPath)
     {
         var rimworldLocation = FindRimworldDirectory(currentPath);
-        
+
         var fileRelativePaths = new List<string>
         {
             "RimWorldWin64_Data/Managed/Assembly-CSharp.dll",
@@ -155,8 +139,33 @@ public class ScopeHelper
             if (dataDirectory.ExistsDirectory) modDirectories.Add(dataDirectory.FullPath);
             if (modsDirectory.ExistsDirectory) modDirectories.Add(modsDirectory.FullPath);
         }
+        
+        modDirectories.AddRange(GetSteamLocations()
+            .Select(location => FileSystemPath.TryParse($"{location}/workshop/content/294100/").FullPath)
+            .Where(location => FileSystemPath.TryParse(location).ExistsDirectory)
+        );
 
         return modDirectories;
+    }
+
+    private static IEnumerable<string> GetSteamLocations()
+    {
+        var locations = new List<string>
+        {
+            @"C:\Program Files (x86)\Steam\",
+            @"C:\Program Files\Steam\",
+            "~/.steam/steam/"
+        };
+
+        locations.AddRange(
+            DriveInfo
+                .GetDrives()
+                .Select(drive => $@"{drive.RootDirectory.Name}/SteamLibrary/steamapps/")
+        );
+
+        return locations
+            .Where(location => FileSystemPath.TryParse(location).ExistsDirectory)
+            .ToList();
     }
 
     public static ISymbolScope RimworldScope => rimworldScope;
