@@ -97,7 +97,16 @@ public class RimworldXmlProjectHost : SolutionFileProjectHostBase
             var document = GetXmlDocument(loadFoldersFile.FullPath);
             if (document == null) return loadFolders;
 
-            var folderTags = document.GetElementsByTagName("li");
+            var versionList = new List<string>();
+            var versions = document.GetElementsByTagName("loadFolders")[0].ChildNodes;
+            for (var i = 0; i < versions.Count; i++)
+            {
+                versionList.Add(versions[i].Name);
+            }
+
+            versionList.Sort();
+            
+            var folderTags = document.GetElementsByTagName(versionList.Last())[0].ChildNodes;
             for (var i = 0; i < folderTags.Count; i++)
             {
                 if (!basePath.TryCombine(folderTags[i].InnerText).ExistsDirectory) continue;
