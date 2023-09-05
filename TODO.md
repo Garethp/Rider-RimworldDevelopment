@@ -35,11 +35,7 @@
    * Add project references to allow mods to reference other mods
    * When the issue with the project location is fixed, move to 2023.3 to take advantage of that so that we don't need to build the structure ourselves
    * Also look for mods in Steam Workshop
-   * Centralize the logic for looking for Rimworld stuff
-   * Load up the project dependencies from the `About.xml` file
-   * Handle both `modDependencies` and `modDependenciesByVersion`
-   * Move the project name detection into ProjectMark
-
+   * Add checking a for a Steam Library folder on each drive in Windows to Rimworld Directory checking
 
  * Investigate the possibility of tying a version number to our types in the SymbolScope so that we can don't cross reference between versions
-   * Right now we only try to load the latest version of the XML, since we aren't built for loading multiple copies of the same def
+    * Right now we only try to load the latest version of the XML, since we aren't built for loading multiple copies of the same def

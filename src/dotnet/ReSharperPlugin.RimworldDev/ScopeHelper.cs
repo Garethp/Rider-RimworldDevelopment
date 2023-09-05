@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using JetBrains.Annotations;
 using JetBrains.Application.Threading.Tasks;
 using JetBrains.Metadata.Reader.API;
 using JetBrains.ProjectModel;
@@ -29,9 +30,9 @@ public class ScopeHelper
         // If we haven't determined the Rimworld scope yet, our scopes may not be ready for querying. Since I'd rather
         // that we were able to pull the scope from the dependencies than try to find it ourselves, let's check if the
         // scopes are ready for querying first. Ofcourse, if we have no scopes at all, there's nothing to wait for
-        if (rimworldScope == null && allScopes.Any() && allScopes.Any(scope => !scope.GetAllShortNames().Any())) 
+        if (rimworldScope == null && allScopes.Any() && allScopes.Any(scope => !scope.GetAllShortNames().Any()))
             return false;
-        
+
         if (rimworldScope == null)
         {
             rimworldScope = allScopes.FirstOrDefault(scope => scope.GetTypeElementByCLRName("Verse.ThingDef") != null);
@@ -42,7 +43,7 @@ public class ScopeHelper
 
                 return false;
             }
-            
+
             rimworldModule = solution.PsiModules().GetModules()
                 .First(module =>
                     module.GetPsiServices().Symbols.GetSymbolScope(module, true, true)
@@ -57,13 +58,29 @@ public class ScopeHelper
         if (adding) return;
         adding = true;
 
+        var path = FindRimworldDLL(solution.SolutionDirectory.FullPath);
+        if (path == null) return;
+
+        var moduleReferenceResolveContext =
+            (IModuleReferenceResolveContext)UniversalModuleReferenceContext.Instance;
+
+        await solution.Locks.Tasks.YieldTo(solution.GetSolutionLifetimes().MaximumLifetime, Scheduling.MainDispatcher,
+            TaskPriority.Low);
+
+        solution.GetComponent<IAssemblyFactory>().AddRef(path.ToAssemblyLocation(), "ScopeHelper::AddRef",
+            moduleReferenceResolveContext);
+    }
+
+    [CanBeNull]
+    public static FileSystemPath FindRimworldDirectory(string currentPath)
+    {
         var locations = new List<string>
         {
             "C:\\Program Files (x86)\\Steam\\steamapps\\common\\RimWorld\\RimWorldWin64_Data\\Managed\\Assembly-CSharp.dll",
             "C:\\Program Files\\Steam\\steamapps\\common\\RimWorld\\RimWorldWin64_Data\\Managed\\Assembly-CSharp.dll",
             "~/.steam/steam/steamapps/common/RimWorld/RimWorldLinux_Data/Managed/Assembly-CSharp.dll"
         };
-        
+
         var location = locations.FirstOrDefault(location => FileSystemPath.TryParse(location).ExistsFile);
 
         // If we're not able to find the Assembly file in the common locations, let's look for it through relative paths
@@ -76,44 +93,70 @@ public class ScopeHelper
                 "RimWorldLinux_Data/Managed/Assembly-CSharp.dll",
                 "Contents/Resources/Data/Managed/Assembly-CSharp.dll"
             };
-            
-            var currentDirectory = FileSystemPath.TryParse(solution.SolutionDirectory.FullPath);
-            
+
+            var currentDirectory = FileSystemPath.TryParse(currentPath);
+
             // we're going to look up parent directories 5 times
             for (var i = 0; i < 5; i++)
             {
                 currentDirectory = currentDirectory.Parent;
                 if (currentDirectory.Exists == FileSystemPath.Existence.Missing) break;
-                
+
                 // If we spot UnityPlayer.dll, we're in the correct directory, we'll either find our Assembly-CSharp.dll
                 // relative to here or not at all
                 if (currentDirectory.Name.EndsWith(".app") || currentDirectory.GetDirectoryEntries()
-                    .Any(entry => entry.IsFile && entry.RelativePath.Name is "UnityPlayer.dll" or "UnityPlayer.so"))
+                        .Any(entry => entry.IsFile && entry.RelativePath.Name is "UnityPlayer.dll" or "UnityPlayer.so"))
                 {
                     // We've got a few different possible relative locations for Assembly-CSharp.dll, let's check there
-                    var rimworldLocation = currentDirectory;
-                    location = fileRelativePaths.FirstOrDefault(path =>
-                        FileSystemPath.ParseRelativelyTo(path, rimworldLocation).ExistsFile);
-
-                    if (location != null)
-                        location = FileSystemPath.ParseRelativelyTo(location, rimworldLocation).FullPath;
+                    location = currentDirectory.FullPath;
 
                     break;
                 }
             }
-            
-            if (location == null) return;
-        };
-        
+
+            if (location == null) return null;
+        }
+
         var path = FileSystemPath.TryParse(location);
+        return !path.ExistsDirectory ? null : path;
+    }
 
-        var moduleReferenceResolveContext =
-            (IModuleReferenceResolveContext)UniversalModuleReferenceContext.Instance;
+    [CanBeNull]
+    public static FileSystemPath FindRimworldDLL(string currentPath)
+    {
+        var rimworldLocation = FindRimworldDirectory(currentPath);
+        
+        var fileRelativePaths = new List<string>
+        {
+            "RimWorldWin64_Data/Managed/Assembly-CSharp.dll",
+            "RimWorldWin_Data/Managed/Assembly-CSharp.dll",
+            "RimWorldLinux_Data/Managed/Assembly-CSharp.dll",
+            "Contents/Resources/Data/Managed/Assembly-CSharp.dll"
+        };
 
-        await solution.Locks.Tasks.YieldTo(solution.GetSolutionLifetimes().MaximumLifetime, Scheduling.MainDispatcher, TaskPriority.Low);
+        var location = fileRelativePaths.FirstOrDefault(path =>
+            FileSystemPath.ParseRelativelyTo(path, rimworldLocation).ExistsFile);
 
-        solution.GetComponent<IAssemblyFactory>().AddRef(path.ToAssemblyLocation(), "ScopeHelper::AddRef",
-            moduleReferenceResolveContext);
+        var path = FileSystemPath.ParseRelativelyTo(location, rimworldLocation);
+
+        return path.ExistsFile ? path : null;
+    }
+
+    public static List<string> FindModDirectories(string currentPath)
+    {
+        var modDirectories = new List<string>();
+        var rimworldDirectory = FindRimworldDirectory(currentPath);
+
+        if (rimworldDirectory != null)
+        {
+            var dataDirectory = FileSystemPath.TryParse($@"{rimworldDirectory.FullPath}/Data");
+            var modsDirectory = FileSystemPath.TryParse($@"{rimworldDirectory.FullPath}/Mods");
+
+            if (dataDirectory.ExistsDirectory) modDirectories.Add(dataDirectory.FullPath);
+            if (modsDirectory.ExistsDirectory) modDirectories.Add(modsDirectory.FullPath);
+        }
+
+        return modDirectories;
     }
 
     public static ISymbolScope RimworldScope => rimworldScope;

@@ -53,13 +53,9 @@ public class RimworldXmlProjectHost : SolutionFileProjectHostBase
     {
         var projectMark = change.ProjectMark;
         var document = GetXmlDocument(projectMark.Location.FullPath);
-
-        var modName = document?.GetElementsByTagName("ModMetaData")[0]?.GetChildElements("name").FirstOrDefault()?.InnerText;
-        var modId = document?.GetElementsByTagName("ModMetaData")[0]?.GetChildElements("name").FirstOrDefault()?.InnerText;
         
         var siteProjectLocation = GetProjectLocation(projectMark);
 
-        var projectName = modName ?? modId ?? projectMark.Location.Parent.Parent.Name;
         var targetFramework =
             TargetFrameworkId.Create(FrameworkIdentifier.NetFramework, null, ProfileIdentifier.Default);
         var defaultLanguage = ProjectLanguage.JAVASCRIPT;
@@ -74,7 +70,7 @@ public class RimworldXmlProjectHost : SolutionFileProjectHostBase
         config?.UpdatePropertyCollection(x =>
             x[MSBuildProjectUtil.BaseDirectoryProperty] = projectMark.Location.Parent.Parent.FullPath);
         
-        var customDescriptor = new RimworldProjectDescriptor(projectMark.Guid, projectProperties, null, projectName,
+        var customDescriptor = new RimworldProjectDescriptor(projectMark.Guid, projectProperties, null, projectMark.Name,
             siteProjectLocation, projectMark.Location);
 
         var byProjectLocation = ProjectDescriptor.CreateWithoutItemsByProjectDescriptor(customDescriptor);
