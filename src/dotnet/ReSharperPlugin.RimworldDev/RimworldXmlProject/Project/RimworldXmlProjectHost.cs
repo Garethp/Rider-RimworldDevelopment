@@ -76,7 +76,7 @@ public class RimworldXmlProjectHost : SolutionFileProjectHostBase
 
         var byProjectLocation = ProjectDescriptor.CreateWithoutItemsByProjectDescriptor(customDescriptor);
         
-        myStructureBuilder.Build(byProjectLocation, ProjectFolderFilter.Instance, new List<string>());
+        myStructureBuilder.Build(byProjectLocation, ProjectFolderFilter.Instance, GetLoadFolders(projectMark.Location.Parent.Parent));
         myWildcardService.RegisterDirectory(projectMark, siteProjectLocation, targetFramework, ProjectFolderFilter.Instance);
         
         change.Descriptors = new ProjectHostChangeDescriptors(byProjectLocation)
@@ -84,6 +84,33 @@ public class RimworldXmlProjectHost : SolutionFileProjectHostBase
             ProjectReferencesDescriptor =
                 BuildReferences(targetFramework)
         };
+    }
+
+    private List<string> GetLoadFolders(VirtualFileSystemPath basePath)
+    {
+        var loadFolders = new List<string>();
+        var loadFoldersFile = basePath.TryCombine("LoadFolders.xml");
+        if (!loadFoldersFile.ExistsFile) return loadFolders;
+
+        try
+        {
+            var document = GetXmlDocument(loadFoldersFile.FullPath);
+            if (document == null) return loadFolders;
+
+            var folderTags = document.GetElementsByTagName("li");
+            for (var i = 0; i < folderTags.Count; i++)
+            {
+                if (!basePath.TryCombine(folderTags[i].InnerText).ExistsDirectory) continue;
+
+                loadFolders.Add(folderTags[i].InnerText);
+            }
+        }
+        catch (Exception e)
+        {
+            // ignored
+        }
+
+        return loadFolders;
     }
 
     [NotNull]

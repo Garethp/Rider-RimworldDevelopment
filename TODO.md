@@ -34,4 +34,3 @@
  * Project Structure
    * Add project references to allow mods to reference other mods
    * When the issue with the project location is fixed, move to 2023.3 to take advantage of that so that we don't need to build the structure ourselves
-   * Implement `loadFolders` to handle when Defs are in a version specific folder
