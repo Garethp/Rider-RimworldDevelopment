@@ -76,7 +76,7 @@ public class RimworldXmlProjectHost : SolutionFileProjectHostBase
 
         var byProjectLocation = ProjectDescriptor.CreateWithoutItemsByProjectDescriptor(customDescriptor);
         
-        myStructureBuilder.Build(byProjectLocation, ProjectFolderFilter.Instance);
+        myStructureBuilder.Build(byProjectLocation, ProjectFolderFilter.Instance, new List<string>());
         myWildcardService.RegisterDirectory(projectMark, siteProjectLocation, targetFramework, ProjectFolderFilter.Instance);
         
         change.Descriptors = new ProjectHostChangeDescriptors(byProjectLocation)
