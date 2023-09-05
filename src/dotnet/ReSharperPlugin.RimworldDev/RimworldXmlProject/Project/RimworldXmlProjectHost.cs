@@ -13,6 +13,7 @@ using JetBrains.ProjectModel.ProjectsHost.Impl.FileSystem;
 using JetBrains.ProjectModel.ProjectsHost.LiveTracking;
 using JetBrains.ProjectModel.Properties;
 using JetBrains.ProjectModel.Properties.Managed;
+using JetBrains.ProjectModel.Search;
 using JetBrains.ProjectModel.Update;
 using JetBrains.ReSharper.Psi.Xml.Impl.Tree;
 using JetBrains.Util;
@@ -42,7 +43,7 @@ public class RimworldXmlProjectHost : SolutionFileProjectHostBase
         myStructureBuilder = new RimworldProjectStructureBuilder(myProjectFilePropertiesFactory);
         myWildcardService = wildcardService;
     }
-
+    
     public override bool IsApplicable(IProjectMark projectMark)
     {
         return projectMark.Guid.ToString() == "f2a71f9b-5d33-465a-a702-920d77279781";
@@ -51,12 +52,9 @@ public class RimworldXmlProjectHost : SolutionFileProjectHostBase
     protected override void Reload(ProjectHostReloadChange change, FileSystemPath logPath)
     {
         var projectMark = change.ProjectMark;
-        var document = GetXmlDocument(projectMark.Location.FullPath);
-
-        var modName = document?.GetElementsByTagName("ModMetaData")[0]?.GetChildElements("name").First()?.InnerText;
+        
         var siteProjectLocation = GetProjectLocation(projectMark);
 
-        var projectName = modName ?? projectMark.Location.Parent.Parent.Name;
         var targetFramework =
             TargetFrameworkId.Create(FrameworkIdentifier.NetFramework, null, ProfileIdentifier.Default);
         var defaultLanguage = ProjectLanguage.JAVASCRIPT;
@@ -65,13 +63,13 @@ public class RimworldXmlProjectHost : SolutionFileProjectHostBase
             {
                 targetFramework
             }, defaultLanguage, EmptyList<Guid>.InstanceList);
-
+        
         // This is a quick fix suggested by Jetbrains to fix where Files/Folders get created when adding them to our project
         var config = projectProperties.TryGetConfiguration<IManagedProjectConfiguration>(projectProperties.ActiveConfigurations.TargetFrameworkIds.FirstNotNull());
         config?.UpdatePropertyCollection(x =>
             x[MSBuildProjectUtil.BaseDirectoryProperty] = projectMark.Location.Parent.Parent.FullPath);
         
-        var customDescriptor = new RimworldProjectDescriptor(projectMark.Guid, projectProperties, null, projectName,
+        var customDescriptor = new RimworldProjectDescriptor(projectMark.Guid, projectProperties, null, projectMark.Name,
             siteProjectLocation, projectMark.Location);
 
         var byProjectLocation = ProjectDescriptor.CreateWithoutItemsByProjectDescriptor(customDescriptor);
@@ -81,8 +79,7 @@ public class RimworldXmlProjectHost : SolutionFileProjectHostBase
         
         change.Descriptors = new ProjectHostChangeDescriptors(byProjectLocation)
         {
-            ProjectReferencesDescriptor =
-                BuildReferences(targetFramework)
+            ProjectReferencesDescriptor = BuildReferences(targetFramework, projectMark)
         };
     }
 
@@ -94,7 +91,7 @@ public class RimworldXmlProjectHost : SolutionFileProjectHostBase
 
         try
         {
-            var document = GetXmlDocument(loadFoldersFile.FullPath);
+            var document = ScopeHelper.GetXmlDocument(loadFoldersFile.FullPath);
             if (document == null) return loadFolders;
 
             var versionList = new List<string>();
@@ -129,14 +126,19 @@ public class RimworldXmlProjectHost : SolutionFileProjectHostBase
         return location;
     }
 
-    private static ProjectReferencesDescriptor BuildReferences([NotNull] TargetFrameworkId targetFrameworkId)
+    private static ProjectReferencesDescriptor BuildReferences([NotNull] TargetFrameworkId targetFrameworkId, [NotNull] IProjectMark projectMark)
     {
-        List<Pair<IProjectReferenceDescriptor, IProjectReferenceProperties>> pairList =
-            new List<Pair<IProjectReferenceDescriptor, IProjectReferenceProperties>>();
-        
-        return !pairList.IsEmpty()
-            ? new ProjectReferencesDescriptor(pairList)
-            : null;
+        if (projectMark is not RimworldProjectMark rimworldProjectMark || rimworldProjectMark.Dependencies.Count == 0) return null;
+
+        var pairList = new List<Pair<IProjectReferenceDescriptor, IProjectReferenceProperties>>();
+
+        rimworldProjectMark.Dependencies.ForEach(dependency =>
+        {
+            var reference = new ProjectToProjectReferenceBySearchDescriptor(targetFrameworkId, dependency.ToProjectSearchDescriptor());
+            pairList.Add(new Pair<IProjectReferenceDescriptor, IProjectReferenceProperties>(reference, ProjectReferenceProperties.Instance) );
+        });
+
+        return new ProjectReferencesDescriptor(pairList);
     }
 
     private class ProjectFolderFilter : IFolderFilter
@@ -153,20 +155,5 @@ public class RimworldXmlProjectHost : SolutionFileProjectHostBase
             path.Name.EndsWith(".DotSettings.user", StringComparison.OrdinalIgnoreCase) ||
             path.Name.Equals("node_modules", StringComparison.OrdinalIgnoreCase) ||
             (!path.FullPath.Contains("About") && !path.FullPath.Contains("Defs"));
-    }
-    
-    [CanBeNull]
-    public static XmlDocument GetXmlDocument(string fileLocation)
-    {
-        if (!File.Exists(fileLocation)) return null;
-
-        using var reader = new StreamReader(fileLocation);
-        using var xmlReader = new XmlTextReader(reader);
-        var document = new XmlDocument();
-        document.Load(xmlReader);
-        xmlReader.Close();
-        reader.Close();
-
-        return document;
     }
 }

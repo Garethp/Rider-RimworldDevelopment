@@ -46,12 +46,17 @@ public class RimworldVirtualSolutionMark : ISolutionMark
         ICollection<IProjectMark> addedProjects = EmptyList<IProjectMark>.Instance;
         ICollection<IProjectMark> updatedProjects = EmptyList<IProjectMark>.Instance;
         if (projectMarks.Count == 0)
-            addedProjects = new RimworldProjectMark[]
+        {
+            var rootProject = new RimworldProjectMark(this, Location, this);
+            addedProjects = new List<IProjectMark>
             {
-                new(this, Location)
+                rootProject
             };
+            
+            addedProjects.AddRange(rootProject.Dependencies);
+        }
         else
-            updatedProjects = new IProjectMark[]
+            updatedProjects = new[]
             {
                 projectMarks[0]
             };

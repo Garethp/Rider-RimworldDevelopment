@@ -24,8 +24,11 @@ public class RimworldSolutionMark : SolutionMark
     public override SolutionStructureChange Update(SolutionMarkUpdateRequest request)
     {
         var change = base.Update(request);
+
+        var rimworldMark = new RimworldProjectMark(this, AboutFile, this);
         
-        change.AddedProjects.Add(new RimworldProjectMark(this, AboutFile));
+        change.AddedProjects.Add(rimworldMark);
+        change.AddedProjects.AddRange(rimworldMark.Dependencies);
         
         return change;
     }
