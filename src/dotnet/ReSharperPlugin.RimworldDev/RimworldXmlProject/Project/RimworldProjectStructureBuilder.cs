@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using JetBrains.Annotations;
 using JetBrains.ProjectModel.ProjectsHost.Impl;
 using JetBrains.ProjectModel.ProjectsHost.Impl.FileSystem;
@@ -18,16 +19,26 @@ public class RimworldProjectStructureBuilder
         _projectFilePropertiesFactory = projectFilePropertiesFactory;
     }
 
-    public void Build([NotNull] IProjectDescriptor descriptor, [CanBeNull] IFolderFilter filter)
+    public void Build([NotNull] IProjectDescriptor descriptor, [CanBeNull] IFolderFilter filter, List<string> loadFolders)
     {
         if (!descriptor.Location.ExistsDirectory)
             return;
-
+        
         var realParent = new ProjectFolderDescriptor(descriptor.Location.Parent);
         BuildInternal(realParent, descriptor.ProjectProperties, filter);
         foreach (var projectItem in realParent.Items)
         {
             descriptor.Items.Add(projectItem);
+        }
+        
+        foreach (var loadFolder in loadFolders)
+        {
+            var path = realParent.Location.TryCombine(loadFolder);
+            if (path.Equals(realParent.Location) || !path.ExistsDirectory) continue;
+            
+            var loadFolderDescriptor = new ProjectFolderDescriptor(path);
+            BuildInternal(loadFolderDescriptor, descriptor.ProjectProperties, filter);
+            descriptor.Items.Add(loadFolderDescriptor);
         }
     }
 
