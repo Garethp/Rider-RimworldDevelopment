@@ -103,6 +103,18 @@ public sealed class CustomXmlAnalysisStageProcess : XmlDaemonStageProcessBase, I
             case "Verse.IntVec2":
                 break;
             default:
+                if (context.GetType().Name == "Enum")
+                {
+                    ProcessEnum(fullText, range, context);
+                    break;
+                }
+
+                if (context.GetType().Name == "Struct")
+                {
+                    ProcessStruct(fullText, range, context);
+                    break;
+                }
+                
                 var a = 1 + 1;
                 break;
         }
@@ -202,6 +214,28 @@ public sealed class CustomXmlAnalysisStageProcess : XmlDaemonStageProcessBase, I
         {
             AddError($"\"{thirdValue}\" is not a valid number", range);
             return;
+        }
+    }
+
+    private void ProcessEnum(string textValue, DocumentRange range, ITypeElement context)
+    {
+        if (context.GetType().Name != "Enum") return;
+        
+        var enumValues = context.GetMembers().Select(x => x.ShortName).ToList();
+        if (!enumValues.Contains(textValue))
+        {
+            AddError($"\"{textValue}\" is not a valid value for {context.ShortName}", range);
+        }
+    }
+    
+    private void ProcessStruct(string textValue, DocumentRange range, ITypeElement context)
+    {
+        if (context.GetType().Name != "Struct") return;
+        
+        var enumValues = context.GetMembers().Select(x => x.ShortName).ToList();
+        if (!enumValues.Contains(textValue))
+        {
+            AddError($"\"{textValue}\" is not a valid value for {context.ShortName}", range);
         }
     }
     
