@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Text.RegularExpressions;
 using JetBrains.Annotations;
 using JetBrains.Application.Settings;
 using JetBrains.DocumentModel;
@@ -94,7 +95,11 @@ public sealed class CustomXmlAnalysisStageProcess : XmlDaemonStageProcessBase, I
             case "System.String":
                 break;
             case "UnityEngine.Vector2":
+                ProcessVector2(fullText, range);
+                break;
             case "UnityEngine.Vector3":
+                ProcessVector3(fullText, range);
+                break;
             case "Verse.IntVec2":
                 break;
             default:
@@ -143,6 +148,63 @@ public sealed class CustomXmlAnalysisStageProcess : XmlDaemonStageProcessBase, I
         }
     }
 
+    private void ProcessVector2(string textValue, DocumentRange range)
+    {
+        var match = Regex.Match(textValue.Trim(), @"^\((.*?),(.*?)\)$");
+        if (!match.Success)
+        {
+            AddError("Your value must be in a format similar to (1,2)", range);
+            return;
+        }
+
+        var firstValue = match.Groups[1].Value;
+        var secondValue = match.Groups[2].Value;
+
+        if (!float.TryParse(firstValue, out _))
+        {
+            AddError($"\"{firstValue}\" is not a valid number", range);
+            return;
+        }
+
+        if (!float.TryParse(secondValue, out _))
+        {
+            AddError($"\"{secondValue}\" is not a valid number", range);
+            return;
+        }
+    }
+    
+    private void ProcessVector3(string textValue, DocumentRange range)
+    {
+        var match = Regex.Match(textValue.Trim(), @"^\((.*?),(.*?),(.*?)\)$");
+        if (!match.Success)
+        {
+            AddError("Your value must be in a format similar to (1,2,3)", range);
+            return;
+        }
+
+        var firstValue = match.Groups[1].Value;
+        var secondValue = match.Groups[2].Value;
+        var thirdValue = match.Groups[3].Value;
+
+        if (!float.TryParse(firstValue, out _))
+        {
+            AddError($"\"{firstValue}\" is not a valid number", range);
+            return;
+        }
+
+        if (!float.TryParse(secondValue, out _))
+        {
+            AddError($"\"{secondValue}\" is not a valid number", range);
+            return;
+        }
+
+        if (!float.TryParse(thirdValue, out _))
+        {
+            AddError($"\"{thirdValue}\" is not a valid number", range);
+            return;
+        }
+    }
+    
     private void AddError(string errorText, DocumentRange range)
     {
         IHighlighting error = new XmlErrorHighlighting(errorText, range, Array.Empty<object>());
