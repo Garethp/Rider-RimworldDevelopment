@@ -19,6 +19,7 @@ in your mods!</p>
 <![CDATA[
 <p><ul>
 <li>Rimworld XML will now exist as it's own project</li>
+<li>Added some new problem analyzers to catch simple typing errors in Rimworld XML</li>
 </ul></p>
 ]]>
   </change-notes>
@@ -30,6 +31,7 @@ in your mods!</p>
     <backend.actions.support language="XML" implementationClass="com.jetbrains.rider.actions.RiderActionSupportPolicy" />
 
     <configurationType implementation="RimworldDev.Rider.run.ConfigurationType"/>
+    <backend.markup.adapterFactory language="XML" implementationClass="com.jetbrains.rider.daemon.RiderCacheAwareMarkupAdapterFactory" />
   </extensions>
   
 </idea-plugin>

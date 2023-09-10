@@ -134,7 +134,7 @@ public class RimworldXMLItemProvider : ItemsProviderOfSpecificContext<RimworldXm
         {
             collector.Add(CSharpLookupItemFactory.Instance.CreateTextLookupItem(context.Ranges, "true", true));
             collector.Add(CSharpLookupItemFactory.Instance.CreateTextLookupItem(context.Ranges, "false", true));
-            
+
             return;
         }
 
@@ -277,30 +277,10 @@ public class RimworldXMLItemProvider : ItemsProviderOfSpecificContext<RimworldXm
     // classes that it inherits from
     public static List<IField> GetAllPublicFields(ITypeElement desiredClass, ISymbolScope symbolScope)
     {
-        var fields = new Dictionary<string, IField>();
-
-        foreach (var field in desiredClass.Fields)
-        {
-            fields.Add(field.ShortName, field);
-        }
-
-        foreach (var superClass in desiredClass.GetAllSuperClasses())
-        {
-            if (superClass.GetClassType() is not { } superType) continue;
-            if (superClass.GetClrName().FullName == "System.Object") continue;
-
-            if (superType.ShortName == "Object") continue;
-
-            foreach (var classField in superType.Fields)
-            {
-                if (!fields.ContainsKey(classField.ShortName))
-                {
-                    fields.Add(classField.ShortName, classField);
-                }
-            }
-        }
-
-        return fields.Values.ToList();
+        return desiredClass.GetAllClassMembers<IField>()
+            .Where(member => member.Member.AccessibilityDomain.DomainType == AccessibilityDomain.AccessibilityDomainType.PUBLIC)
+            .Select(member => member.Member)
+            .ToList();
     }
 
     /**
@@ -394,9 +374,17 @@ public class RimworldXMLItemProvider : ItemsProviderOfSpecificContext<RimworldXm
 
             currentContext = symbolScope.GetTypeElementByCLRName(clrName);
 
-            if (clrName == "bool")
+            switch (clrName)
             {
-                currentContext = symbolScope.GetTypeElementByCLRName("System.Boolean");
+                case "bool":
+                    currentContext = symbolScope.GetTypeElementByCLRName("System.Boolean");
+                    break;
+                case "string":
+                    currentContext = symbolScope.GetTypeElementByCLRName("System.String");
+                    break;
+                case "int":
+                    currentContext = symbolScope.GetTypeElementByCLRName("System.Int32");
+                    break;
             }
         }
 
