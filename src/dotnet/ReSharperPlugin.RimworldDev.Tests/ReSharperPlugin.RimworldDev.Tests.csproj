@@ -6,7 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="JetBrains.ReSharper.SDK.Tests" Version="2023.1.0">
+    <PackageReference Include="JetBrains.ReSharper.SDK" Version="$(SdkVersion)" PrivateAssets="all">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>

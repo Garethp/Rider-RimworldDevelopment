@@ -1,7 +1,7 @@
 ﻿<Project>
 
   <PropertyGroup>
-    <SdkVersion>2023.1.0</SdkVersion>
+    <SdkVersion>2023.2.1</SdkVersion>
 
     <Title>Rimworld Development Environment</Title>
     <Description>Bring the intelligence of your IDE to Rimworld XML files. Use information backed by Rimworlds DLL file to autocomplete your XML, Ctrl+Click into the C# that your XML gets translated into and see what options you have when adding items in your mods!</Description>
