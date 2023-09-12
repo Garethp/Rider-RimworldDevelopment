@@ -3,6 +3,7 @@
 ## 2023.3
  * Rimworld XML will now exist as it's own project
  * Added some new problem analyzers to catch simple typing errors in Rimworld XML
+ * Enabled spell checking for XML
 
 ## 2023.2.1
  * Fixed an issue for non-Rimworld projects that caused a hang on solution wide analysis
