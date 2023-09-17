@@ -85,8 +85,6 @@ public class ScopeHelper
         {
             return customPath;
         }
-
-        return null;
         
         var locations = new List<FileSystemPath>();
 

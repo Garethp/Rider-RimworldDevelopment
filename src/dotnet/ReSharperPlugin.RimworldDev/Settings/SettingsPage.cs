@@ -3,12 +3,12 @@ using JetBrains.Application.UI.Options;
 using JetBrains.Application.UI.Options.OptionPages;
 using JetBrains.Application.UI.Options.OptionsDialog;
 using JetBrains.DataFlow;
+using JetBrains.IDE.UI;
 using JetBrains.IDE.UI.Extensions;
 using JetBrains.IDE.UI.Extensions.PathActions;
 using JetBrains.IDE.UI.Options;
 using JetBrains.Lifetimes;
 using JetBrains.ReSharper.Feature.Services.Resources;
-using JetBrains.Rider.Backend.Platform.Icons;
 using JetBrains.Rider.Model.UIAutomation;
 using JetBrains.Util;
 
@@ -24,7 +24,7 @@ public class SettingsPage : BeSimpleOptionsPage
         Lifetime lifetime,
         OptionsPageContext optionsPageContext,
         OptionsSettingsSmartContext optionsSettingsSmartContext,
-        IconHost iconHost,
+        IconHostBase iconHost,
         ICommonFileDialogs commonFileDialogs,
         bool wrapInScrollablePanel = false
     ) : base(lifetime,
