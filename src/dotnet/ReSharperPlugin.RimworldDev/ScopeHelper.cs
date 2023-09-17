@@ -12,6 +12,7 @@ using JetBrains.ReSharper.Psi.Modules;
 using JetBrains.Util;
 using JetBrains.Util.Threading.Tasks;
 using ReSharperPlugin.RimworldDev.RimworldXmlProject.Project;
+using ReSharperPlugin.RimworldDev.Settings;
 
 namespace ReSharperPlugin.RimworldDev;
 
@@ -77,6 +78,17 @@ public class ScopeHelper
     [CanBeNull]
     public static FileSystemPath FindRimworldDirectory(string currentPath)
     {
+        var settings = SettingsAccessor.Instance.GetSettings();
+        var customPath = FileSystemPath.TryParse(settings.RimworldPath);
+        if (customPath.ExistsFile) customPath = customPath.Parent;
+        if (customPath.ExistsDirectory && (customPath.Name.EndsWith(".app") || customPath.GetDirectoryEntries()
+                .Any(entry => entry.IsFile && entry.RelativePath.Name is "UnityPlayer.dll" or "UnityPlayer.so")))
+        {
+            return customPath;
+        }
+
+        return null;
+        
         var locations = new List<FileSystemPath>();
 
         locations.AddRange(GetSteamLocations()

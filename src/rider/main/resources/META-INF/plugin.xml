@@ -25,6 +25,8 @@ in your mods!</p>
   </change-notes>
 
   <extensions defaultExtensionNs="com.intellij">
+    <applicationConfigurable groupId="language" instance="RimworldDev.Rider.settings.RimworldSettings" id="preferences.build.rimworldPlugin" />
+
     <rider.ProjectTypesProvider implementation="RimworldDev.Rider.XmlProject.RimworldProjectType" />
     <completion.contributor language="XML" order="first, before xml" implementationClass="com.jetbrains.rider.completion.ProtocolCompletionContributor" />
     <lang.documentationProvider language="XML" implementationClass="com.jetbrains.rdclient.quickDoc.FrontendDocumentationProvider"/>

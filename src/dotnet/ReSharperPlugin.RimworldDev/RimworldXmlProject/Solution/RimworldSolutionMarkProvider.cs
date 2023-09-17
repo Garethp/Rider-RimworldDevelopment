@@ -7,12 +7,18 @@ using JetBrains.ProjectModel.ProjectsHost.Impl;
 using JetBrains.RdBackend.Common.Features.ProjectModel;
 using JetBrains.Rider.Model;
 using JetBrains.Util;
+using ReSharperPlugin.RimworldDev.Settings;
 
 namespace ReSharperPlugin.RimworldDev.RimworldXmlProject.Solution;
 
 [ShellComponent]
 public sealed class RimworldSolutionMarkProvider : ISolutionMarkProvider
 {
+    public RimworldSolutionMarkProvider(SettingsAccessor settingsAccessor)
+    {
+        settingsAccessor.GetSettings();
+    }
+
     public ISolutionMark TryCreate(RdSolutionDescription solutionDescription)
     {
         string solutionDirectory;
