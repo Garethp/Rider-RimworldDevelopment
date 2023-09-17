@@ -19,62 +19,8 @@ into the definitions on which the XML sits.
  * Autocomplete certain values for properties with fixed options (Such as Altitude Layer, boolean and directions)
  * A Rimworld Run Configuration with a Debug option
  * Rimworld Mod support in New Solution
-
-### Configuring your project
-To give Rider all the information it needs to not only auto-complete and reference C# but also XML Defs, it's suggested
-that you add the XML Defs of your project and Vanilla Rimworld to your C# Project. Adding both the necessary folders into
-the project itself allows Rider to scan them for all the existing Defs and provide information about them as you try to
-refer to them.  Please note that sometimes the linked folders may not show everything as they do not update consistently.
-If you see a missing file, right click on your project and select `Reload Project` to force the links to update.
-
-#### Attaching Defs Via the UI
-Simply right click on your C# project in Rider and choose `Add -> Add Existing Item...`.
-Then select the Rimworld `Data` folder as well as your own mod's `Defs` folder and any others you'd like.
-You'll be asked if you want to `Copy`, `Move` or `Add Links`. Select `Add Links` to add the folder as a link. 
-
-Note that this adds a lot to your `.csproj` file as there is one entry per file.
-For a cleaner option see the below section on [Attaching Defs Manually](#attaching-defs-manually)
-
-#### Attaching Defs Manually
-Rather than adding each def file to the `.csproj` file it is possible to just attach the top level folders.
-From Rider you can right click on the project then go to `Edit` and choose the option to edit the `.csproj` file.
-Or simply use any normal test editor and add a new ItemGroup into your project which links to the top level folders to search.
-Something like this:
-
-```xml
-<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-...
-  <ItemGroup>
-    <Content Include="..\..\..\..\..\Data\">
-      <Link>Data</Link>
-    </Content>
-    <Content Include="..\..\Defs\">
-      <Link>Defs</Link>
-    </Content>
-  </ItemGroup>
-...
-</Project>
-```
-
-It is possible to group up all your imported defs into a folder for tidiness and use globs to select a lot at once e.g.
-```xml
-<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-    ...
-  <ItemGroup>
-    <Content Include="..\..\..\..\..\Data\*\Defs\**\*">
-      <Link>AttachedDefs\Rimworld\%(RecursiveDir)/%(FileName)%(Extension)</Link>
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\..\Defs\**\*">
-      <Link>AttachedDefs\Project\%(RecursiveDir)/%(FileName)%(Extension)</Link>
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-    </Content>
-  </ItemGroup>
-...
-</Project>
-```
+ * Custom Rimworld XML Projects
+ * Basic validation for some XML Values
 
 ## Roadmap
 
