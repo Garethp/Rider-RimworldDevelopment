@@ -11,7 +11,6 @@ using JetBrains.ReSharper.Psi.Caches;
 using JetBrains.ReSharper.Psi.Modules;
 using JetBrains.Util;
 using JetBrains.Util.Threading.Tasks;
-using ReSharperPlugin.RimworldDev.RimworldXmlProject.Project;
 using ReSharperPlugin.RimworldDev.Settings;
 
 namespace ReSharperPlugin.RimworldDev;
@@ -86,8 +85,6 @@ public class ScopeHelper
         {
             return customPath;
         }
-
-        return null;
         
         var locations = new List<FileSystemPath>();
 

@@ -15,8 +15,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="JetBrains.ReSharper.SDK" Version="2023.1.1" PrivateAssets="all" />
-    <PackageReference Include="JetBrains.Rider.Rider.Backend" Version="231.0.20230421.165403" />
+    <PackageReference Include="JetBrains.ReSharper.SDK" Version="$(SdkVersion)" PrivateAssets="all" />
     <PackageReference Include="Wave" Version="$(WaveVersion)" />
     <!-- TODO: https://github.com/NuGet/Home/issues/7154 -->
   </ItemGroup>
@@ -28,8 +27,15 @@
 
     <!-- TODO: add additional assemblies -->
   </ItemGroup>
+  
+  <ItemGroup>
+    <Compile Remove="TemplateParameters\**" />
+  </ItemGroup>
 
-
+  <ItemGroup>
+    <Compile Remove="RimworldXmlProject\**" />
+  </ItemGroup>
+  
   <ItemGroup>
     <Compile Remove="projectTemplates\**" />
   </ItemGroup>
