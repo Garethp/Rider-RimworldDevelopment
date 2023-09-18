@@ -1,5 +1,8 @@
 # Changelog
 
+## 2023.3.1
+ * Fixed a rare crash when the plugin was completely unable to find Rimworld
+
 ## 2023.3
  * Rimworld XML will now exist as it's own project
  * Added some new problem analyzers to catch simple typing errors in Rimworld XML

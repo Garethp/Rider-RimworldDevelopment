@@ -121,6 +121,8 @@ public class ScopeHelper
     {
         var rimworldLocation = FindRimworldDirectory(currentPath);
 
+        if (rimworldLocation == null) return null;
+
         var fileRelativePaths = new List<string>
         {
             "RimWorldWin64_Data/Managed/Assembly-CSharp.dll",
@@ -132,6 +134,8 @@ public class ScopeHelper
         var location = fileRelativePaths.FirstOrDefault(path =>
             FileSystemPath.ParseRelativelyTo(path, rimworldLocation).ExistsFile);
 
+        if (location == null) return null;
+        
         var path = FileSystemPath.ParseRelativelyTo(location, rimworldLocation);
 
         return path.ExistsFile ? path : null;
