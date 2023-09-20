@@ -35,7 +35,17 @@ public sealed class RimworldSolutionMarkProvider : ISolutionMarkProvider
         }
 
         var directory = VirtualFileSystemPath.TryParse(solutionDirectory, InteractionContext.SolutionContext);
-        var aboutFile = directory.TryCombine("About/About.xml");
+        var projectDirectory = directory;
+        var aboutFile = projectDirectory.TryCombine("About/About.xml");
+        var parentAttempts = 0;
+        while (!aboutFile.ExistsFile)
+        {
+            parentAttempts++;
+            projectDirectory = projectDirectory.Parent;
+            if (projectDirectory.Exists == FileSystemPath.Existence.Missing || parentAttempts >= 5) break;
+            
+            aboutFile = projectDirectory.TryCombine("About/About.xml");
+        }
 
         if (!aboutFile.ExistsFile) return null;
 

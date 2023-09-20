@@ -1,5 +1,11 @@
 # Changelog
 
+## 2023.3.1
+ * Fixed a rare crash when the plugin was completely unable to find Rimworld
+ * Fixed automatic Rimworld detection when Rimworld is installed through Steam on the C: drive
+ * Fixed some false positives on error checking in XML
+ * Added more mod folders to the XML Project that gets added automatically
+
 ## 2023.3
  * Rimworld XML will now exist as it's own project
  * Added some new problem analyzers to catch simple typing errors in Rimworld XML

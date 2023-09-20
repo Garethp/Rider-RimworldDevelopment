@@ -6,6 +6,7 @@ import com.intellij.execution.configurations.RunProfileState
 import com.intellij.execution.process.*
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.execution.runners.ProgramRunner
+import com.intellij.util.system.OS
 import com.jetbrains.rider.debugger.DebuggerWorkerProcessHandler
 import com.jetbrains.rider.plugins.unity.run.configurations.UnityAttachProfileState
 import com.jetbrains.rider.run.configurations.remote.RemoteConfiguration
@@ -23,19 +24,32 @@ class RunState(
     targetName: String
 ) :
     UnityAttachProfileState(remoteConfiguration, executionEnvironment, targetName), RunProfileState {
-    private val resources = listOf(
-        ".doorstop_version",
-        "doorstop_config.ini",
-        "winhttp.dll",
+    private val resources = mapOf(
+        OS.Windows to listOf(
+            ".doorstop_version",
+            "doorstop_config.ini",
+            "winhttp.dll",
 
-        "Doorstop/0Harmony.dll",
-        "Doorstop/dnlib.dll",
-        "Doorstop/Doorstop.dll",
-        "Doorstop/Doorstop.pdb",
-        "Doorstop/HotReload.dll",
-        "Doorstop/Mono.Cecil.dll",
-        "Doorstop/Mono.CompilerServices.SymbolWriter.dll",
-        "Doorstop/pdb2mdb.exe",
+            "Doorstop/0Harmony.dll",
+            "Doorstop/dnlib.dll",
+            "Doorstop/Doorstop.dll",
+            "Doorstop/Doorstop.pdb",
+            "Doorstop/HotReload.dll",
+            "Doorstop/Mono.Cecil.dll",
+            "Doorstop/Mono.CompilerServices.SymbolWriter.dll",
+            "Doorstop/pdb2mdb.exe",
+        ),
+        OS.macOS to listOf(
+            ".doorstop_version",
+            ".doorstop_config.ini",
+
+            "Doorstop/0Harmony.dll",
+            "Doorstop/Doorstop.dll",
+            "Doorstop/Doorstop.pdb",
+            "Doorstop/Mono.Cecil.dll",
+            "Doorstop/Mono.CompilerServices.SymbolWriter.dll",
+            "Doorstop/pdb2mdb.exe",
+        )
     )
 
     override fun execute(
@@ -67,6 +81,8 @@ class RunState(
     }
 
     private fun setupDoorstop() {
+        val currentResources = resources[OS.CURRENT] ?: return
+
         val rimworldDir = Path(rimworldLocation).parent.toFile()
 
         val copyResource = fun(basePath: String, name: String) {
@@ -84,12 +100,13 @@ class RunState(
             fileWriteStream.close()
         }
 
-        resources.forEach {
-            copyResource("/UnityDoorstop/Win64/", it)
+        currentResources.forEach {
+            copyResource("/UnityDoorstop/${OS.CURRENT}/", it)
         }
     }
 
     private fun removeDoorstep() {
+        val currentResources = resources[OS.CURRENT] ?: return
         Thread.sleep(50)
 
         val rimworldDir = Path(rimworldLocation).parent.toFile()
@@ -99,7 +116,7 @@ class RunState(
             file.delete()
         }
 
-        resources.forEach {
+        currentResources.forEach {
             removeResource(it)
         }
 
