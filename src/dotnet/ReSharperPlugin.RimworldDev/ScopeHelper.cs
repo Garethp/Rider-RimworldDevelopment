@@ -167,9 +167,9 @@ public class ScopeHelper
     {
         var locations = new List<string>
         {
-            @"C:\Program Files (x86)\Steam\",
-            @"C:\Program Files\Steam\",
-            "~/.steam/steam/"
+            @"C:\Program Files (x86)\Steam\steamapps\",
+            @"C:\Program Files\Steam\steamapps\",
+            "~/.steam/steam/steamapps/"
         };
 
         locations.AddRange(

@@ -89,8 +89,14 @@ public sealed class CustomXmlAnalysisStageProcess : XmlDaemonStageProcessBase, I
             case "System.Int32":
                 ProcessInt(fullText, range);
                 return;
+            case "System.Single":
+                ProcessFloat(fullText, range);
+                return;
             case "Verse.IntRange":
                 ProcessIntRange(fullText, range);
+                return;
+            case "Verse.FloatRange":
+                ProcessFloatRange(fullText, range);
                 return;
             case "System.String":
                 break;
@@ -100,7 +106,15 @@ public sealed class CustomXmlAnalysisStageProcess : XmlDaemonStageProcessBase, I
             case "UnityEngine.Vector3":
                 ProcessVector3(fullText, range);
                 break;
+            case "UnityEngine.Rect":
+            case "UnityEngine.Color":
+            case "RimWorld.PsychicDroneLevel":
+            case "RimWorld.FoodTypeFlags":
+            case "Verse.DevelopmentalStage":
+            case "Verse.ColorInt":
+            case "Verse.IntVec3":
             case "Verse.IntVec2":
+            case "Verse.WorkTags":
                 break;
             default:
                 if (context.GetType().Name == "Enum")
@@ -124,23 +138,30 @@ public sealed class CustomXmlAnalysisStageProcess : XmlDaemonStageProcessBase, I
     {
         if (textValue.ToLower() is "true" or "false") return;
         
-        IHighlighting error = new XmlErrorHighlighting("Value must be \"true\" or \"false\"", range, Array.Empty<object>());
-
-        myConsumer.AddHighlighting(error, range);
+        AddError("Value must be \"true\" or \"false\"", range);
     }
 
     private void ProcessInt(string textValue, DocumentRange range)
     {
         if (int.TryParse(textValue, out _)) return;
         
-        IHighlighting error = new XmlErrorHighlighting("Value must be a whole number with no decimal points", range, Array.Empty<object>());
-
-        myConsumer.AddHighlighting(error, range);
+        AddError("Value must be a whole number with no decimal points", range);
+    }
+    
+    private void ProcessFloat(string textValue, DocumentRange range)
+    {
+        if (float.TryParse(textValue, out _)) return;
+        
+        AddError("Value must be a valid number", range);
     }
     
     private void ProcessIntRange(string textValue, DocumentRange range)
     {
         var strArray = textValue.Split('~');
+        
+        // For some reason IntRange also just accepts a single number instead of a range
+        if (strArray.Length == 1 && int.TryParse(strArray[0], out _)) return;
+        
         if (strArray.Length != 2)
         {
             AddError("Your value must be two integers in a format similar to \"1~2\"", range);
@@ -159,12 +180,40 @@ public sealed class CustomXmlAnalysisStageProcess : XmlDaemonStageProcessBase, I
             return;
         }
     }
+    
+    private void ProcessFloatRange(string textValue, DocumentRange range)
+    {
+        var strArray = textValue.Split('~');
+        // For some reason FloatRange also just accepts a single number instead of a range
+        if (strArray.Length == 1 && float.TryParse(strArray[0], out _)) return;
+        
+        if (strArray.Length != 2)
+        {
+            AddError("Your value must be two integers in a format similar to \"1~2\"", range);
+            return;
+        }
+
+        if (!float.TryParse(strArray[0], out _))
+        {
+            AddError($"\"{strArray[0]}\" is not a valid float", range);
+            return;
+        }
+
+        if (!float.TryParse(strArray[1], out _))
+        {
+            AddError($"\"{strArray[1]}\" is not a valid float", range);
+            return;
+        }
+    }
 
     private void ProcessVector2(string textValue, DocumentRange range)
     {
         var match = Regex.Match(textValue.Trim(), @"^\((.*?),(.*?)\)$");
         if (!match.Success)
         {
+            // For some reason Vector2 allows us to pass in just a single number instead of a vector?
+            if (float.TryParse(textValue, out _)) return;
+            
             AddError("Your value must be in a format similar to (1,2)", range);
             return;
         }

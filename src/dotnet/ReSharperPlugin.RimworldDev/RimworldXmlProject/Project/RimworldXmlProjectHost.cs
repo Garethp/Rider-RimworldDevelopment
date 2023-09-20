@@ -154,6 +154,6 @@ public class RimworldXmlProjectHost : SolutionFileProjectHostBase
             path.Name.Equals("bin", StringComparison.OrdinalIgnoreCase) ||
             path.Name.EndsWith(".DotSettings.user", StringComparison.OrdinalIgnoreCase) ||
             path.Name.Equals("node_modules", StringComparison.OrdinalIgnoreCase) ||
-            (!path.FullPath.Contains("About") && !path.FullPath.Contains("Defs"));
+            !new List<string> {"About", "Defs", "Patches", "Languages", "Sounds", "Textures", "News"}.Any(it => path.FullPath.Contains(it));
     }
 }

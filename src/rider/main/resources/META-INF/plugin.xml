@@ -1,7 +1,7 @@
 <idea-plugin require-restart="true">
   <id>com.jetbrains.rider.plugins.rimworlddev</id>
   <name>Rimworld Development Environment</name>
-  <version>2023.3.1</version>
+  <version>2023.3red.1</version>
   <vendor url="https://github.com/Garethp/Rider-RimworldDevelopment">Garethp</vendor>
   <idea-version since-build="231" />
   <depends>com.intellij.modules.rider</depends>
@@ -19,6 +19,9 @@ in your mods!</p>
 <![CDATA[
 <p><ul>
 <li>Fixed a rare crash when the plugin was completely unable to locate Rimworld</li>
+<li>Fixed automatic Rimworld detection when Rimworld is installed through Steam on the C: drive</li>
+<li>Fixed some false positives on error checking in XML</li>
+<li>Added more mod folders to the XML Project that gets added automatically</li>
 </ul></p>
 ]]>
   </change-notes>
@@ -33,6 +36,8 @@ in your mods!</p>
 
     <configurationType implementation="RimworldDev.Rider.run.ConfigurationType"/>
     <backend.markup.adapterFactory language="XML" implementationClass="com.jetbrains.rider.daemon.RiderCacheAwareMarkupAdapterFactory" />
+
+    <spellchecker.bundledDictionaryProvider implementation="RimworldDev.Rider.spellchecker.DictionaryProvider" />
   </extensions>
   
 </idea-plugin>
