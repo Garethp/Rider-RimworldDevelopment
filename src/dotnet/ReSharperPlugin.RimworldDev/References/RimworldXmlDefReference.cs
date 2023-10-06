@@ -19,11 +19,11 @@ namespace ReSharperPlugin.RimworldDev.TypeDeclaration;
 public class RimworldXmlDefReference :
     TreeReferenceBase<ITreeNode>
 {
-    private readonly IXmlTag myTypeElement;
+    private readonly ITreeNode myTypeElement;
 
     private string myName;
 
-    public RimworldXmlDefReference([NotNull] ITreeNode owner, IXmlTag typeElement, string name) : base(owner)
+    public RimworldXmlDefReference([NotNull] ITreeNode owner, ITreeNode typeElement, string name) : base(owner)
     {
         myTypeElement = typeElement;
         myName = name;

@@ -20,7 +20,7 @@ namespace ReSharperPlugin.RimworldDev.SymbolScope;
 [PsiComponent]
 public class RimworldSymbolScope : SimpleICache<List<RimworldXmlDefSymbol>>
 {
-    public Dictionary<string, IXmlTag> DefTags = new();
+    public Dictionary<string, ITreeNode> DefTags = new();
     private Dictionary<string, XMLTagDeclaredElement> _declaredElements = new();
     private SymbolTable _symbolTable;
     
@@ -36,13 +36,13 @@ public class RimworldSymbolScope : SimpleICache<List<RimworldXmlDefSymbol>>
     }
 
     [CanBeNull]
-    public IXmlTag GetTagByDef(string defType, string defName)
+    public ITreeNode GetTagByDef(string defType, string defName)
     {
         return GetTagByDef($"{defType}/{defName}");
     }
     
     [CanBeNull]
-    public IXmlTag GetTagByDef(string defId)
+    public ITreeNode GetTagByDef(string defId)
     {
         if (!DefTags.ContainsKey(defId))
             return null;
@@ -68,10 +68,12 @@ public class RimworldSymbolScope : SimpleICache<List<RimworldXmlDefSymbol>>
         foreach (var tag in tags)
         {
             var defName = tag.GetNestedTags<IXmlTag>("defName").FirstOrDefault()?.InnerText;
+            var defNameTag = tag.GetNestedTags<IXmlTag>("defName").FirstOrDefault().Children().ElementAt(1);
             if (defName is null) continue;
 
-            AddDeclaredElement(sourceFile.GetSolution(), tag.GetNestedTags<IXmlTag>("defName").FirstOrDefault(), $"{tag.GetTagName()}/{defName}", false);
-            defs.Add(new RimworldXmlDefSymbol(tag, defName, tag.GetTagName()));
+            // For some reason this is causing an issue...
+            // AddDeclaredElement(sourceFile.GetSolution(), tag.GetNestedTags<IXmlTag>("defName").FirstOrDefault(), $"{tag.GetTagName()}/{defName}", false);
+            defs.Add(new RimworldXmlDefSymbol(defNameTag, defName, tag.GetTagName()));
         }
 
         return defs;
@@ -103,7 +105,16 @@ public class RimworldSymbolScope : SimpleICache<List<RimworldXmlDefSymbol>>
         cacheItem?.ForEach(item =>
         {
             if (!DefTags.ContainsKey($"{item.DefType}/{item.DefName}"))
-                DefTags.Add($"{item.DefType}/{item.DefName}", xmlFile.GetNestedTags<IXmlTag>("Defs/*").FirstOrDefault(tag => tag.GetTreeStartOffset().Offset == item.DocumentOffset));
+            {
+                var xmlTag = xmlFile.GetNestedTags<IXmlTag>("Defs/*/defName").FirstOrDefault(tag =>
+                        tag.Children().ElementAt(1).GetTreeStartOffset().Offset == item.DocumentOffset).Children()
+                    .ElementAt(1);
+
+                // var xmlTag = xmlFile.GetNestedTags<IXmlTag>("Defs/*")
+                    // .FirstOrDefault(tag => tag.GetTreeStartOffset().Offset == item.DocumentOffset);
+                
+                DefTags.Add($"{item.DefType}/{item.DefName}", xmlTag);
+            }
         });
     }
 
@@ -124,13 +135,13 @@ public class RimworldSymbolScope : SimpleICache<List<RimworldXmlDefSymbol>>
             AddToLocalCache(sourceFile, cacheItem);
     }
 
-    public void AddDeclaredElement(ISolution solution, IXmlTag owner, string shortName, bool caseSensitiveName)
+    public void AddDeclaredElement(ISolution solution, ITreeNode owner, string shortName, bool caseSensitiveName)
     {
         if (_symbolTable == null) _symbolTable = new SymbolTable(solution.GetPsiServices());
         if (_declaredElements.ContainsKey(shortName)) return;
 
         var declaredElement = new XMLTagDeclaredElement(
-            owner.Children().ElementAt(1),
+            owner,
             shortName,
             caseSensitiveName
         );

@@ -101,8 +101,7 @@ public class RimworldReferenceFactory : IReferenceFactory
         if (xmlSymbolTable.GetTagByDef(classContext.ShortName, element.GetText()) is not { } tag)
             return new ReferenceCollection();
 
-        return new ReferenceCollection(new RimworldXmlDefReference(element,
-            tag.GetNestedTags<IXmlTag>("defName").FirstOrDefault() ?? tag, tagId));
+        return new ReferenceCollection(new RimworldXmlDefReference(element, tag, tagId));
     }
 
     public bool HasReference(ITreeNode element, IReferenceNameContainer names)
