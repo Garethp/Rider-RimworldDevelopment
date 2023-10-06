@@ -107,6 +107,7 @@ public class RimworldReferenceFactory : IReferenceFactory
 
     public bool HasReference(ITreeNode element, IReferenceNameContainer names)
     {
-        return true;
+        if (element.NodeType.ToString() != "TEXT") return false;
+        return !element.Parent.GetText().Contains("defName") && names.Contains(element.GetText());
     }
 }
