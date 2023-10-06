@@ -135,18 +135,19 @@ public class RimworldSymbolScope : SimpleICache<List<RimworldXmlDefSymbol>>
             AddToLocalCache(sourceFile, cacheItem);
     }
 
-    public void AddDeclaredElement(ISolution solution, ITreeNode owner, string shortName, bool caseSensitiveName)
+    public void AddDeclaredElement(ISolution solution, ITreeNode owner, string defType, string defName, bool caseSensitiveName)
     {
         if (_symbolTable == null) _symbolTable = new SymbolTable(solution.GetPsiServices());
-        if (_declaredElements.ContainsKey(shortName)) return;
+        if (_declaredElements.ContainsKey($"{defType}/{defName}")) return;
 
         var declaredElement = new XMLTagDeclaredElement(
             owner,
-            shortName,
+            defType,
+            defName,
             caseSensitiveName
         );
         
-        _declaredElements.Add(shortName, declaredElement);
+        _declaredElements.Add($"{defType}/{defName}", declaredElement);
         _symbolTable.AddSymbol(declaredElement);
     }
     

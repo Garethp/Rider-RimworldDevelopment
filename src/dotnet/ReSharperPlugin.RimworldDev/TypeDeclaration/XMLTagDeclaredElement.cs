@@ -13,11 +13,11 @@ namespace ReSharperPlugin.RimworldDev.TypeDeclaration;
  */
 public class XMLTagDeclaredElement : IDeclaredElement
 {
-    public XMLTagDeclaredElement(ITreeNode owner, string shortName, bool caseSensitiveName)
+    public XMLTagDeclaredElement(ITreeNode owner, string defType, string defName, bool caseSensitiveName)
     {
         this.owner = owner;
         myPsiServices = owner.GetPsiServices();
-        ShortName = shortName;
+        ShortName = defName;
         CaseSensitiveName = caseSensitiveName;
         PresentationLanguage = owner.Language;
     }

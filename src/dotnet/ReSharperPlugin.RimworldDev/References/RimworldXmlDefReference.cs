@@ -22,11 +22,15 @@ public class RimworldXmlDefReference :
     private readonly ITreeNode myTypeElement;
 
     private string myName;
+    private string defName;
+    private string defType;
 
-    public RimworldXmlDefReference([NotNull] ITreeNode owner, ITreeNode typeElement, string name) : base(owner)
+    public RimworldXmlDefReference([NotNull] ITreeNode owner, ITreeNode typeElement, string defType, string defName) : base(owner)
     {
         myTypeElement = typeElement;
-        myName = name;
+        myName = defName;
+        this.defName = defName;
+        this.defType = defType;
     }
 
     public override ISymbolTable GetReferenceSymbolTable(bool useReferenceName)
@@ -36,7 +40,8 @@ public class RimworldXmlDefReference :
         symbolScope.AddDeclaredElement(
             myOwner.GetSolution(),
             myTypeElement,
-            myName,
+            defType,
+            defName,
             false
         );
 
