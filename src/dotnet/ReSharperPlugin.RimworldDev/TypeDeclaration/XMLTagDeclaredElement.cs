@@ -22,7 +22,13 @@ public class XMLTagDeclaredElement : IDeclaredElement
         PresentationLanguage = owner.Language;
     }
 
-    private readonly ITreeNode owner;
+    public void Update(ITreeNode newOwner)
+    {
+        owner = newOwner;
+        myPsiServices = newOwner.GetPsiServices();
+    }
+
+    private ITreeNode owner;
     
     public string ShortName { get; }
 
@@ -30,7 +36,7 @@ public class XMLTagDeclaredElement : IDeclaredElement
 
     public PsiLanguageType PresentationLanguage { get; }
 
-    private readonly IPsiServices myPsiServices;
+    private IPsiServices myPsiServices;
 
     public DeclaredElementType GetElementType() => XmlTagDeclaredElemntType.Instance;
 

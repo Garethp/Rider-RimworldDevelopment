@@ -1,8 +1,10 @@
 using JetBrains.Annotations;
+using JetBrains.ProjectModel;
 using JetBrains.ReSharper.Psi;
 using JetBrains.ReSharper.Psi.ExtensionsAPI.Resolve;
 using JetBrains.ReSharper.Psi.Resolve;
 using JetBrains.ReSharper.Psi.Tree;
+using ReSharperPlugin.RimworldDev.SymbolScope;
 
 namespace ReSharperPlugin.RimworldDev.TypeDeclaration;
 
@@ -25,18 +27,17 @@ public class RimworldXmlDefReference :
 
     public override ISymbolTable GetReferenceSymbolTable(bool useReferenceName)
     {
-        var declaredElement = new XMLTagDeclaredElement(
+        var symbolScope = myOwner.GetSolution().GetComponent<RimworldSymbolScope>();
+
+        symbolScope.AddDeclaredElement(
+            myOwner.GetSolution(),
             myTypeElement,
             defType,
             defName,
             false
         );
-
-        var symbolTable = new SymbolTable(myOwner.GetPsiServices());
-
-        symbolTable.AddSymbol(declaredElement);
-
-        return symbolTable;
+        
+        return symbolScope.GetSymbolTable(myOwner.GetSolution());
     }
 
     public override ResolveResultWithInfo ResolveWithoutCache()
