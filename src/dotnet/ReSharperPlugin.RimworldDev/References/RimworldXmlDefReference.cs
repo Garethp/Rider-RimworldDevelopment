@@ -1,18 +1,8 @@
-using System.Linq;
 using JetBrains.Annotations;
-using JetBrains.ProjectModel;
 using JetBrains.ReSharper.Psi;
-using JetBrains.ReSharper.Psi.CSharp.Conversions;
 using JetBrains.ReSharper.Psi.ExtensionsAPI.Resolve;
-using JetBrains.ReSharper.Psi.Modules;
 using JetBrains.ReSharper.Psi.Resolve;
 using JetBrains.ReSharper.Psi.Tree;
-using JetBrains.ReSharper.Psi.Xml.Impl.Tree;
-using JetBrains.ReSharper.Psi.Xml.Impl.Tree.References;
-using JetBrains.ReSharper.Psi.Xml.Tree;
-using JetBrains.Util;
-using ReSharperPlugin.RimworldDev.SymbolScope;
-using ReSharperPlugin.RimworldDev.TypeDeclaration;
 
 namespace ReSharperPlugin.RimworldDev.TypeDeclaration;
 
@@ -35,17 +25,18 @@ public class RimworldXmlDefReference :
 
     public override ISymbolTable GetReferenceSymbolTable(bool useReferenceName)
     {
-        var symbolScope = myOwner.GetSolution().GetComponent<RimworldSymbolScope>();
-
-        symbolScope.AddDeclaredElement(
-            myOwner.GetSolution(),
+        var declaredElement = new XMLTagDeclaredElement(
             myTypeElement,
             defType,
             defName,
             false
         );
 
-        return symbolScope.GetSymbolTable(myOwner.GetSolution());
+        var symbolTable = new SymbolTable(myOwner.GetPsiServices());
+
+        symbolTable.AddSymbol(declaredElement);
+
+        return symbolTable;
     }
 
     public override ResolveResultWithInfo ResolveWithoutCache()
