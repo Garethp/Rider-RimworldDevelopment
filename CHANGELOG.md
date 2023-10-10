@@ -1,5 +1,9 @@
 # Changelog
 
+## 2023.4
+* Fixed an issue where some classes (like `ThingDef`) wouldn't resolve correctly, meaning that references weren't made to them
+* Fixed an issue where some elements in lists weren't resolved correctly
+
 ## 2023.3.2
  * Fix to work with Rider 2023.3
 
