@@ -1,5 +1,9 @@
 # Changelog
 
+## 2023.3.2
+ * Fixed an issue where some classes (like `ThingDef`) wouldn't resolve correctly, meaning that references weren't made to them
+ * Fixed an issue where some elements in lists weren't resolved correctly
+
 ## 2023.3.1
  * Fixed a rare crash when the plugin was completely unable to find Rimworld
  * Fixed automatic Rimworld detection when Rimworld is installed through Steam on the C: drive
