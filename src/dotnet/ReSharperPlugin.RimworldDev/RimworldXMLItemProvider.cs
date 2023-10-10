@@ -12,6 +12,7 @@ using JetBrains.ReSharper.Psi;
 using JetBrains.ReSharper.Psi.Caches;
 using JetBrains.ReSharper.Psi.CSharp;
 using JetBrains.ReSharper.Psi.Impl.reflection2.elements.Compiled;
+using JetBrains.ReSharper.Psi.Impl.Types;
 using JetBrains.ReSharper.Psi.Modules;
 using JetBrains.ReSharper.Psi.Resolve;
 using JetBrains.ReSharper.Psi.Tree;
@@ -310,19 +311,33 @@ public class RimworldXMLItemProvider : ItemsProviderOfSpecificContext<RimworldXm
             {
                 // If we know we're in an li but can't pull the expected class from the C# typing for some reason, just
                 // return null so that we don't throw an error
-                if (previousField == null ||
-                    !Regex.Match(
-                        previousField.Type.GetLongPresentableName(CSharpLanguage.Instance),
-                        @"^System.Collections.Generic.List<.*?>$"
-                    ).Success)
+                if (previousField == null)
                 {
                     return null;
                 }
 
-                // Use regex to grab the className and then fetch it from the symbol scope
-                var classValue = Regex.Match(previousField.Type.GetLongPresentableName(CSharpLanguage.Instance),
-                    @"^System.Collections.Generic.List<(.*?)>$").Groups[1].Value;
+                string classValue = null;
+                if (previousField.Type is ISimplifiedIdTypeInfo simpleTypeInfo)
+                {
+                    classValue = simpleTypeInfo.GetTypeArguments()?.FirstOrDefault()?
+                        .GetLongPresentableName(CSharpLanguage.Instance);
+                }
+                
+                if (classValue == null)
+                {
+                    if (!Regex.Match(
+                            previousField.Type.GetLongPresentableName(CSharpLanguage.Instance),
+                            @"^System.Collections.Generic.List<.*?>$"
+                        ).Success)
+                    {
+                        return null;
+                    }
 
+                    // Use regex to grab the className and then fetch it from the symbol scope
+                    classValue = Regex.Match(previousField.Type.GetLongPresentableName(CSharpLanguage.Instance),
+                        @"^System.Collections.Generic.List<(.*?)>$").Groups[1].Value;
+                };
+                
                 currentContext = symbolScope.GetTypeElementByCLRName(classValue);
                 continue;
             }
