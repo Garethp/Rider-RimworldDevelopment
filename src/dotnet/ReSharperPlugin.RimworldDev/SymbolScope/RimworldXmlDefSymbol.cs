@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using JetBrains.ReSharper.Psi.Xml.Tree;
+using JetBrains.ReSharper.Psi.Tree;
 using JetBrains.Serialization;
 using JetBrains.Util.PersistentMap;
 
@@ -17,7 +17,7 @@ public class RimworldXmlDefSymbol
     
     // public IXmlTag Tag { get; }
 
-    public RimworldXmlDefSymbol(IXmlTag tag, string defName, string defType)
+    public RimworldXmlDefSymbol(ITreeNode tag, string defName, string defType)
     {
         DefName = defName;
         DefType = defType;

@@ -190,7 +190,7 @@ public class RimworldXMLItemProvider : ItemsProviderOfSpecificContext<RimworldXm
             var item = xmlSymbolTable.GetTagByDef(className, key);
 
             var lookup = LookupFactory.CreateDeclaredElementLookupItem(context, key,
-                new DeclaredElementInstance(new XMLTagDeclaredElement(item, key, false)));
+                new DeclaredElementInstance(new XMLTagDeclaredElement(item, className, key, false)));
             collector.Add(lookup);
         }
 
