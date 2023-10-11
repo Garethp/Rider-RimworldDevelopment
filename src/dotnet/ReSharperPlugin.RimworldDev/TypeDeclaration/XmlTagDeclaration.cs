@@ -15,13 +15,13 @@ namespace ReSharperPlugin.RimworldDev.TypeDeclaration;
 
 /**
  * In order to have an IDeclaredElement for XMLTags, we need a IDeclaration implementation for it. For the most part this
- * is just a wrapper around the original IXmlTag
+ * is just a wrapper around the original ITreeNode
  */
-public class XmlTagDeclaration: IXmlTag, IDeclaration
+public class XmlTagDeclaration: IDeclaration
 {
-    private readonly IXmlTag owner;
+    private readonly ITreeNode owner;
 
-    public XmlTagDeclaration(IXmlTag owner, IDeclaredElement declaredElement, string declaredName)
+    public XmlTagDeclaration(ITreeNode owner, IDeclaredElement declaredElement, string declaredName)
     {
         this.owner = owner;
         DeclaredElement = declaredElement;
@@ -86,57 +86,6 @@ public class XmlTagDeclaration: IXmlTag, IDeclaration
     public NodeUserData UserData => owner.UserData;
 
     public NodeUserData PersistentUserData => owner.PersistentUserData;
-
-    public TReturn AcceptVisitor<TContext, TReturn>(IXmlTreeVisitor<TContext, TReturn> visitor, TContext context) =>
-        owner.AcceptVisitor(visitor, context);
-
-    public XmlTokenTypes XmlTokenTypes => owner.XmlTokenTypes;
-
-    public IXmlTag GetTag(Predicate<IXmlTag> predicate) => owner.GetTag(predicate);
-
-    public TreeNodeEnumerable<T> GetTags<T>() where T : class, IXmlTag => owner.GetTags<T>();
-
-    public TreeNodeCollection<T> GetTags2<T>() where T : class, IXmlTag => owner.GetTags2<T>();
-
-    public IList<T> GetNestedTags<T>(string xpath) where T : class, IXmlTag => owner.GetNestedTags<T>(xpath);
-
-    public TXmlTag AddTagBefore<TXmlTag>(TXmlTag tag, IXmlTag anchor) where TXmlTag : class, IXmlTag =>
-        owner.AddTagBefore(tag, anchor);
-
-    public TXmlTag AddTagAfter<TXmlTag>(TXmlTag tag, IXmlTag anchor) where TXmlTag : class, IXmlTag =>
-    owner.AddTagAfter(tag, anchor);
-
-    public void RemoveTag(IXmlTag tag) => owner.RemoveTag(tag);
-
-    public TreeNodeCollection<IXmlTag> InnerTags => owner.InnerTags;
-
-    public TXmlAttribute AddAttributeBefore<TXmlAttribute>(TXmlAttribute attribute, IXmlAttribute anchor)
-        where TXmlAttribute : class, IXmlAttribute =>
-        owner.AddAttributeBefore(attribute, anchor);
-
-    public TXmlAttribute AddAttributeAfter<TXmlAttribute>(TXmlAttribute attribute, IXmlAttribute anchor)
-        where TXmlAttribute : class, IXmlAttribute =>
-        owner.AddAttributeAfter(attribute, anchor);
-
-    public void RemoveAttribute(IXmlAttribute attribute) => owner.RemoveAttribute(attribute);
-
-    public IXmlTagHeader Header => owner.Header;
-
-    public IXmlTagFooter Footer => owner.Footer;
-
-    public bool IsEmptyTag => owner.IsEmptyTag;
-
-    public ITreeRange InnerXml => owner.InnerXml;
-
-    public TreeNodeCollection<IXmlToken> InnerTextTokens => owner.InnerTextTokens;
-
-    public string InnerText => owner.InnerText;
-
-    public string InnerValue => owner.InnerValue;
-
-    public IXmlTagHeader HeaderNode => owner.HeaderNode;
-
-    public IXmlTagFooter FooterNode => owner.FooterNode;
 
     // IDeclaration
     public XmlNode GetXMLDoc(bool inherit) => null;
