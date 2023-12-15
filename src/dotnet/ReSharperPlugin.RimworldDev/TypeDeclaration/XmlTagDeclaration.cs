@@ -100,22 +100,22 @@ public class XmlTagDeclaration: IXmlTag, IDeclaration
 
     public IList<T> GetNestedTags<T>(string xpath) where T : class, IXmlTag => owner.GetNestedTags<T>(xpath);
 
-    public TXmlTag AddTagBefore<TXmlTag>(TXmlTag tag, IXmlTag anchor) where TXmlTag : IXmlTag =>
+    public TXmlTag AddTagBefore<TXmlTag>(TXmlTag tag, IXmlTag anchor) where TXmlTag : class, IXmlTag =>
         owner.AddTagBefore(tag, anchor);
 
-    public TXmlTag AddTagAfter<TXmlTag>(TXmlTag tag, IXmlTag anchor) where TXmlTag : IXmlTag =>
-        owner.AddTagAfter(tag, anchor);
+    public TXmlTag AddTagAfter<TXmlTag>(TXmlTag tag, IXmlTag anchor) where TXmlTag : class, IXmlTag =>
+    owner.AddTagAfter(tag, anchor);
 
     public void RemoveTag(IXmlTag tag) => owner.RemoveTag(tag);
 
     public TreeNodeCollection<IXmlTag> InnerTags => owner.InnerTags;
 
     public TXmlAttribute AddAttributeBefore<TXmlAttribute>(TXmlAttribute attribute, IXmlAttribute anchor)
-        where TXmlAttribute : IXmlAttribute =>
+        where TXmlAttribute : class, IXmlAttribute =>
         owner.AddAttributeBefore(attribute, anchor);
 
     public TXmlAttribute AddAttributeAfter<TXmlAttribute>(TXmlAttribute attribute, IXmlAttribute anchor)
-        where TXmlAttribute : IXmlAttribute =>
+        where TXmlAttribute : class, IXmlAttribute =>
         owner.AddAttributeAfter(attribute, anchor);
 
     public void RemoveAttribute(IXmlAttribute attribute) => owner.RemoveAttribute(attribute);

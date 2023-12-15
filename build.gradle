@@ -197,3 +197,9 @@ publishPlugin {
         }
     }
 }
+
+tasks {
+    patchPluginXml {
+        untilBuild.set(provider { null })
+    }
+}

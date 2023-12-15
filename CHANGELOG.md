@@ -1,5 +1,8 @@
 # Changelog
 
+## 2023.3.2
+ * Fix to work with Rider 2023.3
+
 ## 2023.3.1
  * Fixed a rare crash when the plugin was completely unable to find Rimworld
  * Fixed automatic Rimworld detection when Rimworld is installed through Steam on the C: drive

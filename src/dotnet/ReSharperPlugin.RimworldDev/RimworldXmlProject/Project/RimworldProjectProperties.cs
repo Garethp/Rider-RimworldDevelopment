@@ -85,14 +85,15 @@ public class RimworldProjectPropertiesFactory : IProjectPropertiesFactory
     {
         return new RimworldProjectProperties<CSharpProjectConfiguration>(Guid.Parse("{F2A71F9B-5D33-465A-A702-920D77279781}"), ProjectLanguage.CSHARP);
     }
-    
-    public IProjectProperties Read(UnsafeReader reader)
+
+    public IProjectProperties Read(UnsafeReader reader, IStringIntern stringIntern)
     {
-        ProjectLanguage presentableName = ProjectLanguage.ParsePresentableName(reader.ReadString());
-        RimworldProjectProperties<CSharpProjectConfiguration> projectProperties =
+        var presentableName = ProjectLanguage.ParsePresentableName(reader.ReadString());
+        var projectProperties =
             new RimworldProjectProperties<CSharpProjectConfiguration>(this.FactoryGuid, presentableName);
-        projectProperties.ReadProjectProperties(reader);
-        return projectProperties;}
+        projectProperties.ReadProjectProperties(reader, stringIntern);
+        return projectProperties;    
+    }
 
     public Guid FactoryGuid => Guid.Parse("{F2A71F9B-5D33-465A-A702-920D77279781}");
 }
