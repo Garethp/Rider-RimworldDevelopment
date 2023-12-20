@@ -43,6 +43,10 @@ public class RimworldReferenceFactory : IReferenceFactory
     {
         if (!ScopeHelper.UpdateScopes(element.GetSolution())) return new ReferenceCollection();
 
+        if (element.Parent != null && element.NodeType.ToString() == "TEXT" &&
+            element.Parent.GetText().StartsWith("<defName>"))
+            return GetReferenceForDeclaredElement(element, oldReferences);
+        
         if (element.NodeType.ToString() == "TEXT") return GetReferencesForText(element, oldReferences);
         if (element is not XmlIdentifier identifier) return new ReferenceCollection();
         if (element.GetSourceFile() is not { } sourceFile) return new ReferenceCollection();
@@ -101,7 +105,34 @@ public class RimworldReferenceFactory : IReferenceFactory
         if (xmlSymbolTable.GetTagByDef(classContext.ShortName, element.GetText()) is not { } tag)
             return new ReferenceCollection();
 
-        return new ReferenceCollection(new RimworldXmlDefReference(element, tag, classContext.ShortName, element.GetText()));
+        return new ReferenceCollection(new RimworldXmlDefReference(element, tag, classContext.ShortName,
+            element.GetText()));
+    }
+
+    /**
+     * This is a bit of a hacky workaround. Since we're not constructing our own Custom Language, we don't have control
+     * over the Psi Tree. Unfortunately, Find Usages expects to be able to find an `IDeclaration` which is a `ITreeNode`
+     * in the Psi Tree, which would be created on the Tree Construction.
+     *
+     * Since we can't do that, in order to be able to invoke Find Usages on the declared element itself, we're going to
+     * make a hacky workaround and just give it a reference... to itself
+     */
+    private ReferenceCollection GetReferenceForDeclaredElement(ITreeNode element, ReferenceCollection oldReferences)
+    {
+        // @TODO: We really need to clean this up
+        var defTypeName = element.Parent.Parent.Children().First().Children().ElementAt(1).GetText();
+        var defName = element.GetText();
+        
+        var xmlSymbolTable = element.GetSolution().GetComponent<RimworldSymbolScope>();
+
+        var tagId = $"{defTypeName}/{defName}";
+        if (!xmlSymbolTable.DefTags.ContainsKey(tagId)) return new ReferenceCollection();
+        
+        if (xmlSymbolTable.GetTagByDef(defTypeName, defName) is not { } tag)
+            return new ReferenceCollection();
+
+        return new ReferenceCollection(new RimworldXmlDefReference(element, tag, defTypeName,
+            element.GetText()));
     }
 
     public bool HasReference(ITreeNode element, IReferenceNameContainer names)
