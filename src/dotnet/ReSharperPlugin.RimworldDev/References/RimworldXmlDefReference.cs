@@ -21,6 +21,7 @@ public class RimworldXmlDefReference :
     {
         myTypeElement = typeElement;
         myName = defName;
+        myName = $"{defType}/{defName}";
         this.defName = defName;
         this.defType = defType;
     }

@@ -28,3 +28,4 @@
     * Right now we only try to load the latest version of the XML, since we aren't built for loading multiple copies of the same def
 
  * Refactor all reading of `About.xml` into a single class that holds that information for that file
+ * Look at refactoring RimworldSymbolScope to see if we can make it cleaner

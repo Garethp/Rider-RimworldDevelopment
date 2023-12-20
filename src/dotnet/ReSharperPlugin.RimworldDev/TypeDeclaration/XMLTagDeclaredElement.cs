@@ -17,7 +17,7 @@ public class XMLTagDeclaredElement : IDeclaredElement
     {
         this.owner = owner;
         myPsiServices = owner.GetPsiServices();
-        ShortName = defName;
+        ShortName = $"{defType}/{defName}";
         CaseSensitiveName = caseSensitiveName;
         PresentationLanguage = owner.Language;
     }
