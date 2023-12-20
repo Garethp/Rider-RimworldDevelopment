@@ -1,9 +1,8 @@
 ## Find Usages
 
-### TODO
- * Clean up the symbol table
- * Use actual short names for reference short names
- * Implement `RimworldReferenceProvider::hasReference` correctly
+This is a trail of thoughts/possible solutions and references that I went down for Find Usages. They mostly exist to
+document what I went through, and as a reference if I want to try and understand my thought process later down the line
+when I try to expand the Find Usages functionality to finding XML Defs from C# (think DefOf usage)
 
 ### Reference Points
  * `SearchProcessorBase` appears to be where the we can look to see if nodes are being visited

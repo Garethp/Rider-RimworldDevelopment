@@ -119,8 +119,15 @@ public class RimworldReferenceFactory : IReferenceFactory
      */
     private ReferenceCollection GetReferenceForDeclaredElement(ITreeNode element, ReferenceCollection oldReferences)
     {
-        // @TODO: We really need to clean this up
-        var defTypeName = element.Parent.Parent.Children().First().Children().ElementAt(1).GetText();
+        // We're currently in a text node inside a <defName> inside another ThingDef node. We want to get that node
+        var defTypeName = element.Parent?.Parent?
+            // And then get the TagHeader (<ThingDef>) of that node
+            .Children().First(childElement => childElement is XmlTagHeaderNode)
+            // And then get the text that provides the ID of that node (ThingDef)
+            .Children().First(childElement => childElement is XmlIdentifier).GetText();
+
+        if (defTypeName is null) new ReferenceCollection();
+        
         var defName = element.GetText();
         
         var xmlSymbolTable = element.GetSolution().GetComponent<RimworldSymbolScope>();
