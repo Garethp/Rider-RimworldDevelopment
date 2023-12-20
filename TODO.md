@@ -31,3 +31,9 @@
  * Look at refactoring RimworldSymbolScope to see if we can make it cleaner
  * Refactor the fetching of classes to a central location. We're all over the place, using different scopes from `ScopeHelper`
    when we really should just let `ScopeHelper` deal with it all internally as well as the scope swapping
+
+ * Generate
+   * Apply the Generate to XML
+   * Make the generate read based off of context
+   * Auto-tick what's required
+   * Actually generate the XML
