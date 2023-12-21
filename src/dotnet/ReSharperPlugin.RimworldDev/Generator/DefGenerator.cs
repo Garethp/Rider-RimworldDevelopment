@@ -8,6 +8,7 @@ using JetBrains.ReSharper.Psi;
 using JetBrains.ReSharper.Psi.Tree;
 using JetBrains.ReSharper.Psi.Xml;
 using JetBrains.ReSharper.Psi.Xml.Impl.Tree;
+using JetBrains.ReSharper.Psi.Xml.Parsing;
 using JetBrains.ReSharper.Psi.Xml.Resources;
 using JetBrains.ReSharper.Psi.Xml.Tree;
 
@@ -77,6 +78,8 @@ public class DefPropertiesGeneratorBuilderXml : GeneratorBuilderBase<GeneratorCo
 
         var fields = RimworldXMLItemProvider.GetAllPublicFields(currentClass, ScopeHelper.RimworldScope);
 
+        // @TODO: Add a filter to only show fields that are not already in the def
+        
         var publicFields = fields.Where(
             field =>
                 field.IsField
@@ -93,5 +96,26 @@ public class DefPropertiesGeneratorBuilderXml : GeneratorBuilderBase<GeneratorCo
         IEnumerable<IGeneratorElement> elements)
     {
         return true;
+    }
+
+    protected override void Process(GeneratorContextBase context)
+    {
+        var anchor = context.Anchor;
+        if (anchor is not ITreeNode) return;
+        if (anchor?.Parent is not XmlTag parentTag) return;
+        
+        var factory = XmlElementFactory.GetInstance(context.Anchor);
+
+        foreach (var inputElement in context.InputElements)
+        {
+            if (inputElement is not GeneratorDeclaredElement declaredElement) continue;
+            var name = declaredElement.DeclaredElement.ShortName;
+            var newTag = factory.CreateTagForTag(parentTag, $"<{name}></{name}>");
+            
+            // @TODO: Actually add the tag in the right place
+            // @TODO: Remove whitespace left over from insert point
+            parentTag.AddTagAfter(newTag, null);
+            context.OutputElements.Add(context.InputElements.First());
+        }
     }
 }

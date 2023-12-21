@@ -33,7 +33,7 @@
    when we really should just let `ScopeHelper` deal with it all internally as well as the scope swapping
 
  * Generate
-   * Apply the Generate to XML
-   * Make the generate read based off of context
+   * Don't show options for what's already in the def
    * Auto-tick what's required
-   * Actually generate the XML
+   * Make the output a bit neater
+   * Only show the option for files/contexts in which it's relevant
