@@ -134,9 +134,9 @@ public class DefPropertiesGeneratorBuilderXml : GeneratorBuilderBase<GeneratorCo
             var name = declaredElement.DeclaredElement.ShortName;
             var newTag = factory.CreateTagForTag(parentTag, $"<{name}></{name}>");
 
-            ModificationUtil.AddChildAfter(anchor, newTag);
+            anchor = ModificationUtil.AddChildAfter(anchor, newTag);
 
-            context.OutputElements.Add(context.InputElements.First());
+            context.OutputElements.Add(inputElement);
         }
     }
 }
