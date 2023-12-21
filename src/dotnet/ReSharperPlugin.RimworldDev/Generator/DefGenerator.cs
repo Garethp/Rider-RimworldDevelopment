@@ -1,10 +1,13 @@
 using System.Collections.Generic;
 using System.Linq;
 using JetBrains.Application.DataContext;
+using JetBrains.ProjectModel.DataContext;
 using JetBrains.ReSharper.Feature.Services.Generate;
 using JetBrains.ReSharper.Feature.Services.Generate.Actions;
 using JetBrains.ReSharper.Feature.Services.Generate.Workflows;
 using JetBrains.ReSharper.Psi;
+using JetBrains.ReSharper.Psi.DataContext;
+using JetBrains.ReSharper.Psi.ExtensionsAPI.Tree;
 using JetBrains.ReSharper.Psi.Tree;
 using JetBrains.ReSharper.Psi.Xml;
 using JetBrains.ReSharper.Psi.Xml.Impl.Tree;
@@ -40,9 +43,18 @@ public class GenerateDefPropertiesWorkflowXml : GenerateCodeWorkflowBase
 
     public override bool IsAvailable(IDataContext dataContext)
     {
+        var solution = dataContext.GetData(ProjectModelDataConstants.SOLUTION);
+        if (solution == null)
+            return false;
+
+        var sourceFile = dataContext.GetData(PsiDataConstants.SOURCE_FILE);
+        if (sourceFile == null)
+            return false;
+
+        if (!sourceFile.PrimaryPsiLanguage.IsLanguage(XmlLanguage.Instance)) return false;
+
         return true;
     }
-
     public override bool IsEnabled(ITreeNode context)
     {
         return true;
@@ -78,12 +90,22 @@ public class DefPropertiesGeneratorBuilderXml : GeneratorBuilderBase<GeneratorCo
 
         var fields = RimworldXMLItemProvider.GetAllPublicFields(currentClass, ScopeHelper.RimworldScope);
 
-        // @TODO: Add a filter to only show fields that are not already in the def
-        
+        var alreadyDefinedTags = context.Anchor.Parent
+            .Children()
+            .Where(child => child is XmlTag)
+            .Select(tag => (tag.Children()
+                .First(child => child is XmlTagHeaderNode) as XmlTagHeaderNode)?
+                .ContainerName
+            )
+            .Where(name => name is not null)
+            .ToList();
+
         var publicFields = fields.Where(
             field =>
                 field.IsField
                 && field.AccessibilityDomain.DomainType == AccessibilityDomain.AccessibilityDomainType.PUBLIC
+                && !alreadyDefinedTags.Contains(field.ShortName)
+                && !field.GetAttributeInstances(AttributesSource.All).Select(attribute => attribute.GetAttributeShortName()).Contains("UnsavedAttribute")
         );
 
         foreach (var field in publicFields)
@@ -103,7 +125,7 @@ public class DefPropertiesGeneratorBuilderXml : GeneratorBuilderBase<GeneratorCo
         var anchor = context.Anchor;
         if (anchor is not ITreeNode) return;
         if (anchor?.Parent is not XmlTag parentTag) return;
-        
+
         var factory = XmlElementFactory.GetInstance(context.Anchor);
 
         foreach (var inputElement in context.InputElements)
@@ -111,10 +133,9 @@ public class DefPropertiesGeneratorBuilderXml : GeneratorBuilderBase<GeneratorCo
             if (inputElement is not GeneratorDeclaredElement declaredElement) continue;
             var name = declaredElement.DeclaredElement.ShortName;
             var newTag = factory.CreateTagForTag(parentTag, $"<{name}></{name}>");
-            
-            // @TODO: Actually add the tag in the right place
-            // @TODO: Remove whitespace left over from insert point
-            parentTag.AddTagAfter(newTag, null);
+
+            ModificationUtil.AddChildAfter(anchor, newTag);
+
             context.OutputElements.Add(context.InputElements.First());
         }
     }

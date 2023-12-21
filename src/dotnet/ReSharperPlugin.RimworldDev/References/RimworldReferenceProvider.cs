@@ -139,9 +139,9 @@ public class RimworldReferenceFactory : IReferenceFactory
         // We're currently in a text node inside a <defName> inside another ThingDef node. We want to get that node
         var defTypeName = element.Parent?.Parent?
             // And then get the TagHeader (<ThingDef>) of that node
-            .Children().First(childElement => childElement is XmlTagHeaderNode)
+            .Children().FirstOrDefault(childElement => childElement is XmlTagHeaderNode)?
             // And then get the text that provides the ID of that node (ThingDef)
-            .Children().First(childElement => childElement is XmlIdentifier).GetText();
+            .Children().FirstOrDefault(childElement => childElement is XmlIdentifier)?.GetText();
 
         if (defTypeName is null) new ReferenceCollection();
 

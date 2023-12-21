@@ -33,7 +33,5 @@
    when we really should just let `ScopeHelper` deal with it all internally as well as the scope swapping
 
  * Generate
-   * Don't show options for what's already in the def
+   * Order based on number of references 
    * Auto-tick what's required
-   * Make the output a bit neater
-   * Only show the option for files/contexts in which it's relevant
