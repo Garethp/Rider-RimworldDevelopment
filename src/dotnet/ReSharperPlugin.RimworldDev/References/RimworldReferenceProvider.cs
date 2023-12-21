@@ -66,7 +66,7 @@ public class RimworldReferenceFactory : IReferenceFactory
             RimworldXMLItemProvider.GetContextFromHierachy(hierarchy, rimworldSymbolScope, allSymbolScopes);
         if (classContext == null) return new ReferenceCollection();
 
-        var field = RimworldXMLItemProvider.GetAllPublicFields(classContext, rimworldSymbolScope)
+        var field = RimworldXMLItemProvider.GetAllFields(classContext, rimworldSymbolScope)
             .FirstOrDefault(field => field.ShortName == identifier.GetText());
 
         if (field == null) return new ReferenceCollection();

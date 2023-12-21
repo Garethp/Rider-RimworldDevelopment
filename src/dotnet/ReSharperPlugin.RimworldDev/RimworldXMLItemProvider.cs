@@ -279,11 +279,22 @@ public class RimworldXMLItemProvider : ItemsProviderOfSpecificContext<RimworldXm
     public static List<IField> GetAllPublicFields(ITypeElement desiredClass, ISymbolScope symbolScope)
     {
         return desiredClass.GetAllClassMembers<IField>()
+            .Where(field => field.Member.GetAttributeInstances(AttributesSource.All).Select(attribute => attribute.GetAttributeShortName()).Contains("UnsavedAttribute"))
             .Where(member => member.Member.AccessibilityDomain.DomainType == AccessibilityDomain.AccessibilityDomainType.PUBLIC)
             .Select(member => member.Member)
             .ToList();
     }
 
+    // Grabs the fields that we can use for a class by looking at that classes fields as well as the fields for all the
+    // classes that it inherits from
+    public static List<IField> GetAllFields(ITypeElement desiredClass, ISymbolScope symbolScope)
+    {
+        return desiredClass.GetAllClassMembers<IField>()
+            .Where(field => field.Member.GetAttributeInstances(AttributesSource.All).Select(attribute => attribute.GetAttributeShortName()).Contains("UnsavedAttribute"))
+            .Select(member => member.Member)
+            .ToList();
+    }
+    
     /**
      * This is where a lot of our heavy lifting is going to be. We're taking the a list of strings as a hierarchy
      * (See the docblock for GetHierarchy) and getting the Class for that last item in that list. So for example, if we
@@ -381,7 +392,7 @@ public class RimworldXMLItemProvider : ItemsProviderOfSpecificContext<RimworldXm
                 continue;
             }
 
-            var fields = GetAllPublicFields(currentContext, symbolScope);
+            var fields = GetAllFields(currentContext, symbolScope);
             var field = fields.FirstOrDefault(field => field.ShortName == currentNode);
             if (field == null) return null;
             previousField = field;
