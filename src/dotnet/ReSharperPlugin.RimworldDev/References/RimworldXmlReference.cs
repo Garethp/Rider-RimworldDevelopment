@@ -1,3 +1,4 @@
+using System.Linq;
 using JetBrains.Annotations;
 using JetBrains.Metadata.Reader.API;
 using JetBrains.ReSharper.Psi;
@@ -83,7 +84,7 @@ public class RimworldXmlReference :
         if (!useReferenceName)
             return table;
 
-        return table.Filter(GetName(), new AllFilter(myOwner.GetText()));
+        return table.Filter(GetName().Split('.').Last(), new AllFilter(myOwner.GetText().Split('.').Last()));
 
         // ISymbolTable table = this.myOwner.GetSolution().GetComponent<IHtmlDeclaredElementsCache>().GetAllTagsSymbolTable(this.myOwner.GetSourceFile()).Distinct(SymbolInfoComparer.OrdinalIgnoreCase);
         // if (useReferenceName)
@@ -104,7 +105,7 @@ public class RimworldXmlReference :
 
     public override ResolveResultWithInfo ResolveWithoutCache()
     {
-        ResolveResultWithInfo resolveResult = GetReferenceSymbolTable(true).GetResolveResult(GetName());
+        ResolveResultWithInfo resolveResult = GetReferenceSymbolTable(true).GetResolveResult(GetName().Split('.').Last());
         return resolveResult;
         // return new ResolveResultWithInfo(resolveResult.Result, resolveResult.Info.CheckResolveInfo((ResolveErrorType) HtmlResolveErrorType.UNKNOWN_HTML_TAG));
     }

@@ -348,8 +348,8 @@ public class RimworldXMLItemProvider : ItemsProviderOfSpecificContext<RimworldXm
                     classValue = Regex.Match(previousField.Type.GetLongPresentableName(CSharpLanguage.Instance),
                         @"^System.Collections.Generic.List<(.*?)>$").Groups[1].Value;
                 };
-                
-                currentContext = symbolScope.GetTypeElementByCLRName(classValue);
+
+                currentContext = ScopeHelper.GetScopeForClass(classValue).GetTypeElementByCLRName(classValue);
                 continue;
             }
 
@@ -362,12 +362,13 @@ public class RimworldXMLItemProvider : ItemsProviderOfSpecificContext<RimworldXm
 
                 if (classValue == "") return null;
 
+                var scopeToUse = ScopeHelper.GetScopeForClass(classValue);
                 // First we try to look it up as a short name from the Rimworld DLL
-                currentContext = symbolScope.GetElementsByShortName(classValue).FirstOrDefault() as ITypeElement;
+                currentContext = scopeToUse.GetElementsByShortName(classValue).FirstOrDefault() as ITypeElement;
                 if (currentContext != null) continue;
 
                 // Then we try to look it up as a fully qualified name from Rimworld
-                currentContext = symbolScope.GetTypeElementByCLRName(classValue);
+                currentContext = scopeToUse.GetTypeElementByCLRName(classValue);
                 if (currentContext != null) continue;
 
                 // If it's not a Rimworld class, let's assume that it's a custom class in our own C#. In that case, let's
@@ -388,7 +389,7 @@ public class RimworldXMLItemProvider : ItemsProviderOfSpecificContext<RimworldXm
             // current context to be diving into
             if (!currentContext.IsClass())
             {
-                currentContext = symbolScope.GetElementsByShortName(currentNode).FirstOrDefault() as Class;
+                currentContext = currentNode.Contains(".") ? ScopeHelper.GetScopeForClass(currentNode).GetTypeElementByCLRName(currentNode) : symbolScope.GetElementsByShortName(currentNode).FirstOrDefault() as Class;
                 continue;
             }
 
@@ -398,7 +399,7 @@ public class RimworldXMLItemProvider : ItemsProviderOfSpecificContext<RimworldXm
             previousField = field;
             var clrName = field.Type.GetLongPresentableName(CSharpLanguage.Instance);
 
-            currentContext = symbolScope.GetTypeElementByCLRName(clrName);
+            currentContext = ScopeHelper.GetScopeForClass(clrName).GetTypeElementByCLRName(clrName);
 
             switch (clrName)
             {

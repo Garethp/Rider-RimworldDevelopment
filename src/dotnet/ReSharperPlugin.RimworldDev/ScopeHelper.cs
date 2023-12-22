@@ -19,6 +19,7 @@ namespace ReSharperPlugin.RimworldDev;
 public class ScopeHelper
 {
     private static List<ISymbolScope> allScopes = new();
+    private static List<ISymbolScope> knownCustomScopes = new();
     private static ISymbolScope rimworldScope;
     private static IPsiModule rimworldModule;
     private static List<ISymbolScope> usedScopes;
@@ -55,6 +56,22 @@ public class ScopeHelper
         }
 
         return true;
+    }
+
+    public static ISymbolScope GetScopeForClass(string className)
+    {
+        if (!className.Contains(".")) return rimworldScope;
+        if (knownCustomScopes.FirstOrDefault(scope => scope.GetTypeElementByCLRName(className) is not null) is
+            { } foundScope) return foundScope;
+
+        if (knownCustomScopes.FirstOrDefault(scope => scope.GetTypeElementByCLRName(className) is not null) is
+            { } newCustomScope)
+        {
+            knownCustomScopes.Add(newCustomScope);
+            return newCustomScope;
+        }
+        
+        return rimworldScope;
     }
 
     private static async void AddRef(ISolution solution)

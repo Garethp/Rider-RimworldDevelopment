@@ -58,7 +58,16 @@ public class RimworldReferenceFactory : IReferenceFactory
 
         if (hierarchy.Count == 0)
         {
-            var @class = rimworldSymbolScope.GetElementsByShortName(identifier.GetText()).FirstOrDefault();
+            var className = identifier.GetText();
+
+            var allWorkingScopes =
+                ScopeHelper.AllScopes.Where(scope => scope.GetTypeElementByCLRName(className) is not null);
+            
+            var @class = className.Contains(".")
+                ? ScopeHelper.GetScopeForClass(className).GetTypeElementByCLRName(className)
+                : rimworldSymbolScope.GetElementsByShortName(className).FirstOrDefault();
+            
+            if (@class == null) return new ReferenceCollection();
             return new ReferenceCollection(new RimworldXmlReference(@class, identifier));
         }
 
@@ -98,7 +107,7 @@ public class RimworldReferenceFactory : IReferenceFactory
 
         if (!ScopeHelper.ExtendsFromVerseDef(classContext.GetClrName().FullName))
             return new ReferenceCollection();
-        
+
         var xmlSymbolTable = element.GetSolution().GetComponent<RimworldSymbolScope>();
 
         var tagId = $"{classContext.ShortName}/{element.GetText()}";
@@ -127,14 +136,14 @@ public class RimworldReferenceFactory : IReferenceFactory
             .Children().First(childElement => childElement is XmlIdentifier).GetText();
 
         if (defTypeName is null) new ReferenceCollection();
-        
+
         var defName = element.GetText();
-        
+
         var xmlSymbolTable = element.GetSolution().GetComponent<RimworldSymbolScope>();
 
         var tagId = $"{defTypeName}/{defName}";
         if (!xmlSymbolTable.DefTags.ContainsKey(tagId)) return new ReferenceCollection();
-        
+
         if (xmlSymbolTable.GetTagByDef(defTypeName, defName) is not { } tag)
             return new ReferenceCollection();
 
