@@ -152,6 +152,7 @@ public class RimworldSymbolScope : SimpleICache<List<RimworldXmlDefSymbol>>
             caseSensitiveName
         );
 
+        // @TODO: We seem to get "Key Already Exists" errors. Race condition?
         _declaredElements.Add($"{defType}/{defName}", declaredElement);
         _symbolTable.AddSymbol(declaredElement);
     }
