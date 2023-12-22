@@ -1,5 +1,8 @@
 # Changelog
 
+## 2023.3.3
+ * Fixed some missed API Changes in Rider 2023.3.3
+
 ## 2023.3.2
  * Fix to work with Rider 2023.3
 

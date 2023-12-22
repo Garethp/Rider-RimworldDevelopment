@@ -1,7 +1,7 @@
 <idea-plugin require-restart="true">
   <id>com.jetbrains.rider.plugins.rimworlddev</id>
   <name>Rimworld Development Environment</name>
-  <version>2023.3.2</version>
+  <version>2023.3.3</version>
   <vendor url="https://github.com/Garethp/Rider-RimworldDevelopment">Garethp</vendor>
   <idea-version since-build="233" />
   <depends>com.intellij.modules.rider</depends>
@@ -18,17 +18,17 @@ in your mods!</p>
   <change-notes>
 <![CDATA[
 <p><ul>
-<li>Updated to work with Rider 2023.3</li>
+<li>Fixed some missed API Changes in Rider 2023.3.3</li>
 </ul></p>
 ]]>
   </change-notes>
 
   <extensions defaultExtensionNs="com.intellij">
-    <applicationConfigurable groupId="language" instance="RimworldDev.Rider.settings.RimworldSettings" id="preferences.build.rimworldPlugin" />
+    <applicationConfigurable groupId="language" instance="RimworldDev.Rider.settings.RimworldSettings" displayName="Rimworld" id="preferences.build.rimworldPlugin" />
 
     <rider.ProjectTypesProvider implementation="RimworldDev.Rider.XmlProject.RimworldProjectType" />
     <completion.contributor language="XML" order="first, before xml" implementationClass="com.jetbrains.rider.completion.ProtocolCompletionContributor" />
-    <lang.documentationProvider language="XML" implementationClass="com.jetbrains.rdclient.quickDoc.FrontendDocumentationProvider"/>
+    <lang.documentationProvider language="XML" implementationClass="com.jetbrains.rider.quickDoc.FrontendDocumentationProvider"/>
     <backend.actions.support language="XML" implementationClass="com.jetbrains.rider.actions.RiderActionSupportPolicy" />
 
     <configurationType implementation="RimworldDev.Rider.run.ConfigurationType"/>
