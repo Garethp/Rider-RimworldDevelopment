@@ -279,7 +279,7 @@ public class RimworldXMLItemProvider : ItemsProviderOfSpecificContext<RimworldXm
     public static List<IField> GetAllPublicFields(ITypeElement desiredClass, ISymbolScope symbolScope)
     {
         return desiredClass.GetAllClassMembers<IField>()
-            .Where(field => field.Member.GetAttributeInstances(AttributesSource.All).Select(attribute => attribute.GetAttributeShortName()).Contains("UnsavedAttribute"))
+            .Where(field => !field.Member.GetAttributeInstances(AttributesSource.All).Select(attribute => attribute.GetAttributeShortName()).Contains("UnsavedAttribute"))
             .Where(member => member.Member.AccessibilityDomain.DomainType == AccessibilityDomain.AccessibilityDomainType.PUBLIC)
             .Select(member => member.Member)
             .ToList();
@@ -290,7 +290,7 @@ public class RimworldXMLItemProvider : ItemsProviderOfSpecificContext<RimworldXm
     public static List<IField> GetAllFields(ITypeElement desiredClass, ISymbolScope symbolScope)
     {
         return desiredClass.GetAllClassMembers<IField>()
-            .Where(field => field.Member.GetAttributeInstances(AttributesSource.All).Select(attribute => attribute.GetAttributeShortName()).Contains("UnsavedAttribute"))
+            .Where(field => !field.Member.GetAttributeInstances(AttributesSource.All).Select(attribute => attribute.GetAttributeShortName()).Contains("UnsavedAttribute"))
             .Select(member => member.Member)
             .ToList();
     }
