@@ -181,16 +181,17 @@ public class RimworldXMLItemProvider : ItemsProviderOfSpecificContext<RimworldXm
 
         var xmlSymbolTable = context.TreeNode!.GetSolution().GetSolution().GetComponent<RimworldSymbolScope>();
 
-        var keys = xmlSymbolTable.DefTags.Keys
-            .Where(key => key.StartsWith($"{className}/"))
-            .Select(key => key.Substring(className.Length + 1));
-
+        var keys = xmlSymbolTable.GetDefsByType(className);
+        
         foreach (var key in keys)
         {
-            var item = xmlSymbolTable.GetTagByDef(className, key);
-
-            var lookup = LookupFactory.CreateDeclaredElementLookupItem(context, key,
-                new DeclaredElementInstance(new XMLTagDeclaredElement(item, className, key, false)));
+            var defType = key.Split('/').First();
+            var defName = key.Split('/').Last();
+            
+            var item = xmlSymbolTable.GetTagByDef(defType, defName);
+            
+            var lookup = LookupFactory.CreateDeclaredElementLookupItem(context, defName,
+                new DeclaredElementInstance(new XMLTagDeclaredElement(item, defType, defName, false)));
             collector.Add(lookup);
         }
 

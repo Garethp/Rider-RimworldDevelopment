@@ -110,12 +110,20 @@ public class RimworldReferenceFactory : IReferenceFactory
 
         var xmlSymbolTable = element.GetSolution().GetComponent<RimworldSymbolScope>();
 
-        var tagId = $"{classContext.ShortName}/{element.GetText()}";
-        if (xmlSymbolTable.GetTagByDef(classContext.ShortName, element.GetText()) is not { } tag)
+        var defType = classContext.ShortName;
+        var defName = element.GetText();
+        
+        if (xmlSymbolTable.ExtraDefTagNames.ContainsKey($"{defType}/{defName}"))
+        {
+            var newDef = xmlSymbolTable.ExtraDefTagNames[$"{defType}/{defName}"];
+            defType = newDef.Split('/').First();
+            defName = newDef.Split('/').Last();
+        }
+        
+        if (xmlSymbolTable.GetTagByDef(defType, defName) is not { } tag)
             return new ReferenceCollection();
-
-        return new ReferenceCollection(new RimworldXmlDefReference(element, tag, classContext.ShortName,
-            element.GetText()));
+        
+        return new ReferenceCollection(new RimworldXmlDefReference(element, tag, defType, defName));
     }
 
     /**
