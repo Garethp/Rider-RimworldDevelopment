@@ -12,6 +12,7 @@ using JetBrains.ReSharper.Psi.ExtensionsAPI.Resolve;
 using JetBrains.ReSharper.Psi.Files;
 using JetBrains.ReSharper.Psi.Resolve;
 using JetBrains.ReSharper.Psi.Tree;
+using JetBrains.ReSharper.Psi.Util;
 using JetBrains.ReSharper.Psi.Xml.Tree;
 using ReSharperPlugin.RimworldDev.TypeDeclaration;
 
@@ -21,9 +22,11 @@ namespace ReSharperPlugin.RimworldDev.SymbolScope;
 public class RimworldSymbolScope : SimpleICache<List<RimworldXmlDefSymbol>>
 {
     public Dictionary<string, ITreeNode> DefTags = new();
+
+    public Dictionary<string, string> ExtraDefTagNames = new();
     private Dictionary<string, XMLTagDeclaredElement> _declaredElements = new();
     private SymbolTable _symbolTable;
-    
+
     public RimworldSymbolScope
     (Lifetime lifetime, [NotNull] IShellLocks locks, [NotNull] IPersistentIndexManager persistentIndexManager,
         long? version = null)
@@ -49,6 +52,20 @@ public class RimworldSymbolScope : SimpleICache<List<RimworldXmlDefSymbol>>
             return null;
 
         return DefTags[defId];
+    }
+
+    public List<string> GetDefsByType(string defType)
+    {
+        return DefTags
+            .Keys
+            .Where(key => key.StartsWith($"{defType}/"))
+            .Select(defId => ExtraDefTagNames.ContainsKey(defId) ? ExtraDefTagNames[defId] : defId)
+            .ToList()
+            .Concat(
+                ExtraDefTagNames.Keys
+                    .Where(key => key.StartsWith($"{defType}/"))
+                    .Select(key => ExtraDefTagNames[key])
+            ).ToList();
     }
 
     public override object Build(IPsiSourceFile sourceFile, bool isStartup)
@@ -99,6 +116,7 @@ public class RimworldSymbolScope : SimpleICache<List<RimworldXmlDefSymbol>>
 
     private void AddToLocalCache(IPsiSourceFile sourceFile, [CanBeNull] List<RimworldXmlDefSymbol> cacheItem)
     {
+        ScopeHelper.UpdateScopes(sourceFile.GetSolution());
         if (sourceFile.GetPrimaryPsiFile() is not IXmlFile xmlFile) return;
 
         cacheItem?.ForEach(item =>
@@ -108,14 +126,41 @@ public class RimworldSymbolScope : SimpleICache<List<RimworldXmlDefSymbol>>
                     tag.Children().ElementAt(1).GetTreeStartOffset().Offset == item.DocumentOffset);
 
             if (matchingDefTag is null) return;
-            
+
             var xmlTag = matchingDefTag.Children().ElementAt(1);
-            
+
+            AddDefTagToList(item, xmlTag);
+        });
+
+        void AddDefTagToList(RimworldXmlDefSymbol item, ITreeNode xmlTag)
+        {
+            if (item.DefType.Contains(".") && ScopeHelper.RimworldScope is not null)
+            {
+                var superClasses = ScopeHelper.GetScopeForClass(item.DefType)?
+                    .GetTypeElementByCLRName(item.DefType)?
+                    .GetAllSuperClasses().ToList() ?? new();
+
+                foreach (var superClass in superClasses)
+                {
+                    if (superClass.GetClrName().FullName == "Verse.Def") break;
+
+                    var subDefType = superClass.GetClrName().ShortName;
+                    if (!ExtraDefTagNames.ContainsKey($"{subDefType}/{item.DefName}"))
+                    {
+                        ExtraDefTagNames.Add($"{subDefType}/{item.DefName}", $"{item.DefType}/{item.DefName}");
+                    }
+                    else
+                    {
+                        ExtraDefTagNames[$"{subDefType}/{item.DefName}"] = $"{item.DefType}/{item.DefName}";
+                    }
+                }
+            }
+
             if (!DefTags.ContainsKey($"{item.DefType}/{item.DefName}"))
                 DefTags.Add($"{item.DefType}/{item.DefName}", xmlTag);
             else
                 DefTags[$"{item.DefType}/{item.DefName}"] = xmlTag;
-        });
+        }
     }
 
     private void RemoveFromLocalCache(IPsiSourceFile sourceFile)
@@ -135,7 +180,8 @@ public class RimworldSymbolScope : SimpleICache<List<RimworldXmlDefSymbol>>
             AddToLocalCache(sourceFile, cacheItem);
     }
 
-    public void AddDeclaredElement(ISolution solution, ITreeNode owner, string defType, string defName, bool caseSensitiveName)
+    public void AddDeclaredElement(ISolution solution, ITreeNode owner, string defType, string defName,
+        bool caseSensitiveName)
     {
         if (_symbolTable == null) _symbolTable = new SymbolTable(solution.GetPsiServices());
 
