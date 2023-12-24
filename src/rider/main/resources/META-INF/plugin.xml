@@ -19,8 +19,9 @@ in your mods!</p>
 <![CDATA[
 <p><ul>
 <li>Added a Find Usages for XML Defs</li>
-<li>Improved detection of various properties that weren't being picked up as references before</li>
+<li>Added support for Custom Def Classes</li>
 <li>Add a new "Generate" menu feature to add props to your XML</li>
+<li>Improved detection of various properties that weren't being picked up as references before</li>
 </ul></p>
 ]]>
   </change-notes>

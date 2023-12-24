@@ -3,8 +3,6 @@
  * General features:
    * Support LookupItems for Class="" attributes
    * Support LookupItems for things like <thoughtWorker> or <compClass>
-   * If we know a bit of XML should be an enum like Gender, we should be able to check that it's a valid enum value
-   * Handle Defs with custom classes instead of Rimworld classes
    * We need to be able to support "LoadAlias", such as "StorageSettings.priority"
 
  * \<li> handling
@@ -12,8 +10,6 @@
 
  * XML Autocomplete
    * Make auto completing to other XMLTags look nicer and work faster
-   * When linking to other def (`<defaultDuty>DefNameHere</defaultDuty>`) also include defs where the tag is a custom class
-     that extends from the def we're looking for
 `   
  * Documentation
    * Re-read and document References.RimworldXmlReference
@@ -31,6 +27,3 @@
  * Look at refactoring RimworldSymbolScope to see if we can make it cleaner
  * Refactor the fetching of classes to a central location. We're all over the place, using different scopes from `ScopeHelper`
    when we really should just let `ScopeHelper` deal with it all internally as well as the scope swapping
-
- * Generate
-   * Auto-tick what's required
