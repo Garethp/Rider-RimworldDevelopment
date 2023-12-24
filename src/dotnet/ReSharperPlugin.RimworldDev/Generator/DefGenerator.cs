@@ -79,49 +79,7 @@ public class DefPropertiesGeneratorBuilderXml : GeneratorBuilderBase<GeneratorCo
 
         return true;
     }
-
-    protected override void BuildOptions(
-        GeneratorContextBase context,
-        ICollection<IGeneratorOption> options)
-    {
-        var hierarchy = RimworldXMLItemProvider.GetHierarchy(context.Anchor);
-        var currentClass =
-            RimworldXMLItemProvider.GetContextFromHierachy(hierarchy, ScopeHelper.RimworldScope, ScopeHelper.AllScopes);
-
-        var fields = RimworldXMLItemProvider.GetAllPublicFields(currentClass, ScopeHelper.RimworldScope);
-
-        var alreadyDefinedTags = context.Anchor.Parent
-            .Children()
-            .Where(child => child is XmlTag)
-            .Select(tag => (tag.Children()
-                .First(child => child is XmlTagHeaderNode) as XmlTagHeaderNode)?
-                .ContainerName
-            )
-            .Where(name => name is not null)
-            .ToList();
-
-        var publicFields = fields.Where(
-            field =>
-                field.IsField
-                && field.AccessibilityDomain.DomainType == AccessibilityDomain.AccessibilityDomainType.PUBLIC
-                && !alreadyDefinedTags.Contains(field.ShortName)
-                && !field.GetAttributeInstances(AttributesSource.All)
-                    .Select(attribute => attribute.GetAttributeShortName()).Contains("UnsavedAttribute")
-        ).ToList().OrderByDescending(field =>
-        {
-            var className = field.GetContainingType().GetClrName().FullName;
-            var fullName = $"{className}::{field.ShortName}";
-
-            if (!PropertyOrdering.PropertyUsageCount.ContainsKey(fullName)) return 0;
-            return PropertyOrdering.PropertyUsageCount[fullName];
-        });
-
-        foreach (var field in publicFields)
-        {
-            context.ProvidedElements.Add(new GeneratorDeclaredElement(field));
-        }
-    }
-
+    
     protected override bool HasProcessableElements(GeneratorContextBase context,
         IEnumerable<IGeneratorElement> elements)
     {
@@ -145,6 +103,59 @@ public class DefPropertiesGeneratorBuilderXml : GeneratorBuilderBase<GeneratorCo
             anchor = ModificationUtil.AddChildAfter(anchor, newTag);
 
             context.OutputElements.Add(inputElement);
+        }
+    }
+}
+
+[GeneratorElementProvider("RimworldPropertyGenerator", typeof(XmlLanguage))]
+public class DefGeneratorElementProvider : GeneratorProviderBase<GeneratorContextBase>
+{
+    public override void Populate(GeneratorContextBase context)
+    {
+        var anchor = context.Anchor;
+
+        if (ScopeHelper.RimworldScope is null) return;
+        if (anchor is not XmlWhitespaceToken) return;
+        if (anchor.Parent is XmlTagHeaderNode) return;
+        if (anchor.Parent?.Parent is null or IXmlFile) return;
+        
+        var hierarchy = RimworldXMLItemProvider.GetHierarchy(context.Anchor);
+        var currentClass =
+            RimworldXMLItemProvider.GetContextFromHierachy(hierarchy, ScopeHelper.RimworldScope, ScopeHelper.AllScopes);
+
+        var fields = RimworldXMLItemProvider.GetAllPublicFields(currentClass, ScopeHelper.RimworldScope);
+
+        var alreadyDefinedTags = anchor.Parent
+            .Children()
+            .Where(child => child is XmlTag)
+            .Select(tag => (tag.Children()
+                    .First(child => child is XmlTagHeaderNode) as XmlTagHeaderNode)?
+                .ContainerName
+            )
+            .Where(name => name is not null)
+            .ToList();
+
+        var publicFields = fields.Where(
+            field =>
+                field.IsField
+                && field.AccessibilityDomain.DomainType == AccessibilityDomain.AccessibilityDomainType.PUBLIC
+                && !alreadyDefinedTags.Contains(field.ShortName)
+                && !field.GetAttributeInstances(AttributesSource.All)
+                    .Select(attribute => attribute.GetAttributeShortName()).Contains("UnsavedAttribute")
+        ).ToList().OrderByDescending(field =>
+        {
+            var className = field.ContainingType?.GetClrName().FullName;
+            if (className is null) return 0;
+            
+            var fullName = $"{className}::{field.ShortName}";
+
+            if (!PropertyOrdering.PropertyUsageCount.ContainsKey(fullName)) return 0;
+            return PropertyOrdering.PropertyUsageCount[fullName];
+        });
+
+        foreach (var field in publicFields)
+        {
+            context.ProvidedElements.Add(new GeneratorDeclaredElement(field));
         }
     }
 }

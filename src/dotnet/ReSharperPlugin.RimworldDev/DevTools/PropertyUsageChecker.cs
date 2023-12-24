@@ -1,19 +1,13 @@
 // using System.Collections.Generic;
 // using System.Linq;
-// using JetBrains;
 // using JetBrains.Annotations;
 // using JetBrains.Application.Threading;
-// using JetBrains.Collections;
 // using JetBrains.Lifetimes;
 // using JetBrains.ReSharper.Psi;
 // using JetBrains.ReSharper.Psi.Caches;
 // using JetBrains.ReSharper.Psi.Files;
-// using JetBrains.ReSharper.Psi.Tree;
-// using JetBrains.ReSharper.Psi.Util;
-// using JetBrains.ReSharper.Psi.Xml.Impl.Tree;
 // using JetBrains.ReSharper.Psi.Xml.Tree;
 // using JetBrains.Util;
-// using ReSharperPlugin.RimworldDev.SymbolScope;
 //
 // namespace ReSharperPlugin.RimworldDev.DevTools;
 //
