@@ -105,8 +105,16 @@ public class DefPropertiesGeneratorBuilderXml : GeneratorBuilderBase<GeneratorCo
                 field.IsField
                 && field.AccessibilityDomain.DomainType == AccessibilityDomain.AccessibilityDomainType.PUBLIC
                 && !alreadyDefinedTags.Contains(field.ShortName)
-                && !field.GetAttributeInstances(AttributesSource.All).Select(attribute => attribute.GetAttributeShortName()).Contains("UnsavedAttribute")
-        );
+                && !field.GetAttributeInstances(AttributesSource.All)
+                    .Select(attribute => attribute.GetAttributeShortName()).Contains("UnsavedAttribute")
+        ).ToList().OrderByDescending(field =>
+        {
+            var className = field.GetContainingType().GetClrName().FullName;
+            var fullName = $"{className}::{field.ShortName}";
+
+            if (!PropertyOrdering.PropertyUsageCount.ContainsKey(fullName)) return 0;
+            return PropertyOrdering.PropertyUsageCount[fullName];
+        });
 
         foreach (var field in publicFields)
         {

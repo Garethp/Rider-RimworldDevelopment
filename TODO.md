@@ -33,5 +33,4 @@
    when we really should just let `ScopeHelper` deal with it all internally as well as the scope swapping
 
  * Generate
-   * Order based on number of references 
    * Auto-tick what's required
