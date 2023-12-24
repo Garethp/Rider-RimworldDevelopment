@@ -100,6 +100,7 @@ public sealed class CustomXmlAnalysisStageProcess : XmlDaemonStageProcessBase, I
                 return;
             case "System.String":
                 break;
+            case "Verse.CurvePoint":
             case "UnityEngine.Vector2":
                 ProcessVector2(fullText, range);
                 break;
@@ -143,14 +144,14 @@ public sealed class CustomXmlAnalysisStageProcess : XmlDaemonStageProcessBase, I
 
     private void ProcessInt(string textValue, DocumentRange range)
     {
-        if (int.TryParse(textValue, out _)) return;
+        if (IsValidInt(textValue)) return;
         
         AddError("Value must be a whole number with no decimal points", range);
     }
     
     private void ProcessFloat(string textValue, DocumentRange range)
     {
-        if (float.TryParse(textValue, out _)) return;
+        if (IsValidFloat(textValue)) return;
         
         AddError("Value must be a valid number", range);
     }
@@ -160,7 +161,7 @@ public sealed class CustomXmlAnalysisStageProcess : XmlDaemonStageProcessBase, I
         var strArray = textValue.Split('~');
         
         // For some reason IntRange also just accepts a single number instead of a range
-        if (strArray.Length == 1 && int.TryParse(strArray[0], out _)) return;
+        if (strArray.Length == 1 && IsValidInt(strArray[0])) return;
         
         if (strArray.Length != 2)
         {
@@ -168,13 +169,13 @@ public sealed class CustomXmlAnalysisStageProcess : XmlDaemonStageProcessBase, I
             return;
         }
 
-        if (!int.TryParse(strArray[0], out _))
+        if (!IsValidInt(strArray[0]))
         {
             AddError($"\"{strArray[0]}\" is not a valid integer", range);
             return;
         }
 
-        if (!int.TryParse(strArray[1], out _))
+        if (!IsValidInt(strArray[1]))
         {
             AddError($"\"{strArray[1]}\" is not a valid integer", range);
             return;
@@ -185,7 +186,7 @@ public sealed class CustomXmlAnalysisStageProcess : XmlDaemonStageProcessBase, I
     {
         var strArray = textValue.Split('~');
         // For some reason FloatRange also just accepts a single number instead of a range
-        if (strArray.Length == 1 && float.TryParse(strArray[0], out _)) return;
+        if (strArray.Length == 1 && IsValidFloat(strArray[0])) return;
         
         if (strArray.Length != 2)
         {
@@ -193,13 +194,13 @@ public sealed class CustomXmlAnalysisStageProcess : XmlDaemonStageProcessBase, I
             return;
         }
 
-        if (!float.TryParse(strArray[0], out _))
+        if (!IsValidFloat(strArray[0]))
         {
             AddError($"\"{strArray[0]}\" is not a valid float", range);
             return;
         }
 
-        if (!float.TryParse(strArray[1], out _))
+        if (!IsValidFloat(strArray[1]))
         {
             AddError($"\"{strArray[1]}\" is not a valid float", range);
             return;
@@ -208,11 +209,11 @@ public sealed class CustomXmlAnalysisStageProcess : XmlDaemonStageProcessBase, I
 
     private void ProcessVector2(string textValue, DocumentRange range)
     {
-        var match = Regex.Match(textValue.Trim(), @"^\((.*?),(.*?)\)$");
+        var match = Regex.Match(textValue.Trim(), @"^\(?(.*?),(.*?)\)?$");
         if (!match.Success)
         {
             // For some reason Vector2 allows us to pass in just a single number instead of a vector?
-            if (float.TryParse(textValue, out _)) return;
+            if (IsValidFloat(textValue)) return;
             
             AddError("Your value must be in a format similar to (1,2)", range);
             return;
@@ -221,13 +222,13 @@ public sealed class CustomXmlAnalysisStageProcess : XmlDaemonStageProcessBase, I
         var firstValue = match.Groups[1].Value;
         var secondValue = match.Groups[2].Value;
 
-        if (!float.TryParse(firstValue, out _))
+        if (!IsValidFloat(firstValue))
         {
             AddError($"\"{firstValue}\" is not a valid number", range);
             return;
         }
 
-        if (!float.TryParse(secondValue, out _))
+        if (!IsValidFloat(secondValue))
         {
             AddError($"\"{secondValue}\" is not a valid number", range);
             return;
@@ -236,7 +237,7 @@ public sealed class CustomXmlAnalysisStageProcess : XmlDaemonStageProcessBase, I
     
     private void ProcessVector3(string textValue, DocumentRange range)
     {
-        var match = Regex.Match(textValue.Trim(), @"^\((.*?),(.*?),(.*?)\)$");
+        var match = Regex.Match(textValue.Trim(), @"^\(?(.*?),(.*?),(.*?)\)?$");
         if (!match.Success)
         {
             AddError("Your value must be in a format similar to (1,2,3)", range);
@@ -247,19 +248,19 @@ public sealed class CustomXmlAnalysisStageProcess : XmlDaemonStageProcessBase, I
         var secondValue = match.Groups[2].Value;
         var thirdValue = match.Groups[3].Value;
 
-        if (!float.TryParse(firstValue, out _))
+        if (!IsValidFloat(firstValue))
         {
             AddError($"\"{firstValue}\" is not a valid number", range);
             return;
         }
 
-        if (!float.TryParse(secondValue, out _))
+        if (!IsValidFloat(secondValue))
         {
             AddError($"\"{secondValue}\" is not a valid number", range);
             return;
         }
 
-        if (!float.TryParse(thirdValue, out _))
+        if (!IsValidFloat(thirdValue))
         {
             AddError($"\"{thirdValue}\" is not a valid number", range);
             return;
@@ -286,6 +287,22 @@ public sealed class CustomXmlAnalysisStageProcess : XmlDaemonStageProcessBase, I
         {
             AddError($"\"{textValue}\" is not a valid value for {context.ShortName}", range);
         }
+    }
+
+    private bool IsValidFloat(string value)
+    {
+        if (float.TryParse(value, out _)) return true;
+        if (value.Trim() == "Infinity") return true;
+
+        return false;
+    }
+    
+    private bool IsValidInt(string value)
+    {
+        if (int.TryParse(value, out _)) return true;
+        if (value.Trim() == "Infinity") return true;
+
+        return false;
     }
     
     private void AddError(string errorText, DocumentRange range)
