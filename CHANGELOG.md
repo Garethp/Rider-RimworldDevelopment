@@ -4,6 +4,7 @@
  * Fixed an issue where some classes (like `ThingDef`) wouldn't resolve correctly, meaning that references weren't made to them
  * Fixed an issue where some elements in lists weren't resolved correctly
  * Implemented XML Def Find Usages, so you can just Right-Click a defName and see all usages of that def in XML
+ * Add a new "Generate" menu feature to add props to your XML
 
 ## 2023.3.3
  * Fixed some missed API Changes in Rider 2023.3.3

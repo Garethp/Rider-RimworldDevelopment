@@ -31,3 +31,6 @@
  * Look at refactoring RimworldSymbolScope to see if we can make it cleaner
  * Refactor the fetching of classes to a central location. We're all over the place, using different scopes from `ScopeHelper`
    when we really should just let `ScopeHelper` deal with it all internally as well as the scope swapping
+
+ * Generate
+   * Auto-tick what's required
