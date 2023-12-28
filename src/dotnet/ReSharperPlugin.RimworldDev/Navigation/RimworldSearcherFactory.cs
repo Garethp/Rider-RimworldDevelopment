@@ -21,6 +21,9 @@ public class RimworldSearcherFactory(SearchDomainFactory searchDomainFactory) : 
         IDeclaredElementsSet elements,
         ReferenceSearcherParameters referenceSearcherParameters)
     {
+        elements = new DeclaredElementsSet(elements.Where(element =>
+            IsCompatibleWithLanguage(element.PresentationLanguage)));
+        
         return new CustomSearcher<XmlLanguage>(this,
             elements, referenceSearcherParameters, false);
     }

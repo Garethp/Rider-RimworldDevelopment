@@ -41,7 +41,7 @@ public class CustomSearcher<TLanguage> : IDomainSpecificSearcher where TLanguage
             myWordsInText.UnionWith(factory.GetAllPossibleWordsInFile(element));
         }
 
-        myWordIndex = myElements.First().GetPsiServices().WordIndex;
+        myWordIndex = myElements.FirstOrDefault()?.GetPsiServices().WordIndex;
     }
 
     public bool ProcessProjectItem<TResult>(
@@ -61,7 +61,7 @@ public class CustomSearcher<TLanguage> : IDomainSpecificSearcher where TLanguage
 
     private bool CanContainWord([NotNull] IPsiSourceFile sourceFile)
     {
-        return myWordsInText.Any(word => myWordIndex.CanContainWord(sourceFile, word));
+        return myWordsInText.Any(word => myWordIndex?.CanContainWord(sourceFile, word) == true);
     }
 
     public bool ProcessElement<TResult>(ITreeNode element, IFindResultConsumer<TResult> consumer)
