@@ -59,6 +59,13 @@ public class RimworldCSharpReferenceFactory : IReferenceFactory
             var xmlSymbolTable = element.GetSolution().GetComponent<RimworldSymbolScope>();
 
             var tagId = $"{defTypeName}/{defName}";
+            if (xmlSymbolTable.ExtraDefTagNames.ContainsKey(tagId))
+            {
+                tagId = xmlSymbolTable.ExtraDefTagNames[tagId];
+                defTypeName = tagId.Split('/').First();
+                defName = tagId.Split('/').Last();
+            }
+            
             if (!xmlSymbolTable.DefTags.ContainsKey(tagId)) return new ReferenceCollection();
 
             if (xmlSymbolTable.GetTagByDef(defTypeName, defName) is not { } tag)
@@ -83,6 +90,13 @@ public class RimworldCSharpReferenceFactory : IReferenceFactory
             var xmlSymbolTable = element.GetSolution().GetComponent<RimworldSymbolScope>();
 
             var tagId = $"{defTypeName}/{defName}";
+            if (xmlSymbolTable.ExtraDefTagNames.ContainsKey(tagId))
+            {
+                tagId = xmlSymbolTable.ExtraDefTagNames[tagId];
+                defTypeName = tagId.Split('/').First();
+                defName = tagId.Split('/').Last();
+            }
+            
             if (!xmlSymbolTable.DefTags.ContainsKey(tagId)) return new ReferenceCollection();
 
             if (xmlSymbolTable.GetTagByDef(defTypeName, defName) is not { } tag)
