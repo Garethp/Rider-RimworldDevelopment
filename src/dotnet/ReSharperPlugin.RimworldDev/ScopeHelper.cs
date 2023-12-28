@@ -9,6 +9,7 @@ using JetBrains.ProjectModel;
 using JetBrains.ProjectModel.model2.Assemblies.Interfaces;
 using JetBrains.ReSharper.Psi.Caches;
 using JetBrains.ReSharper.Psi.Modules;
+using JetBrains.ReSharper.Psi.Util;
 using JetBrains.Util;
 using JetBrains.Util.Threading.Tasks;
 using ReSharperPlugin.RimworldDev.Settings;
@@ -18,6 +19,7 @@ namespace ReSharperPlugin.RimworldDev;
 public class ScopeHelper
 {
     private static List<ISymbolScope> allScopes = new();
+    private static List<ISymbolScope> knownCustomScopes = new();
     private static ISymbolScope rimworldScope;
     private static IPsiModule rimworldModule;
     private static List<ISymbolScope> usedScopes;
@@ -56,6 +58,22 @@ public class ScopeHelper
         return true;
     }
 
+    public static ISymbolScope GetScopeForClass(string className)
+    {
+        if (!className.Contains(".")) return rimworldScope;
+        if (knownCustomScopes.FirstOrDefault(scope => scope.GetTypeElementByCLRName(className) is not null) is
+            { } foundScope) return foundScope;
+
+        if (knownCustomScopes.FirstOrDefault(scope => scope.GetTypeElementByCLRName(className) is not null) is
+            { } newCustomScope)
+        {
+            knownCustomScopes.Add(newCustomScope);
+            return newCustomScope;
+        }
+        
+        return rimworldScope;
+    }
+
     private static async void AddRef(ISolution solution)
     {
         if (adding) return;
@@ -85,7 +103,7 @@ public class ScopeHelper
         {
             return customPath;
         }
-        
+
         var locations = new List<FileSystemPath>();
 
         locations.AddRange(GetSteamLocations()
@@ -135,7 +153,7 @@ public class ScopeHelper
             FileSystemPath.ParseRelativelyTo(path, rimworldLocation).ExistsFile);
 
         if (location == null) return null;
-        
+
         var path = FileSystemPath.ParseRelativelyTo(location, rimworldLocation);
 
         return path.ExistsFile ? path : null;
@@ -154,7 +172,7 @@ public class ScopeHelper
             if (dataDirectory.ExistsDirectory) modDirectories.Add(dataDirectory.FullPath);
             if (modsDirectory.ExistsDirectory) modDirectories.Add(modsDirectory.FullPath);
         }
-        
+
         modDirectories.AddRange(GetSteamLocations()
             .Select(location => FileSystemPath.TryParse($"{location}/workshop/content/294100/").FullPath)
             .Where(location => FileSystemPath.TryParse(location).ExistsDirectory)
@@ -209,12 +227,12 @@ public class ScopeHelper
                 var document = GetXmlDocument(aboutFile.FullPath);
                 var modId = document?.GetElementsByTagName("ModMetaData")[0]?.GetChildElements("packageId")
                     .FirstOrDefault()?.InnerText;
-                
+
                 if (modId == null || !desiredModIds.Contains(modId)) continue;
 
                 desiredModIds.Remove(modId);
                 if (foundMods.ContainsKey(modId)) continue;
-                
+
                 foundMods.Add(modId, aboutFile.FullPath);
 
                 if (desiredModIds.Count == 0) return foundMods;
@@ -223,8 +241,8 @@ public class ScopeHelper
 
         return foundMods;
     }
-    
-    
+
+
     [CanBeNull]
     public static XmlDocument GetXmlDocument(string fileLocation)
     {
@@ -238,5 +256,62 @@ public class ScopeHelper
         reader.Close();
 
         return document;
+    }
+
+    public static List<string> GetAllSuperClasses(string clrName)
+    {
+        if (clrName.StartsWith("System")) return new List<string>();
+
+        var items = new List<string>();
+        var supers = RimworldScope.GetTypeElementByCLRName(clrName)?.GetAllSuperClasses().ToList();
+        supers?.ForEach(super =>
+        {
+            var clr = super.GetClrName().FullName;
+            items.Add(clr);
+            items.AddRange(GetAllSuperClasses(clr));
+        });
+
+        return items;
+    }
+
+    public static List<string> GetAllSuperTypeElements(string clrName)
+    {
+        if (clrName.StartsWith("System")) return new List<string>();
+
+        var items = new List<string>();
+        var supers = RimworldScope.GetTypeElementByCLRName(clrName).GetAllSuperTypeElements().ToList();
+        supers.ForEach(super =>
+        {
+            var clr = super.GetClrName().FullName;
+            items.Add(clr);
+            items.AddRange(GetAllSuperTypeElements(clr));
+        });
+
+        return items;
+    }
+
+    public static List<string> GetAllSuperTypes(string clrName)
+    {
+        if (clrName.StartsWith("System")) return new List<string>();
+
+        var items = new List<string>();
+        var supers = RimworldScope.GetTypeElementByCLRName(clrName).GetAllSuperTypes().ToList();
+        supers.ForEach(super =>
+        {
+            var clr = super.GetClrName().FullName;
+            items.Add(clr);
+            items.AddRange(GetAllSuperTypes(clr));
+        });
+
+        return items;
+    }
+
+    public static bool ExtendsFromVerseDef(string clrName)
+    {
+        if (RimworldScope is null) return false;
+
+        return
+            GetAllSuperClasses(clrName).Any(super => super == "Verse.Def") ||
+            GetAllSuperTypes(clrName).Any(super => super == "Verse.Def");
     }
 }

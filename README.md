@@ -21,21 +21,9 @@ into the definitions on which the XML sits.
  * Rimworld Mod support in New Solution
  * Custom Rimworld XML Projects
  * Basic validation for some XML Values
-
-## Roadmap
-
-The major feature for the next version of this plugin (Version 1.1) is custom error reporting for your XML. For example
-if you try to use `<facing>NorthSouth</facing>` it will point out that's an invalid option. Likewise, if you pass in 
-`<visualSizeRange>2.5</visualSizeRange>` it will tell you that you need to pass in a range of numbers, not a single number.
-
-Additionally, here are some other features I intend to include at some point. These features are not slated for the 1.1
-release and are a list of things to do "at some point in time". In no particular order, they are:
-
- * Autocompleting and referencing classes in `Class=""` attributes in XML Tags
- * Autocompleting and providing references when referring to C# classes in XML Values like in `<thoughtClass>` or `<compClass>`
- * Handle Def tags with custom classes instead of just Rimworld classes (such as `<MyMod.CustomThingDef>`)
- * Supporting Patches
-
+ * Support for Custom Def Classes (Such as `<MyMod.CustomThingDef>`)
+ * The ability to perform Find Usages on XML Defs
+ * A "Generate" menu option to generate properties for a given XML Def
 
 ## Quick Architecture For Developers
 

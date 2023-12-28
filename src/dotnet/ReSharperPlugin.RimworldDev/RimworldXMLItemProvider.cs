@@ -12,6 +12,7 @@ using JetBrains.ReSharper.Psi;
 using JetBrains.ReSharper.Psi.Caches;
 using JetBrains.ReSharper.Psi.CSharp;
 using JetBrains.ReSharper.Psi.Impl.reflection2.elements.Compiled;
+using JetBrains.ReSharper.Psi.Impl.Types;
 using JetBrains.ReSharper.Psi.Modules;
 using JetBrains.ReSharper.Psi.Resolve;
 using JetBrains.ReSharper.Psi.Tree;
@@ -180,16 +181,17 @@ public class RimworldXMLItemProvider : ItemsProviderOfSpecificContext<RimworldXm
 
         var xmlSymbolTable = context.TreeNode!.GetSolution().GetSolution().GetComponent<RimworldSymbolScope>();
 
-        var keys = xmlSymbolTable.DefTags.Keys
-            .Where(key => key.StartsWith($"{className}/"))
-            .Select(key => key.Substring(className.Length + 1));
-
+        var keys = xmlSymbolTable.GetDefsByType(className);
+        
         foreach (var key in keys)
         {
-            var item = xmlSymbolTable.GetTagByDef(className, key);
-
-            var lookup = LookupFactory.CreateDeclaredElementLookupItem(context, key,
-                new DeclaredElementInstance(new XMLTagDeclaredElement(item, key, false)));
+            var defType = key.Split('/').First();
+            var defName = key.Split('/').Last();
+            
+            var item = xmlSymbolTable.GetTagByDef(defType, defName);
+            
+            var lookup = LookupFactory.CreateDeclaredElementLookupItem(context, defName,
+                new DeclaredElementInstance(new XMLTagDeclaredElement(item, defType, defName, false)));
             collector.Add(lookup);
         }
 
@@ -278,11 +280,22 @@ public class RimworldXMLItemProvider : ItemsProviderOfSpecificContext<RimworldXm
     public static List<IField> GetAllPublicFields(ITypeElement desiredClass, ISymbolScope symbolScope)
     {
         return desiredClass.GetAllClassMembers<IField>()
+            .Where(field => !field.Member.GetAttributeInstances(AttributesSource.All).Select(attribute => attribute.GetAttributeShortName()).Contains("UnsavedAttribute"))
             .Where(member => member.Member.AccessibilityDomain.DomainType == AccessibilityDomain.AccessibilityDomainType.PUBLIC)
             .Select(member => member.Member)
             .ToList();
     }
 
+    // Grabs the fields that we can use for a class by looking at that classes fields as well as the fields for all the
+    // classes that it inherits from
+    public static List<IField> GetAllFields(ITypeElement desiredClass, ISymbolScope symbolScope)
+    {
+        return desiredClass.GetAllClassMembers<IField>()
+            .Where(field => !field.Member.GetAttributeInstances(AttributesSource.All).Select(attribute => attribute.GetAttributeShortName()).Contains("UnsavedAttribute"))
+            .Select(member => member.Member)
+            .ToList();
+    }
+    
     /**
      * This is where a lot of our heavy lifting is going to be. We're taking the a list of strings as a hierarchy
      * (See the docblock for GetHierarchy) and getting the Class for that last item in that list. So for example, if we
@@ -310,20 +323,34 @@ public class RimworldXMLItemProvider : ItemsProviderOfSpecificContext<RimworldXm
             {
                 // If we know we're in an li but can't pull the expected class from the C# typing for some reason, just
                 // return null so that we don't throw an error
-                if (previousField == null ||
-                    !Regex.Match(
-                        previousField.Type.GetLongPresentableName(CSharpLanguage.Instance),
-                        @"^System.Collections.Generic.List<.*?>$"
-                    ).Success)
+                if (previousField == null)
                 {
                     return null;
                 }
 
-                // Use regex to grab the className and then fetch it from the symbol scope
-                var classValue = Regex.Match(previousField.Type.GetLongPresentableName(CSharpLanguage.Instance),
-                    @"^System.Collections.Generic.List<(.*?)>$").Groups[1].Value;
+                string classValue = null;
+                if (previousField.Type is ISimplifiedIdTypeInfo simpleTypeInfo)
+                {
+                    classValue = simpleTypeInfo.GetTypeArguments()?.FirstOrDefault()?
+                        .GetLongPresentableName(CSharpLanguage.Instance);
+                }
+                
+                if (classValue == null)
+                {
+                    if (!Regex.Match(
+                            previousField.Type.GetLongPresentableName(CSharpLanguage.Instance),
+                            @"^System.Collections.Generic.List<.*?>$"
+                        ).Success)
+                    {
+                        return null;
+                    }
 
-                currentContext = symbolScope.GetTypeElementByCLRName(classValue);
+                    // Use regex to grab the className and then fetch it from the symbol scope
+                    classValue = Regex.Match(previousField.Type.GetLongPresentableName(CSharpLanguage.Instance),
+                        @"^System.Collections.Generic.List<(.*?)>$").Groups[1].Value;
+                };
+
+                currentContext = ScopeHelper.GetScopeForClass(classValue).GetTypeElementByCLRName(classValue);
                 continue;
             }
 
@@ -336,12 +363,13 @@ public class RimworldXMLItemProvider : ItemsProviderOfSpecificContext<RimworldXm
 
                 if (classValue == "") return null;
 
+                var scopeToUse = ScopeHelper.GetScopeForClass(classValue);
                 // First we try to look it up as a short name from the Rimworld DLL
-                currentContext = symbolScope.GetElementsByShortName(classValue).FirstOrDefault() as ITypeElement;
+                currentContext = scopeToUse.GetElementsByShortName(classValue).FirstOrDefault() as ITypeElement;
                 if (currentContext != null) continue;
 
                 // Then we try to look it up as a fully qualified name from Rimworld
-                currentContext = symbolScope.GetTypeElementByCLRName(classValue);
+                currentContext = scopeToUse.GetTypeElementByCLRName(classValue);
                 if (currentContext != null) continue;
 
                 // If it's not a Rimworld class, let's assume that it's a custom class in our own C#. In that case, let's
@@ -362,17 +390,19 @@ public class RimworldXMLItemProvider : ItemsProviderOfSpecificContext<RimworldXm
             // current context to be diving into
             if (!currentContext.IsClass())
             {
-                currentContext = symbolScope.GetElementsByShortName(currentNode).FirstOrDefault() as Class;
+                currentContext = currentNode.Contains(".") ? ScopeHelper.GetScopeForClass(currentNode)?.GetTypeElementByCLRName(currentNode) : symbolScope?.GetElementsByShortName(currentNode).FirstOrDefault() as Class;
+                if (currentContext is null) return null;
+                
                 continue;
             }
 
-            var fields = GetAllPublicFields(currentContext, symbolScope);
+            var fields = GetAllFields(currentContext, symbolScope);
             var field = fields.FirstOrDefault(field => field.ShortName == currentNode);
             if (field == null) return null;
             previousField = field;
             var clrName = field.Type.GetLongPresentableName(CSharpLanguage.Instance);
 
-            currentContext = symbolScope.GetTypeElementByCLRName(clrName);
+            currentContext = ScopeHelper.GetScopeForClass(clrName).GetTypeElementByCLRName(clrName);
 
             switch (clrName)
             {
