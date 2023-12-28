@@ -390,7 +390,9 @@ public class RimworldXMLItemProvider : ItemsProviderOfSpecificContext<RimworldXm
             // current context to be diving into
             if (!currentContext.IsClass())
             {
-                currentContext = currentNode.Contains(".") ? ScopeHelper.GetScopeForClass(currentNode).GetTypeElementByCLRName(currentNode) : symbolScope.GetElementsByShortName(currentNode).FirstOrDefault() as Class;
+                currentContext = currentNode.Contains(".") ? ScopeHelper.GetScopeForClass(currentNode)?.GetTypeElementByCLRName(currentNode) : symbolScope?.GetElementsByShortName(currentNode).FirstOrDefault() as Class;
+                if (currentContext is null) return null;
+                
                 continue;
             }
 
