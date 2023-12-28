@@ -21,9 +21,8 @@ namespace ReSharperPlugin.RimworldDev.SymbolScope;
 [PsiComponent]
 public class RimworldSymbolScope : SimpleICache<List<RimworldXmlDefSymbol>>
 {
-    public Dictionary<string, ITreeNode> DefTags = new();
-
-    public Dictionary<string, string> ExtraDefTagNames = new();
+    private Dictionary<string, ITreeNode> DefTags = new();
+    private Dictionary<string, string> ExtraDefTagNames = new();
     private Dictionary<string, XMLTagDeclaredElement> _declaredElements = new();
     private SymbolTable _symbolTable;
 
@@ -39,11 +38,17 @@ public class RimworldSymbolScope : SimpleICache<List<RimworldXmlDefSymbol>>
         return base.IsApplicable(sourceFile) && sourceFile.LanguageType.Name == "XML";
     }
 
+    public bool HasTag(DefNameValue defName) =>
+        DefTags.ContainsKey(defName.TagId) || ExtraDefTagNames.ContainsKey(defName.TagId);
+
     [CanBeNull]
     public ITreeNode GetTagByDef(string defType, string defName)
     {
         return GetTagByDef($"{defType}/{defName}");
     }
+
+    [CanBeNull]
+    public ITreeNode GetTagByDef(DefNameValue defName) => GetTagByDef(defName.TagId);
 
     [CanBeNull]
     public ITreeNode GetTagByDef(string defId)
@@ -53,6 +58,9 @@ public class RimworldSymbolScope : SimpleICache<List<RimworldXmlDefSymbol>>
 
         return DefTags[defId];
     }
+
+    public DefNameValue GetDefName(DefNameValue value) =>
+        ExtraDefTagNames.TryGetValue(value.TagId, out var defTag) ? new DefNameValue(defTag) : value;
 
     public List<string> GetDefsByType(string defType)
     {

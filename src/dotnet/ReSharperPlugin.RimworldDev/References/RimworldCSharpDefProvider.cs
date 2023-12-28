@@ -58,21 +58,15 @@ public class RimworldCSharpReferenceFactory : IReferenceFactory
             
             var xmlSymbolTable = element.GetSolution().GetComponent<RimworldSymbolScope>();
 
-            var tagId = $"{defTypeName}/{defName}";
-            if (xmlSymbolTable.ExtraDefTagNames.ContainsKey(tagId))
-            {
-                tagId = xmlSymbolTable.ExtraDefTagNames[tagId];
-                defTypeName = tagId.Split('/').First();
-                defName = tagId.Split('/').Last();
-            }
+            var defNameTag = new DefNameValue(defTypeName, defName);
+            defNameTag = xmlSymbolTable.GetDefName(defNameTag);
             
-            if (!xmlSymbolTable.DefTags.ContainsKey(tagId)) return new ReferenceCollection();
+            if (!xmlSymbolTable.HasTag(defNameTag)) return new ReferenceCollection();
 
-            if (xmlSymbolTable.GetTagByDef(defTypeName, defName) is not { } tag)
+            if (xmlSymbolTable.GetTagByDef(defNameTag) is not { } tag)
                 return new ReferenceCollection();
 
-            return new ReferenceCollection(new RimworldXmlDefReference(element, tag, defTypeName,
-                element.GetText().Trim('"')));
+            return new ReferenceCollection(new RimworldXmlDefReference(element, tag, defNameTag.DefType, defNameTag.DefName));
         }
 
         if (element.GetContainingTypeElement() is not IClass containingClass || containingClass
@@ -89,21 +83,15 @@ public class RimworldCSharpReferenceFactory : IReferenceFactory
 
             var xmlSymbolTable = element.GetSolution().GetComponent<RimworldSymbolScope>();
 
-            var tagId = $"{defTypeName}/{defName}";
-            if (xmlSymbolTable.ExtraDefTagNames.ContainsKey(tagId))
-            {
-                tagId = xmlSymbolTable.ExtraDefTagNames[tagId];
-                defTypeName = tagId.Split('/').First();
-                defName = tagId.Split('/').Last();
-            }
+            var defNameTag = new DefNameValue(defTypeName, defName);
+            defNameTag = xmlSymbolTable.GetDefName(defNameTag);
             
-            if (!xmlSymbolTable.DefTags.ContainsKey(tagId)) return new ReferenceCollection();
+            if (!xmlSymbolTable.HasTag(defNameTag)) return new ReferenceCollection();
 
-            if (xmlSymbolTable.GetTagByDef(defTypeName, defName) is not { } tag)
+            if (xmlSymbolTable.GetTagByDef(defNameTag) is not { } tag)
                 return new ReferenceCollection();
 
-            return new ReferenceCollection(new RimworldXmlDefReference(element, tag, defTypeName,
-                element.GetText()));
+            return new ReferenceCollection(new RimworldXmlDefReference(element, tag, defNameTag.DefType, defNameTag.DefName));
         }
 
         return new ReferenceCollection();
