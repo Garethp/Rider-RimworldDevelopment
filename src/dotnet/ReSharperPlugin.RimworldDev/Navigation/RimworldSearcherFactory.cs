@@ -24,8 +24,7 @@ public class RimworldSearcherFactory(SearchDomainFactory searchDomainFactory) : 
         elements = new DeclaredElementsSet(elements.Where(element =>
             IsCompatibleWithLanguage(element.PresentationLanguage)));
         
-        return new CustomSearcher<XmlLanguage>(this,
-            elements, referenceSearcherParameters, false);
+        return new CustomSearcher(this, elements, referenceSearcherParameters, false);
     }
 
     public override IEnumerable<string> GetAllPossibleWordsInFile(IDeclaredElement element)

@@ -4,15 +4,17 @@ using JetBrains.Annotations;
 using JetBrains.Diagnostics;
 using JetBrains.ReSharper.Psi;
 using JetBrains.ReSharper.Psi.Caches;
+using JetBrains.ReSharper.Psi.CSharp;
 using JetBrains.ReSharper.Psi.ExtensionsAPI;
 using JetBrains.ReSharper.Psi.ExtensionsAPI.Finder;
 using JetBrains.ReSharper.Psi.Files;
 using JetBrains.ReSharper.Psi.Search;
 using JetBrains.ReSharper.Psi.Tree;
+using JetBrains.ReSharper.Psi.Xml;
 
 namespace ReSharperPlugin.RimworldDev.Navigation;
 
-public class CustomSearcher<TLanguage> : IDomainSpecificSearcher where TLanguage : KnownLanguage
+public class CustomSearcher : IDomainSpecificSearcher
 {
     private readonly JetHashSet<string> myNames;
     private readonly JetHashSet<string> myWordsInText;
@@ -50,7 +52,8 @@ public class CustomSearcher<TLanguage> : IDomainSpecificSearcher where TLanguage
     {
         if (!CanContainWord(sourceFile)) return false;
 
-        foreach (ITreeNode psiFile in sourceFile.GetPsiFiles<TLanguage>())
+        foreach (var psiFile in sourceFile.GetPsiFiles<XmlLanguage>()
+                     .Concat(sourceFile.GetPsiFiles<CSharpLanguage>()))
         {
             if (ProcessElement(psiFile, consumer))
                 return true;
