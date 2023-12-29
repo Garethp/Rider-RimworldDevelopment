@@ -108,7 +108,6 @@ public class RimworldCSharpLookupFactory
 
     private static LookupItemPresentationCache ourPresentationCache;
 
-    // @TODO: See if we can merge both lookup creations together and just have thin interfaces
     public LookupItem<CSharpDeclaredElementInfo> CreateDeclaredElementLookupItem(
         [NotNull] CSharpCodeCompletionContext context,
         [NotNull] string name,
@@ -117,8 +116,6 @@ public class RimworldCSharpLookupFactory
         bool bind = false,
         QualifierKind qualifierKind = QualifierKind.NONE)
     {
-        Assertion.Assert(instance != null && instance.IsValid(), "instance != null && instance.IsValid()");
-        var basicContext = context.BasicContext;
         var replaceRange = context.CompletionRanges.ReplaceRange;
 
         // @TODO: Find out why we needed to do this
@@ -129,8 +126,23 @@ public class RimworldCSharpLookupFactory
         }
 
         var completionRange = new TextLookupRanges(replaceRange, replaceRange, null, false);
-        // var completionRange = context.CompletionRanges;
-        
+
+        return CreateDeclaredElementLookupItem(context, completionRange, name, instance, includeFollowingExpression,
+            bind, qualifierKind);
+    }
+
+    public LookupItem<CSharpDeclaredElementInfo> CreateDeclaredElementLookupItem(
+        [NotNull] ISpecificCodeCompletionContext context,
+        [NotNull] TextLookupRanges completionRange,
+        [NotNull] string name,
+        [NotNull] DeclaredElementInstance instance,
+        bool includeFollowingExpression = true,
+        bool bind = false,
+        QualifierKind qualifierKind = QualifierKind.NONE)
+    {
+        Assertion.Assert(instance != null && instance.IsValid(), "instance != null && instance.IsValid()");
+        var basicContext = context.BasicContext;
+
         var declaredElementInfo = new CSharpDeclaredElementInfo(name, instance, basicContext.LookupItemsOwner, context)
         {
             Bind = bind,
@@ -226,93 +238,8 @@ public class RimworldCSharpLookupFactory
         bool bind = false,
         QualifierKind qualifierKind = QualifierKind.NONE)
     {
-        Assertion.Assert(instance != null && instance.IsValid(), "instance != null && instance.IsValid()");
-        var basicContext = context.BasicContext;
-        var declaredElementInfo = new CSharpDeclaredElementInfo(name, instance, basicContext.LookupItemsOwner, context)
-        {
-            Bind = bind,
-            Ranges = context.Ranges
-        };
-
-        var element = instance.Element;
-        if (element is ITypeElement typeElement && typeElement.HasTypeParameters())
-        {
-            declaredElementInfo.AppendToIdentity(2);
-            declaredElementInfo.Placement.OrderString += "<>";
-        }
-
-        if (qualifierKind != QualifierKind.NONE)
-            declaredElementInfo.QualifierKind = qualifierKind;
-
-        if (element is IField field)
-        {
-            if (!field.GetContainingType().IsValueTuple())
-                declaredElementInfo.Bind = true;
-        }
-        else if (element is ITypeElement)
-        {
-            declaredElementInfo.Bind = true;
-            if (element is not ITypeParameter)
-                declaredElementInfo.IsTypeElement = true;
-        }
-
-        switch (element)
-        {
-            case IExternAlias:
-                declaredElementInfo.TailType = CSharpTailType.DoubleColon;
-                break;
-            case IClass:
-            case IStruct:
-                declaredElementInfo.Placement.OrderString += " T";
-                break;
-            case IProperty:
-                declaredElementInfo.Placement.OrderString += " P";
-                break;
-        }
-
-        if (element is not IParametersOwner declaredElement)
-            declaredElement = (element as IDelegate).IfNotNull(_ => _.InvokeMethod);
-
-        if (declaredElement != null && (context.BasicContext.ShowSignatures || element is IUnresolvedDeclaredElement) &&
-            declaredElement.Parameters.Count > 0 && !declaredElement.IsCSharpProperty())
-        {
-            var stringBuilder = new StringBuilder();
-            var parameters = declaredElement.Parameters;
-            for (var index = 0; index < parameters.Count; ++index)
-            {
-                var type = parameters[index].Type;
-                stringBuilder.Append((parameters[index].IsParameterArray ? "params" : string.Empty) +
-                                     type.GetPresentableName(CSharpLanguage.Instance));
-                if (index < parameters.Count - 1)
-                    stringBuilder.Append(", ");
-            }
-
-            declaredElementInfo.Placement.OrderString = name + "(" + stringBuilder + ")";
-        }
-
-        var fGetPresentation = myFGetDeclaredElementPresentation;
-        if (element is ILocalFunction && !context.BasicContext.ShowSignatures)
-            fGetPresentation = myFGetLocalFunctionPresentationWithoutSignature;
-        var dataHolder = LookupItemFactory.CreateLookupItem(declaredElementInfo)
-            .WithPresentation(fGetPresentation)
-            .WithBehavior(myFGetDeclaredElementBehavior)
-            .WithMatcher(myFGetDeclaredElementMatcher);
-
-        var typeOwner = element as ITypeOwner;
-        if (instance.Element is IAnonymousTypeProperty)
-            declaredElementInfo.HighlightSameType = true;
-        IDelegate @delegate = null;
-        if (typeOwner != null && GetType(typeOwner) is IDeclaredType type1)
-            @delegate = type1.GetTypeElement() as IDelegate;
-        if (element is ITypeElement || element is INamespace)
-            dataHolder.PutKey(CompletionKeys.IsTypeOrNamespaceKey);
-
-        if (name == "hediff")
-        {
-            var displayText = dataHolder.DisplayTypeName;
-        }
-
-        return dataHolder;
+        return CreateDeclaredElementLookupItem(context, context.Ranges, name, instance, includeFollowingExpression,
+            bind, qualifierKind);
     }
 
     [CanBeNull]
