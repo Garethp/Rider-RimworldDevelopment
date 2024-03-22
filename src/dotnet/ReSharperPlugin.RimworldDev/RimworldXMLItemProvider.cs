@@ -397,7 +397,19 @@ public class RimworldXMLItemProvider : ItemsProviderOfSpecificContext<RimworldXm
             }
 
             var fields = GetAllFields(currentContext, symbolScope);
-            var field = fields.FirstOrDefault(field => field.ShortName == currentNode);
+            var field = fields.FirstOrDefault(
+                field => field.ShortName == currentNode ||
+                         field.GetAttributeInstances(AttributesSource.Self).Any(
+                             attribute =>
+                             {
+                                 if (attribute.GetClrName().FullName != "Verse.LoadAliasAttribute") return false;
+                                 if (attribute.PositionParameterCount != 1) return false;
+                                 if (!attribute.PositionParameter(0).ConstantValue.IsString()) return false;
+                                 
+                                 return attribute.PositionParameter(0).ConstantValue.StringValue == currentNode;
+                             })
+            );
+
             if (field == null) return null;
             previousField = field;
             var clrName = field.Type.GetLongPresentableName(CSharpLanguage.Instance);

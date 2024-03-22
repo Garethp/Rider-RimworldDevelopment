@@ -50,7 +50,7 @@ public class RimworldXmlReference :
         return property.Type.IsImplicitlyConvertibleTo(type, typeConversionRule);
     }
     
-    public override string GetName() => myOwner.GetText();
+    public override string GetName() => myTypeElement.ShortName;
     private string GetShortName() => GetName().Split('.').Last();
     
     public override TreeTextRange GetTreeTextRange() => myOwner.GetTreeTextRange();
@@ -85,7 +85,7 @@ public class RimworldXmlReference :
         if (!useReferenceName)
             return table;
 
-        return table.Filter(GetShortName(), new AllFilter(GetShortName()));
+        return table.Filter(myTypeElement.ShortName, new AllFilter(myTypeElement.ShortName));
     }
 
     public ISymbolTable GetCompletionSymbolTable() => GetReferenceSymbolTable(false);
@@ -101,7 +101,7 @@ public class RimworldXmlReference :
 
     public override ResolveResultWithInfo ResolveWithoutCache()
     {
-        ResolveResultWithInfo resolveResult = GetReferenceSymbolTable(true).GetResolveResult(GetShortName());
+        ResolveResultWithInfo resolveResult = GetReferenceSymbolTable(true).GetResolveResult(myTypeElement.ShortName);
         return resolveResult;
     }
     
