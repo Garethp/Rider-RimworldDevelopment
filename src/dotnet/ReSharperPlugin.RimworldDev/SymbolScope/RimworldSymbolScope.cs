@@ -5,6 +5,7 @@ using JetBrains.Annotations;
 using JetBrains.Application.Threading;
 using JetBrains.Collections;
 using JetBrains.Lifetimes;
+using JetBrains.Metadata.Reader.API;
 using JetBrains.ProjectModel;
 using JetBrains.ReSharper.Psi;
 using JetBrains.ReSharper.Psi.Caches;
@@ -142,32 +143,35 @@ public class RimworldSymbolScope : SimpleICache<List<RimworldXmlDefSymbol>>
 
         void AddDefTagToList(RimworldXmlDefSymbol item, ITreeNode xmlTag)
         {
-            if (item.DefType.Contains(".") && ScopeHelper.RimworldScope is not null)
+            using (CompilationContextCookie.GetOrCreate(UniversalModuleReferenceContext.Instance))
             {
-                var superClasses = ScopeHelper.GetScopeForClass(item.DefType)?
-                    .GetTypeElementByCLRName(item.DefType)?
-                    .GetAllSuperClasses().ToList() ?? new();
-
-                foreach (var superClass in superClasses)
+                if (item.DefType.Contains(".") && ScopeHelper.RimworldScope is not null)
                 {
-                    if (superClass.GetClrName().FullName == "Verse.Def") break;
+                    var superClasses = ScopeHelper.GetScopeForClass(item.DefType)?
+                        .GetTypeElementByCLRName(item.DefType)?
+                        .GetAllSuperClasses().ToList() ?? new();
 
-                    var subDefType = superClass.GetClrName().ShortName;
-                    if (!ExtraDefTagNames.ContainsKey($"{subDefType}/{item.DefName}"))
+                    foreach (var superClass in superClasses)
                     {
-                        ExtraDefTagNames.Add($"{subDefType}/{item.DefName}", $"{item.DefType}/{item.DefName}");
-                    }
-                    else
-                    {
-                        ExtraDefTagNames[$"{subDefType}/{item.DefName}"] = $"{item.DefType}/{item.DefName}";
+                        if (superClass.GetClrName().FullName == "Verse.Def") break;
+
+                        var subDefType = superClass.GetClrName().ShortName;
+                        if (!ExtraDefTagNames.ContainsKey($"{subDefType}/{item.DefName}"))
+                        {
+                            ExtraDefTagNames.Add($"{subDefType}/{item.DefName}", $"{item.DefType}/{item.DefName}");
+                        }
+                        else
+                        {
+                            ExtraDefTagNames[$"{subDefType}/{item.DefName}"] = $"{item.DefType}/{item.DefName}";
+                        }
                     }
                 }
-            }
 
-            if (!DefTags.ContainsKey($"{item.DefType}/{item.DefName}"))
-                DefTags.Add($"{item.DefType}/{item.DefName}", xmlTag);
-            else
-                DefTags[$"{item.DefType}/{item.DefName}"] = xmlTag;
+                if (!DefTags.ContainsKey($"{item.DefType}/{item.DefName}"))
+                    DefTags.Add($"{item.DefType}/{item.DefName}", xmlTag);
+                else
+                    DefTags[$"{item.DefType}/{item.DefName}"] = xmlTag;
+            }
         }
     }
 

@@ -3,7 +3,7 @@
   <name>Rimworld Development Environment</name>
   <version>2023.4</version>
   <vendor url="https://github.com/Garethp/Rider-RimworldDevelopment">Garethp</vendor>
-  <idea-version since-build="233" />
+  <idea-version since-build="241" />
   <depends>com.intellij.modules.rider</depends>
   <depends>com.intellij.resharper.unity</depends>
 

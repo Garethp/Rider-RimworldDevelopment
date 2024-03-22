@@ -7,6 +7,7 @@ import com.intellij.execution.process.*
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.execution.runners.ProgramRunner
 import com.intellij.util.system.OS
+import com.jetbrains.rd.util.lifetime.Lifetime
 import com.jetbrains.rider.debugger.DebuggerWorkerProcessHandler
 import com.jetbrains.rider.plugins.unity.run.configurations.UnityAttachProfileState
 import com.jetbrains.rider.run.configurations.remote.RemoteConfiguration
@@ -51,11 +52,12 @@ class RunState(
             "Doorstop/pdb2mdb.exe",
         )
     )
-
-    override fun execute(
+    
+    override suspend fun execute(
         executor: Executor,
         runner: ProgramRunner<*>,
-        workerProcessHandler: DebuggerWorkerProcessHandler
+        workerProcessHandler: DebuggerWorkerProcessHandler,
+        lifetime: Lifetime
     ): ExecutionResult {
         setupDoorstop()
 
