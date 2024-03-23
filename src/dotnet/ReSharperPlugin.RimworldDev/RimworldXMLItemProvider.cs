@@ -285,8 +285,20 @@ public class RimworldXMLItemProvider : ItemsProviderOfSpecificContext<RimworldXm
         return desiredClass.GetAllClassMembers<IField>()
             .Where(field => !field.Member.GetAttributeInstances(AttributesSource.All)
                 .Select(attribute => attribute.GetAttributeShortName()).Contains("UnsavedAttribute"))
-            .Where(member => member.Member.AccessibilityDomain.DomainType ==
-                             AccessibilityDomain.AccessibilityDomainType.PUBLIC)
+            .Where(member =>
+            {
+                if (member.Member.AccessibilityDomain.DomainType ==
+                    AccessibilityDomain.AccessibilityDomainType.PUBLIC) return true;
+
+                var loadAliasAttributes = member
+                    .Member
+                    .GetAttributeInstances(AttributesSource.All)
+                    .FirstOrDefault(attribute => attribute.GetClrName().FullName == "Verse.LoadAliasAttribute");
+
+                if (loadAliasAttributes != null) return true;
+                
+                return false;
+            })
             .Select(member => member.Member)
             .ToList();
     }
@@ -478,7 +490,29 @@ public class RimworldXMLItemProvider : ItemsProviderOfSpecificContext<RimworldXm
         foreach (var field in fields)
         {
             if (!field.IsField || field.AccessibilityDomain.DomainType !=
-                AccessibilityDomain.AccessibilityDomainType.PUBLIC) continue;
+                AccessibilityDomain.AccessibilityDomainType.PUBLIC)
+            {
+                var loadAliasAttribute = field.GetAttributeInstances(AttributesSource.All).FirstOrDefault(
+                    attribute => attribute.GetClrName().FullName == "Verse.LoadAliasAttribute" &&
+                                 attribute.PositionParameterCount == 1 &&
+                                 attribute is MetadataAttributeInstance
+                );
+
+                if (loadAliasAttribute == null) continue;
+                
+                var writer = new StringWriter(new StringBuilder());
+                ((MetadataAttributeInstance) loadAliasAttribute).Dump(writer, "");
+                writer.Close();
+
+                var match = Regex.Match(writer.ToString(), "Arguments: \"(.*?)\"");
+                if (match.Groups.Count < 2) continue;
+                
+                
+                collector.Add(LookupFactory.CreateDeclaredElementLookupItem(context, match.Groups[1].Value,
+                    new DeclaredElementInstance(field), true, false, QualifierKind.NONE));
+                
+                continue;
+            }
 
             var lookup = LookupFactory.CreateDeclaredElementLookupItem(context, field.ShortName,
                 new DeclaredElementInstance(field), true, false, QualifierKind.NONE);

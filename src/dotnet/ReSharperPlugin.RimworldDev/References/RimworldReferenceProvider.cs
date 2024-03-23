@@ -110,6 +110,11 @@ public class RimworldReferenceFactory : IReferenceFactory
 
         if (field == null) return new ReferenceCollection();
 
+        if (field.ShortName != identifier.GetText())
+        {
+            return new ReferenceCollection(new RimworldXmlReference(field, identifier, field.ShortName));
+        }
+        
         return new ReferenceCollection(new RimworldXmlReference(field, identifier));
     }
 

@@ -25,6 +25,9 @@ public class RimworldXmlReference :
     private readonly ISymbolFilter myPropertyFilter;
 
     private readonly IDeclaredElement myTypeElement;
+    
+    [CanBeNull]
+    private readonly string overrideName;
 
     public RimworldXmlReference(IDeclaredElement typeElement, [NotNull] ITreeNode owner)
         : base(owner)
@@ -33,7 +36,13 @@ public class RimworldXmlReference :
         myExactNameFilter = new ExactNameFilter(myOwner.GetText());
         myPropertyFilter = new PredicateFilter(FilterToApplicableProperties);
     }
-
+    
+    public RimworldXmlReference(IDeclaredElement typeElement, [NotNull] ITreeNode owner, string overrideName)
+        : this(typeElement, owner)
+    {
+        this.overrideName = overrideName;
+    }
+    
     private static bool FilterToApplicableProperties([NotNull] ISymbolInfo symbolInfo)
     {
         if (!(symbolInfo.GetDeclaredElement() is ITypeMember declaredElement))
@@ -50,7 +59,7 @@ public class RimworldXmlReference :
         return property.Type.IsImplicitlyConvertibleTo(type, typeConversionRule);
     }
     
-    public override string GetName() => myTypeElement.ShortName;
+    public override string GetName() => this.overrideName ?? myOwner.GetText();
     private string GetShortName() => GetName().Split('.').Last();
     
     public override TreeTextRange GetTreeTextRange() => myOwner.GetTreeTextRange();
@@ -85,7 +94,7 @@ public class RimworldXmlReference :
         if (!useReferenceName)
             return table;
 
-        return table.Filter(myTypeElement.ShortName, new AllFilter(myTypeElement.ShortName));
+        return table.Filter(GetShortName(), new AllFilter(GetShortName()));
     }
 
     public ISymbolTable GetCompletionSymbolTable() => GetReferenceSymbolTable(false);
@@ -101,7 +110,7 @@ public class RimworldXmlReference :
 
     public override ResolveResultWithInfo ResolveWithoutCache()
     {
-        ResolveResultWithInfo resolveResult = GetReferenceSymbolTable(true).GetResolveResult(myTypeElement.ShortName);
+        ResolveResultWithInfo resolveResult = GetReferenceSymbolTable(true).GetResolveResult(GetShortName());
         return resolveResult;
     }
     
