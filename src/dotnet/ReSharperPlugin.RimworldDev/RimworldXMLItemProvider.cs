@@ -1,5 +1,7 @@
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Text;
 using System.Text.RegularExpressions;
 using JetBrains.Application.Progress;
 using JetBrains.ProjectModel;
@@ -11,6 +13,7 @@ using JetBrains.ReSharper.Features.Intellisense.CodeCompletion.CSharp;
 using JetBrains.ReSharper.Psi;
 using JetBrains.ReSharper.Psi.Caches;
 using JetBrains.ReSharper.Psi.CSharp;
+using JetBrains.ReSharper.Psi.Impl.Reflection2;
 using JetBrains.ReSharper.Psi.Impl.reflection2.elements.Compiled;
 using JetBrains.ReSharper.Psi.Impl.Types;
 using JetBrains.ReSharper.Psi.Modules;
@@ -182,14 +185,14 @@ public class RimworldXMLItemProvider : ItemsProviderOfSpecificContext<RimworldXm
         var xmlSymbolTable = context.TreeNode!.GetSolution().GetSolution().GetComponent<RimworldSymbolScope>();
 
         var keys = xmlSymbolTable.GetDefsByType(className);
-        
+
         foreach (var key in keys)
         {
             var defType = key.Split('/').First();
             var defName = key.Split('/').Last();
-            
+
             var item = xmlSymbolTable.GetTagByDef(defType, defName);
-            
+
             var lookup = LookupFactory.CreateDeclaredElementLookupItem(context, defName,
                 new DeclaredElementInstance(new XMLTagDeclaredElement(item, defType, defName, false)));
             collector.Add(lookup);
@@ -280,8 +283,10 @@ public class RimworldXMLItemProvider : ItemsProviderOfSpecificContext<RimworldXm
     public static List<IField> GetAllPublicFields(ITypeElement desiredClass, ISymbolScope symbolScope)
     {
         return desiredClass.GetAllClassMembers<IField>()
-            .Where(field => !field.Member.GetAttributeInstances(AttributesSource.All).Select(attribute => attribute.GetAttributeShortName()).Contains("UnsavedAttribute"))
-            .Where(member => member.Member.AccessibilityDomain.DomainType == AccessibilityDomain.AccessibilityDomainType.PUBLIC)
+            .Where(field => !field.Member.GetAttributeInstances(AttributesSource.All)
+                .Select(attribute => attribute.GetAttributeShortName()).Contains("UnsavedAttribute"))
+            .Where(member => member.Member.AccessibilityDomain.DomainType ==
+                             AccessibilityDomain.AccessibilityDomainType.PUBLIC)
             .Select(member => member.Member)
             .ToList();
     }
@@ -291,11 +296,12 @@ public class RimworldXMLItemProvider : ItemsProviderOfSpecificContext<RimworldXm
     public static List<IField> GetAllFields(ITypeElement desiredClass, ISymbolScope symbolScope)
     {
         return desiredClass.GetAllClassMembers<IField>()
-            .Where(field => !field.Member.GetAttributeInstances(AttributesSource.All).Select(attribute => attribute.GetAttributeShortName()).Contains("UnsavedAttribute"))
+            .Where(field => !field.Member.GetAttributeInstances(AttributesSource.All)
+                .Select(attribute => attribute.GetAttributeShortName()).Contains("UnsavedAttribute"))
             .Select(member => member.Member)
             .ToList();
     }
-    
+
     /**
      * This is where a lot of our heavy lifting is going to be. We're taking the a list of strings as a hierarchy
      * (See the docblock for GetHierarchy) and getting the Class for that last item in that list. So for example, if we
@@ -334,7 +340,7 @@ public class RimworldXMLItemProvider : ItemsProviderOfSpecificContext<RimworldXm
                     classValue = simpleTypeInfo.GetTypeArguments()?.FirstOrDefault()?
                         .GetLongPresentableName(CSharpLanguage.Instance);
                 }
-                
+
                 if (classValue == null)
                 {
                     if (!Regex.Match(
@@ -348,7 +354,9 @@ public class RimworldXMLItemProvider : ItemsProviderOfSpecificContext<RimworldXm
                     // Use regex to grab the className and then fetch it from the symbol scope
                     classValue = Regex.Match(previousField.Type.GetLongPresentableName(CSharpLanguage.Instance),
                         @"^System.Collections.Generic.List<(.*?)>$").Groups[1].Value;
-                };
+                }
+
+                ;
 
                 currentContext = ScopeHelper.GetScopeForClass(classValue).GetTypeElementByCLRName(classValue);
                 continue;
@@ -390,25 +398,40 @@ public class RimworldXMLItemProvider : ItemsProviderOfSpecificContext<RimworldXm
             // current context to be diving into
             if (!currentContext.IsClass())
             {
-                currentContext = currentNode.Contains(".") ? ScopeHelper.GetScopeForClass(currentNode)?.GetTypeElementByCLRName(currentNode) : symbolScope?.GetElementsByShortName(currentNode).FirstOrDefault() as Class;
+                currentContext = currentNode.Contains(".")
+                    ? ScopeHelper.GetScopeForClass(currentNode)?.GetTypeElementByCLRName(currentNode)
+                    : symbolScope?.GetElementsByShortName(currentNode).FirstOrDefault() as Class;
                 if (currentContext is null) return null;
-                
+
                 continue;
             }
 
             var fields = GetAllFields(currentContext, symbolScope);
             var field = fields.FirstOrDefault(
-                field => field.ShortName == currentNode ||
-                         field.GetAttributeInstances(AttributesSource.Self).Any(
-                             attribute =>
-                             {
-                                 if (attribute.GetClrName().FullName != "Verse.LoadAliasAttribute") return false;
-                                 if (attribute.PositionParameterCount != 1) return false;
-                                 if (!attribute.PositionParameter(0).ConstantValue.IsString()) return false;
-                                 
-                                 return attribute.PositionParameter(0).ConstantValue.StringValue == currentNode;
-                             })
-            );
+                field => field.ShortName == currentNode
+            ) ?? fields.FirstOrDefault(field =>
+                field.GetAttributeInstances(AttributesSource.Self).Any(
+                    attribute =>
+                    {
+                        if (attribute.GetClrName().FullName != "Verse.LoadAliasAttribute") return false;
+                        if (attribute.PositionParameterCount != 1) return false;
+
+                        var test = field.GetXMLDoc(true);
+
+                        if (!attribute.PositionParameter(0).ConstantValue.IsString())
+                        {
+                            var writer = new StringWriter(new StringBuilder());
+                            if (attribute is not MetadataAttributeInstance) return false;
+
+                            ((MetadataAttributeInstance)attribute).Dump(writer, "");
+                            writer.Close();
+
+                            if (writer.ToString().Contains($"Arguments: \"{currentNode}\"")) return true;
+                            return false;
+                        }
+
+                        return attribute.PositionParameter(0).ConstantValue.StringValue == currentNode;
+                    }));
 
             if (field == null) return null;
             previousField = field;

@@ -1,5 +1,7 @@
 using System;
+using System.IO;
 using System.Linq;
+using System.Text;
 using JetBrains.DataFlow;
 using JetBrains.Lifetimes;
 using JetBrains.ProjectModel;
@@ -76,19 +78,35 @@ public class RimworldReferenceFactory : IReferenceFactory
             RimworldXMLItemProvider.GetContextFromHierachy(hierarchy, rimworldSymbolScope, allSymbolScopes);
         if (classContext == null) return new ReferenceCollection();
 
-        var field = RimworldXMLItemProvider.GetAllFields(classContext, rimworldSymbolScope)
+        var possibleFields = RimworldXMLItemProvider.GetAllFields(classContext, rimworldSymbolScope);
+        var field = possibleFields
             .FirstOrDefault(
-                field => field.ShortName == identifier.GetText() ||
-                         field.GetAttributeInstances(AttributesSource.Self).Any(
-                             attribute =>
-                             {
-                                 if (attribute.GetClrName().FullName != "Verse.LoadAliasAttribute") return false;
-                                 if (attribute.PositionParameterCount != 1) return false;
-                                 if (!attribute.PositionParameter(0).ConstantValue.IsString()) return false;
-                                 
-                                 return attribute.PositionParameter(0).ConstantValue.StringValue == identifier.GetText();
-                             })
-            );
+                field => field.ShortName == identifier.GetText()
+            ) ?? possibleFields.FirstOrDefault(field =>
+            field.GetAttributeInstances(AttributesSource.Self).Any(
+                attribute =>
+                {
+                    var match = identifier.GetText();
+
+                    if (attribute.GetClrName().FullName != "Verse.LoadAliasAttribute") return false;
+                    if (attribute.PositionParameterCount != 1) return false;
+
+                    var test = field.GetXMLDoc(true);
+
+                    if (!attribute.PositionParameter(0).ConstantValue.IsString())
+                    {
+                        var writer = new StringWriter(new StringBuilder());
+                        if (attribute is not MetadataAttributeInstance) return false;
+
+                        ((MetadataAttributeInstance)attribute).Dump(writer, "");
+                        writer.Close();
+
+                        if (writer.ToString().Contains($"Arguments: \"{match}\"")) return true;
+                        return false;
+                    }
+
+                    return attribute.PositionParameter(0).ConstantValue.StringValue == match;
+                }));
 
         if (field == null) return new ReferenceCollection();
 
