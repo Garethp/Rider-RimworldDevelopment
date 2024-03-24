@@ -9,6 +9,8 @@ class ConfigurationOptions : RunConfigurationOptions() {
     private val commandLineOptions: StoredProperty<String?> = string("").provideDelegate(this, "commandLineOptions")
     private val environmentVariables: StoredProperty<MutableMap<String, String>> =
         map<String, String>().provideDelegate(this, "environmentVariables")
+    private val modListPath: StoredProperty<String?> = string("").provideDelegate(this, "modListPath")
+    private val saveFilePath: StoredProperty<String?> = string("").provideDelegate(this, "saveFilePath")
 
     fun getScriptName(): String {
         return scriptName.getValue(this) ?: ""
@@ -16,6 +18,22 @@ class ConfigurationOptions : RunConfigurationOptions() {
 
     fun setScriptName(scriptName: String) {
         this.scriptName.setValue(this, scriptName)
+    }
+
+    fun getModListPath(): String {
+        return modListPath.getValue(this) ?: "";
+    }
+
+    fun setModListPath(modListPath: String) {
+        this.modListPath.setValue(this, modListPath);
+    }
+
+    fun getSaveFilePath(): String {
+        return saveFilePath.getValue(this) ?: ""
+    }
+
+    fun setSaveFilePath(saveFilePath: String) {
+        this.saveFilePath.setValue(this, saveFilePath) ?: ""
     }
 
     fun getCommandLineOptions(): String {
