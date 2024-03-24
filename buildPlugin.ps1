@@ -1,5 +1,5 @@
 Param(
-    $Version = "2023.4"
+    $Version = "2024.1-EAP"
 )
 
 Set-StrictMode -Version Latest

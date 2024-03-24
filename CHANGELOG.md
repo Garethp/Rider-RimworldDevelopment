@@ -1,5 +1,9 @@
 # Changelog
 
+## 2024.1
+ * Built for 2024.1
+ * Adding defName auto-completion in C# for DefDatabase and [DefOf]
+
 ## 2023.4
  * Added support for Custom Def Classes
  * Implemented XML Def Find Usages, so you can just Right-Click a defName and see all usages of that def in XML
