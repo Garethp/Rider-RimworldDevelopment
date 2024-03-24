@@ -12,7 +12,6 @@ import javax.swing.JPanel
 
 
 class SettingsEditor(project: Project) : SettingsEditor<RunConfiguration>() {
-    private val myProject = project
     private var myPanel: JPanel = JPanel()
     private val exePath: TextFieldWithBrowseButton = TextFieldWithBrowseButton()
     private val commandLineOptions: RawCommandLineEditor = RawCommandLineEditor()
@@ -62,8 +61,8 @@ class SettingsEditor(project: Project) : SettingsEditor<RunConfiguration>() {
 
     override fun applyEditorTo(configuration: RunConfiguration) {
         configuration.setScriptName(exePath.text)
-        configuration.setModListPath(modListPath.text)
-        configuration.setSaveFilePath(saveFilePath.text)
+        configuration.setModListPath(modListPath.text.replace('\\', '/'))
+        configuration.setSaveFilePath(saveFilePath.text.replace('\\', '/'))
 
         configuration.setEnvData(environmentVariables.envData.envs)
         configuration.setCommandLineOptions(commandLineOptions.text)
