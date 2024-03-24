@@ -20,6 +20,8 @@ in your mods!</p>
 <p><ul>
 <li>Built for 2024.1</li>
 <li>Added References from C# to XML for DefDatabase and [DefOf]</li>
+<li>When defining a RunConfig, you can now select a ModList config and Save file to be loaded for just this one launch</li>
+<li>Added support for `[LoadAlias]`</li>
 </ul></p>
 ]]>
   </change-notes>

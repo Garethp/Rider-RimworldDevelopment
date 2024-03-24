@@ -2,7 +2,9 @@
 
 ## 2024.1
  * Built for 2024.1
- * Adding defName auto-completion in C# for DefDatabase and [DefOf]
+ * Adding defName auto-completion in C# for DefDatabase and `[DefOf]`
+ * When defining a RunConfig, you can now select a ModList config and Save file to be loaded for just this one launch
+ * Added support for `[LoadAlias]`
 
 ## 2023.4
  * Added support for Custom Def Classes
