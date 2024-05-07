@@ -1,12 +1,24 @@
 package RimworldDev.Rider.run
 
 import com.intellij.util.io.delete
+import org.apache.commons.lang3.SystemUtils
+import java.nio.file.Path
 import kotlin.io.path.*
 
 class QuickStartUtils {
     companion object {
+        fun getLudeonPath(): Path? {
+            val possiblePaths = listOf(
+                Path(System.getenv("APPDATA"), "..", "LocalLow", "Ludeon Studios", "RimWorld by Ludeon Studios"),
+                Path(SystemUtils.getUserHome().absolutePath, ".config", ".unity3d", "Ludeon Studios", "RimWorld by Ludeon Studios"),
+            )
+
+            return possiblePaths.firstOrNull { path: Path -> path.exists() }
+        }
+
         fun setup(modListPath: String, saveFilePath: String) {
-            val location = Path(System.getenv("APPDATA"), "..", "LocalLow", "Ludeon Studios", "RimWorld by Ludeon Studios")
+            val location = getLudeonPath() ?: return
+
             val configLocation = Path(location.absolutePathString(), "Config")
             val autostartFile = Path(location.absolutePathString(), "Saves", "autostart.rws")
             val saveFile = Path(saveFilePath)
@@ -31,8 +43,8 @@ class QuickStartUtils {
 
         fun tearDown(saveFilePath: String) {
             Thread.sleep(50)
+            val location = getLudeonPath() ?: return
 
-            val location = Path(System.getenv("APPDATA"), "..", "LocalLow", "Ludeon Studios", "RimWorld by Ludeon Studios")
             val configLocation = Path(location.absolutePathString(), "Config")
             val backupFile = Path(configLocation.absolutePathString(), "ModsConfig.xml.rider-bak")
             val autostartFile = Path(location.absolutePathString(), "Saves", "autostart.rws")

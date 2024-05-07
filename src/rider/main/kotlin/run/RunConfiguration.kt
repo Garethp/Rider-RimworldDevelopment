@@ -69,11 +69,11 @@ class RunConfiguration(project: Project, factory: ConfigurationFactory, name: St
 
         attachToDebug.loadState(attachToDebugOptions)
 
-        // @TODO: Pass in the modlist path and save path for setup/teardown of that
-        // @TODO: Pass in -quickstart when we have a save file
         return environment.project.lifetime.startOnUiAsync {
             RunState(
                 getScriptName(),
+                getSaveFilePath(),
+                getModListPath(),
                 getRimworldState(environment),
                 UnityDebugRemoteConfiguration(),
                 environment,
@@ -93,7 +93,6 @@ class RunConfiguration(project: Project, factory: ConfigurationFactory, name: St
                 val commandLine = GeneralCommandLine(getScriptName())
                     .withParameters(getCommandLineOptions())
 
-                // @TODO: Add -quickstart if a save file is detected
                 EnvironmentVariablesData.create(getEnvData(), true).configureCommandLine(commandLine, true)
 
                 QuickStartUtils.setup(getModListPath(), getSaveFilePath());
@@ -107,8 +106,6 @@ class RunConfiguration(project: Project, factory: ConfigurationFactory, name: St
             }
         }
     }
-
-
 
     private fun createProcessListener(siblingProcessHandler: ProcessHandler?): ProcessListener {
         return object : ProcessAdapter() {

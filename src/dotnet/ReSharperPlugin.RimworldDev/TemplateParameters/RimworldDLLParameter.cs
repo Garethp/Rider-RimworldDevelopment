@@ -5,13 +5,34 @@ using JetBrains.Rider.Backend.Features.ProjectModel.ProjectTemplates.DotNetExten
 using JetBrains.Rider.Backend.Features.ProjectModel.ProjectTemplates.DotNetTemplates;
 using JetBrains.Rider.Model;
 using JetBrains.Util;
+using Microsoft.TemplateEngine.Abstractions;
 
 namespace ReSharperPlugin.RimworldDev.TemplateParameters;
 
 public class RimworldDLLParameter : DotNetTemplateParameter
 {
-    public RimworldDLLParameter() : base("RimworldDLL", "Assembly-CSharp.dll", "Path to Assembly-CSharp.dll")
+    public RimworldDLLParameter() : base("RimworldDLL", "Rimworld DLL", "Path to Assembly-CSharp.dll")
     {
+    }
+
+    public override RdProjectTemplateOption CreateContent(ITemplateInfo templateInfo, ITemplateParameter templateParameter,
+        Dictionary<string, object> context)
+    {
+        var locations = new List<string>
+        {
+            "C:\\Program Files (x86)\\Steam\\steamapps\\common\\RimWorld\\RimWorldWin64_Data\\Managed\\Assembly-CSharp.dll",
+            "C:\\Program Files\\Steam\\steamapps\\common\\RimWorld\\RimWorldWin64_Data\\Managed\\Assembly-CSharp.dll",
+            "D:\\SteamLibrary\\steamapps\\common\\RimWorld\\RimWorldWin64_Data\\Managed\\Assembly-CSharp.dll",
+            "~/.steam/steam/steamapps/common/RimWorld/RimWorldLinux_Data/Managed/Assembly-CSharp.dll"
+        };
+        
+        var possiblePaths = locations
+            .Select(location => FileSystemPath.TryParse(location)).Where(location => location.ExistsFile)
+            .ToArray();
+
+        var detectedPath = possiblePaths.FirstOrDefault()?.FullPath;
+
+        return new RdProjectTemplateTextOption(detectedPath ?? "", Name, PresentableName, Tooltip);
     }
 
     public override RdProjectTemplateContent CreateContent(

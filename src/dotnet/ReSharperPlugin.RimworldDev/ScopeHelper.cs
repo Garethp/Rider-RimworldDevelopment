@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -191,7 +192,7 @@ public class ScopeHelper
         {
             @"C:\Program Files (x86)\Steam\steamapps\",
             @"C:\Program Files\Steam\steamapps\",
-            "~/.steam/steam/steamapps/"
+            $"{Environment.GetFolderPath(Environment.SpecialFolder.UserProfile)}/steam/steam/steamapps/"
         };
 
         locations.AddRange(
