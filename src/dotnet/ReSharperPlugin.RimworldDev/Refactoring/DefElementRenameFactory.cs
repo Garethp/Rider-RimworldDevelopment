@@ -11,11 +11,17 @@ using JetBrains.ReSharper.Feature.Services.Refactorings.Conflicts;
 using JetBrains.ReSharper.Feature.Services.Refactorings.Specific.Rename;
 using JetBrains.ReSharper.Feature.Services.Util;
 using JetBrains.ReSharper.Psi;
+using JetBrains.ReSharper.Psi.CSharp.Impl.Tree;
+using JetBrains.ReSharper.Psi.CSharp.Tree;
+using JetBrains.ReSharper.Psi.ExtensionsAPI.Tree;
+using JetBrains.ReSharper.Psi.Parsing;
 using JetBrains.ReSharper.Psi.Pointers;
 using JetBrains.ReSharper.Psi.Resolve;
 using JetBrains.ReSharper.Psi.Tree;
 using JetBrains.ReSharper.Psi.Xml;
+using JetBrains.ReSharper.Psi.Xml.Impl.Tree;
 using JetBrains.Util;
+using ReSharperPlugin.RimworldDev.TypeDeclaration;
 
 namespace ReSharperPlugin.RimworldDev.Refactoring;
 
@@ -107,14 +113,15 @@ public class XmlDefAtomicRename : AtomicRenameBase
     {
         myOriginalElementPointer = declaredElement.CreateElementPointer();
         NewName = newName;
-        OldName = declaredElement.ShortName;
+        OldName = declaredElement.ShortName.Split('/').Last();
         myDoNotShowBindingConflicts = doNotShowBindingConflicts;
         mySecondaryElements = RenameRefactoringService.Instance.GetRenameService(declaredElement.PresentationLanguage)
             .GetSecondaryElements(declaredElement, newName).ToList(x => x.CreateElementPointer());
         BuildDeclarations();
     }
 
-    public override void Rename(IRenameRefactoring executer, IProgressIndicator progress, bool hasConflictsWithDeclarations,
+    public override void Rename(IRenameRefactoring executer, IProgressIndicator progress,
+        bool hasConflictsWithDeclarations,
         IRefactoringDriver driver)
     {
         BuildDeclarations();
@@ -137,54 +144,87 @@ public class XmlDefAtomicRename : AtomicRenameBase
         myNewReferences.Clear();
         PsiLanguageType key1;
         ISet<IReference> referenceSet;
-        foreach (var referencesWithLanguage in LanguageUtil
-                     .SortReferencesWithLanguages(elementReferences.Where(x => x.IsValid()), psiServices))
-        {
-            referencesWithLanguage.Deconstruct(out key1, out referenceSet);
-            var language = key1;
-            var references = referenceSet;
-            var rename = executer.Workflow.LanguageSpecific[language];
-            foreach (IGrouping<IPsiSourceFile, IReference> grouping1 in references.GetSortedReferences()
-                         .GroupBy(
-                             it => it.GetTreeNode().GetSourceFile()))
-            {
-                IPsiSourceFile key2 = grouping1.Key;
-                if (key2 != null)
-                {
-                    IGrouping<IPsiSourceFile, IReference> grouping = grouping1;
-                    psiServices.Caches.WithSyncUpdateFiltered(key2, () =>
-                    {
-                        foreach (IReference reference1 in grouping)
-                        {
-                            // @TODO: Is this where we're meant to change the text?!
-                            IReference oldReferenceForConflict = reference1;
-                            InterruptableActivityCookie.CheckAndThrow(progress);
-                            if (reference1.IsValid())
-                            {
-                                IReference reference2 = rename.TransformProjectedInitializer(reference1);
-                                DeclaredElementInstance subst = GetSubst(newDeclaredElement, executer);
-                                IReference reference3 = !(subst != null)
-                                    ? rename.BindReference(reference2, newDeclaredElement)
-                                    : (subst.Substitution.Domain.IsEmpty()
-                                        ? rename.BindReference(reference2, subst.Element)
-                                        : rename.BindReference(reference2, subst.Element, subst.Substitution));
-                                if (!(reference3 is IImplicitReference) && !hasConflictsWithDeclarations &&
-                                    !myDoNotShowBindingConflicts && !rename.IsAlias(newDeclaredElement) &&
-                                    !rename.IsCheckResolvedTo(reference3, newDeclaredElement))
-                                    driver.AddLateConflict(
-                                        () => Conflict.Create(oldReferenceForConflict,
-                                            ConflictType.CANNOT_UPDATE_USAGE_CONFLICT), "late bound");
-                                myNewReferences.Insert(0, reference3);
-                                rename.AdditionalReferenceProcessing(newDeclaredElement, reference3,
-                                    myNewReferences);
-                            }
 
-                            progress.Advance();
-                        }
-                    });
-                }
+        
+        foreach (var reference in elementReferences)
+        {
+            if (reference is not RimworldXmlDefReference defReference) continue;
+            var element = defReference.GetElement();
+            
+            // @TODO: Here we should attempt to handle [DefOf] references
+            if (element is IFieldDeclaration field)
+            {
+                continue;
             }
+            
+            if (element is ICSharpLiteralExpression defDatabaseLiteral)
+            {
+                if (defDatabaseLiteral.FirstChild is not CSharpGenericToken textItem) continue;
+                
+                var substitution =
+                    new CSharpGenericToken(textItem.GetTokenType(), textItem.GetText().Replace(OldName, NewName));
+
+                ModificationUtil.ReplaceChild(textItem, substitution);
+                progress.Advance();
+                continue;
+            }
+
+            if (element is not XmlFloatingTextToken) return;
+            if (element.GetTokenType() is not XmlTokenNodeType tokenType) return;
+
+            ModificationUtil.ReplaceChild(element, new XmlFloatingTextToken(tokenType, NewName));
+            progress.Advance();
         }
+        
+        // foreach (var referencesWithLanguage in LanguageUtil
+        //              .SortReferencesWithLanguages(elementReferences.Where(x => x.IsValid()), psiServices))
+        // {
+        //     referencesWithLanguage.Deconstruct(out key1, out referenceSet);
+        //     var language = key1;
+        //     var references = referenceSet;
+        //     var rename = executer.Workflow.LanguageSpecific[language];
+            
+        //     foreach (IGrouping<IPsiSourceFile, IReference> grouping1 in references.GetSortedReferences()
+        //                  .GroupBy(
+        //                      it => it.GetTreeNode().GetSourceFile()))
+        //     {
+        //         IPsiSourceFile key2 = grouping1.Key;
+        //         if (key2 != null)
+        //         {
+        //             IGrouping<IPsiSourceFile, IReference> grouping = grouping1;
+        //             psiServices.Caches.WithSyncUpdateFiltered(key2, () =>
+        //             {
+        //                 foreach (IReference reference1 in grouping)
+        //                 {
+        //                     // @TODO: Is this where we're meant to change the text?!
+        //                     IReference oldReferenceForConflict = reference1;
+        //                     InterruptableActivityCookie.CheckAndThrow(progress);
+        //                     if (reference1.IsValid())
+        //                     {
+        //                         IReference reference2 = rename.TransformProjectedInitializer(reference1);
+        // DeclaredElementInstance subst = GetSubst(newDeclaredElement, executer);
+        //                         IReference reference3 = !(subst != null)
+        //                             ? rename.BindReference(reference2, newDeclaredElement)
+        //                             : (subst.Substitution.Domain.IsEmpty()
+        //                                 ? rename.BindReference(reference2, subst.Element)
+        //                                 : rename.BindReference(reference2, subst.Element, subst.Substitution));
+        //                         if (!(reference3 is IImplicitReference) && !hasConflictsWithDeclarations &&
+        //                             !myDoNotShowBindingConflicts && !rename.IsAlias(newDeclaredElement) &&
+        //                             !rename.IsCheckResolvedTo(reference3, newDeclaredElement))
+        //                             driver.AddLateConflict(
+        //                                 () => Conflict.Create(oldReferenceForConflict,
+        //                                     ConflictType.CANNOT_UPDATE_USAGE_CONFLICT), "late bound");
+        //                         myNewReferences.Insert(0, reference3);
+        //                         rename.AdditionalReferenceProcessing(newDeclaredElement, reference3,
+        //                             myNewReferences);
+        //                     }
+        //
+        //                     progress.Advance();
+        //                 }
+        //             });
+        //         }
+        //     }
+        // }
 
         // foreach ((IDeclaredElement element, IList<IReference> source) in SecondaryDeclaredElements
         //              .ToList(
@@ -226,16 +266,17 @@ public class XmlDefAtomicRename : AtomicRenameBase
     {
         return executer.Workflow.LanguageSpecific[element.PresentationLanguage].GetSubst(element);
     }
-    
+
     [CanBeNull]
     private static IDeclaredElement UpdateSecondaryElement(
         IDeclaredElement element,
         IDeclaredElement newDeclaredElement,
         IRenameRefactoring executor)
     {
-        return executor.Workflow.LanguageSpecific[element.PresentationLanguage].UpdateSecondaryElement(element, newDeclaredElement);
+        return executor.Workflow.LanguageSpecific[element.PresentationLanguage]
+            .UpdateSecondaryElement(element, newDeclaredElement);
     }
-    
+
     private void BuildDeclarations()
     {
         myDeclarations.Clear();
