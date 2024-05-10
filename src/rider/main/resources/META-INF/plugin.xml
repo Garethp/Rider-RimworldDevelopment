@@ -19,6 +19,7 @@ in your mods!</p>
 <![CDATA[
 <p><ul>
 <li>Add support for Parent="" referencesin XML defs</li>
+<li>Adds the ability to use Refactoring to Rename a Def, changing all references to that def in XML and C#</li>
 </ul></p>
 ]]>
   </change-notes>

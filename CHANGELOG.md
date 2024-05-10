@@ -2,6 +2,7 @@
 
 ## 2024.2
  * Adds support for [Parent=""] attributes
+ * Adds the ability to use Refactoring to Rename a Def, changing all references to that def in XML and C#
 
 ## 2024.1
  * Built for 2024.1
