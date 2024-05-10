@@ -50,6 +50,12 @@ public class RimworldReferenceFactory : IReferenceFactory
             element.Parent.GetText().StartsWith("<defName>"))
             return GetReferenceForDeclaredElement(element, oldReferences);
 
+        if (element.Parent != null && element.NodeType.ToString() == "STRING" &&
+            (element.Parent.GetText().StartsWith("Name") || element.Parent.GetText().StartsWith("ParentName")))
+        {
+            return GetReferenceForDeclaredElement(element, oldReferences);
+        }
+
         if (element.NodeType.ToString() == "TEXT") return GetReferencesForText(element, oldReferences);
         if (element is not XmlIdentifier identifier) return new ReferenceCollection();
         if (element.GetSourceFile() is not { } sourceFile) return new ReferenceCollection();
@@ -129,7 +135,6 @@ public class RimworldReferenceFactory : IReferenceFactory
         if (classContext == null) return new ReferenceCollection();
 
         var rimworldSymbolScope = ScopeHelper.RimworldScope;
-        var allSymbolScopes = ScopeHelper.AllScopes;
 
         if (classContext.GetType().Name == "Enum")
         {
@@ -137,7 +142,6 @@ public class RimworldReferenceFactory : IReferenceFactory
             var col = new ReferenceCollection(new RimworldXmlReference(@class, element));
 
             return col;
-            // return new ReferenceCollection();
         }
 
         if (!ScopeHelper.ExtendsFromVerseDef(classContext.GetClrName().FullName))
@@ -169,15 +173,21 @@ public class RimworldReferenceFactory : IReferenceFactory
     private ReferenceCollection GetReferenceForDeclaredElement(ITreeNode element, ReferenceCollection oldReferences)
     {
         // We're currently in a text node inside a <defName> inside another ThingDef node. We want to get that node
-        var defTypeName = element.Parent?.Parent?
+        // Alternatively, we may be in a string node inside a Name Attribute, so we need to go a step further
+        var parentTag = element.Parent?.Parent;
+        if (parentTag is not XmlTag && parentTag?.Parent is XmlTag) parentTag = parentTag.Parent;
+
+        if (parentTag is null) return new ReferenceCollection();
+        
+        var defTypeName = parentTag
             // And then get the TagHeader (<ThingDef>) of that node
             .Children().FirstOrDefault(childElement => childElement is XmlTagHeaderNode)?
             // And then get the text that provides the ID of that node (ThingDef)
             .Children().FirstOrDefault(childElement => childElement is XmlIdentifier)?.GetText();
 
-        if (defTypeName is null) new ReferenceCollection();
-
-        var defName = element.GetText();
+        if (defTypeName is null) return new ReferenceCollection();
+        
+        var defName = element.GetText().Trim('"');
 
         var xmlSymbolTable = element.GetSolution().GetComponent<RimworldSymbolScope>();
 

@@ -1,5 +1,8 @@
 # Changelog
 
+## 2024.2
+* Adds support for [Parent=""] attributes
+
 ## 2024.1.7
  * Solved some incompatibilities for ReSharper
 

@@ -19,12 +19,14 @@ into the definitions on which the XML sits.
    * Autocomplete DefNames when using `DefDatabase<Def>.GetNamed()`
    * Autocomplete DefNames when creating fields in `[DefOf]` classes
    * Autocomplete certain values for properties with fixed options (Such as Altitude Layer, boolean and directions)
+   * Autocompletion for `Parent=""` attributes
  * Use `Ctrl+Click` to go references
    * When using them on DefTypes, just to the C# class for that Def
    * When using them on XML Properties, jump to the C# definition for that property
    * When using them on DefName references, jump to the XML definition for that DefName
    * When using them on certain XML values, jump to the C# definition for that value
    * When using them on `[DefOf]` fields, or `DefDatabase<Def>.GetNamed()` calls, jump to the XML definition for that DefName
+   * When using them on `Parent=""` attributes, jump to the XML definition for that parent
  * Read the values in `Class=""` attributes to fetch the correct class to autocomplete from, such as in comps
  * Support for Custom Def Classes (Such as `<MyMod.CustomThingDef>`)
  * A Rimworld Run Configuration
