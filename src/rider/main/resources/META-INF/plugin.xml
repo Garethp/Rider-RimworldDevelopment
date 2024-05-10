@@ -19,6 +19,7 @@ in your mods!</p>
 <![CDATA[
 <p><ul>
 <li>Add support for Parent="" referencesin XML defs</li>
+<li>Makes the New Mod template modular, allowing you to select the components you want included in your mod</li>
 </ul></p>
 ]]>
   </change-notes>
