@@ -1,0 +1,11 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Configuration>
+  <Excluded>
+    <exclude>.git</exclude>
+    <exclude>.idea</exclude>
+    <exclude>.run</exclude>
+    <exclude>MyRimWorldMod.sln</exclude>
+    <exclude>packages</exclude>
+    <exclude>Source</exclude>
+  </Excluded>
+</Configuration>

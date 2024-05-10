@@ -1,9 +1,9 @@
 <idea-plugin require-restart="true">
   <id>com.jetbrains.rider.plugins.rimworlddev</id>
   <name>Rimworld Development Environment</name>
-  <version>2023.4</version>
+  <version>2024.1</version>
   <vendor url="https://github.com/Garethp/Rider-RimworldDevelopment">Garethp</vendor>
-  <idea-version since-build="233" />
+  <idea-version since-build="241" />
   <depends>com.intellij.modules.rider</depends>
   <depends>com.intellij.resharper.unity</depends>
 
@@ -18,10 +18,11 @@ in your mods!</p>
   <change-notes>
 <![CDATA[
 <p><ul>
-<li>Added a Find Usages for XML Defs</li>
-<li>Added support for Custom Def Classes</li>
-<li>Add a new "Generate" menu feature to add props to your XML</li>
-<li>Improved detection of various properties that weren't being picked up as references before</li>
+<li>Built for 2024.1</li>
+<li>Added References from C# to XML for DefDatabase and [DefOf]</li>
+<li>When defining a RunConfig, you can now select a ModList config and Save file to be loaded for just this one launch</li>
+<li>Added support for `[LoadAlias]`</li>
+<li>New Mod Template now adds a PublisherPlus configuration file</li>
 </ul></p>
 ]]>
   </change-notes>

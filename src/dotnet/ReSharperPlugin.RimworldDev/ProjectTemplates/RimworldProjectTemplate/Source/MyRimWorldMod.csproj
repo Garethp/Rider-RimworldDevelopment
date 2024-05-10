@@ -2,8 +2,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <RootNamespace>MyRimworldMod</RootNamespace>
-        <AssemblyName>MyRimworldMod</AssemblyName>
+        <RootNamespace>MyRimWorldMod</RootNamespace>
+        <AssemblyName>MyRimWorldMod</AssemblyName>
         <TargetFramework>net472</TargetFramework>
         <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
         <CopyLocalLockFileAssemblies>false</CopyLocalLockFileAssemblies>

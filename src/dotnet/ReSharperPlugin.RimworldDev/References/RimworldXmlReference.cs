@@ -25,6 +25,9 @@ public class RimworldXmlReference :
     private readonly ISymbolFilter myPropertyFilter;
 
     private readonly IDeclaredElement myTypeElement;
+    
+    [CanBeNull]
+    private readonly string overrideName;
 
     public RimworldXmlReference(IDeclaredElement typeElement, [NotNull] ITreeNode owner)
         : base(owner)
@@ -33,7 +36,13 @@ public class RimworldXmlReference :
         myExactNameFilter = new ExactNameFilter(myOwner.GetText());
         myPropertyFilter = new PredicateFilter(FilterToApplicableProperties);
     }
-
+    
+    public RimworldXmlReference(IDeclaredElement typeElement, [NotNull] ITreeNode owner, string overrideName)
+        : this(typeElement, owner)
+    {
+        this.overrideName = overrideName;
+    }
+    
     private static bool FilterToApplicableProperties([NotNull] ISymbolInfo symbolInfo)
     {
         if (!(symbolInfo.GetDeclaredElement() is ITypeMember declaredElement))
@@ -50,7 +59,7 @@ public class RimworldXmlReference :
         return property.Type.IsImplicitlyConvertibleTo(type, typeConversionRule);
     }
     
-    public override string GetName() => myOwner.GetText();
+    public override string GetName() => this.overrideName ?? myOwner.GetText();
     private string GetShortName() => GetName().Split('.').Last();
     
     public override TreeTextRange GetTreeTextRange() => myOwner.GetTreeTextRange();

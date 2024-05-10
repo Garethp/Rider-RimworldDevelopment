@@ -5,9 +5,7 @@ import com.intellij.execution.configuration.EnvironmentVariablesData
 import com.intellij.execution.configurations.*
 import com.intellij.execution.configurations.ConfigurationFactory
 import com.intellij.execution.configurations.RunConfiguration
-import com.intellij.execution.process.ProcessHandler
-import com.intellij.execution.process.ProcessHandlerFactory
-import com.intellij.execution.process.ProcessTerminatedListener
+import com.intellij.execution.process.*
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.openapi.options.SettingsEditor
 import com.intellij.openapi.project.Project
@@ -19,6 +17,7 @@ import com.jetbrains.rider.plugins.unity.run.configurations.UnityAttachToPlayerF
 import com.jetbrains.rider.plugins.unity.run.configurations.UnityPlayerDebugConfigurationOptions
 import com.jetbrains.rider.plugins.unity.run.configurations.UnityPlayerDebugConfigurationType
 import com.jetbrains.rider.run.configurations.AsyncRunConfiguration
+import com.jetbrains.rider.run.getProcess
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import org.jetbrains.concurrency.Promise
 
@@ -41,6 +40,12 @@ class RunConfiguration(project: Project, factory: ConfigurationFactory, name: St
 
     fun getScriptName(): String = options.getScriptName()
     fun setScriptName(scriptName: String?) = options.setScriptName(scriptName ?: "")
+
+    fun getModListPath(): String = options.getModListPath()
+    fun setModListPath(modListPath: String?) = options.setModListPath(modListPath ?: "")
+
+    fun getSaveFilePath(): String = options.getSaveFilePath()
+    fun setSaveFilePath(saveFilePath: String?) = options.setSaveFilePath(saveFilePath ?: "")
 
     fun getCommandLineOptions(): String = options.getCommandLineOptions()
     fun setCommandLineOptions(scriptName: String?) = options.setCommandLineOptions(scriptName ?: "")
@@ -67,6 +72,8 @@ class RunConfiguration(project: Project, factory: ConfigurationFactory, name: St
         return environment.project.lifetime.startOnUiAsync {
             RunState(
                 getScriptName(),
+                getSaveFilePath(),
+                getModListPath(),
                 getRimworldState(environment),
                 UnityDebugRemoteConfiguration(),
                 environment,
@@ -77,7 +84,7 @@ class RunConfiguration(project: Project, factory: ConfigurationFactory, name: St
 
 
     override fun getConfigurationEditor(): SettingsEditor<out RunConfiguration> {
-        return RimworldDev.Rider.run.SettingsEditor()
+        return RimworldDev.Rider.run.SettingsEditor(project)
     }
 
     private fun getRimworldState(environment: ExecutionEnvironment): CommandLineState {
@@ -88,10 +95,25 @@ class RunConfiguration(project: Project, factory: ConfigurationFactory, name: St
 
                 EnvironmentVariablesData.create(getEnvData(), true).configureCommandLine(commandLine, true)
 
+                QuickStartUtils.setup(getModListPath(), getSaveFilePath());
+
                 val processHandler = ProcessHandlerFactory.getInstance()
                     .createColoredProcessHandler(commandLine)
+
+                processHandler.addProcessListener(createProcessListener(processHandler))
                 ProcessTerminatedListener.attach(processHandler)
                 return processHandler
+            }
+        }
+    }
+
+    private fun createProcessListener(siblingProcessHandler: ProcessHandler?): ProcessListener {
+        return object : ProcessAdapter() {
+            override fun processTerminated(event: ProcessEvent) {
+                val processHandler = event.processHandler
+                processHandler.removeProcessListener(this)
+
+                QuickStartUtils.tearDown(getSaveFilePath());
             }
         }
     }

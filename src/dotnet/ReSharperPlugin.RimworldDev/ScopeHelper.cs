@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -7,6 +8,7 @@ using JetBrains.Application.Threading.Tasks;
 using JetBrains.Metadata.Reader.API;
 using JetBrains.ProjectModel;
 using JetBrains.ProjectModel.model2.Assemblies.Interfaces;
+using JetBrains.ReSharper.Psi;
 using JetBrains.ReSharper.Psi.Caches;
 using JetBrains.ReSharper.Psi.Modules;
 using JetBrains.ReSharper.Psi.Util;
@@ -28,34 +30,37 @@ public class ScopeHelper
     public static bool UpdateScopes(ISolution solution)
     {
         if (solution == null) return false;
-
-        allScopes = solution.PsiModules().GetModules().Select(module =>
-            module.GetPsiServices().Symbols.GetSymbolScope(module, true, true)).ToList();
-
-        // If we haven't determined the Rimworld scope yet, our scopes may not be ready for querying. Since I'd rather
-        // that we were able to pull the scope from the dependencies than try to find it ourselves, let's check if the
-        // scopes are ready for querying first. Ofcourse, if we have no scopes at all, there's nothing to wait for
-        if (rimworldScope == null && allScopes.Any() && allScopes.Any(scope => !scope.GetAllShortNames().Any()))
-            return false;
-
-        if (rimworldScope == null)
+        using (CompilationContextCookie.GetOrCreate(UniversalModuleReferenceContext.Instance))
         {
-            rimworldScope = allScopes.FirstOrDefault(scope => scope.GetTypeElementByCLRName("Verse.ThingDef") != null);
+            allScopes = solution.PsiModules().GetModules().Select(module =>
+                module.GetPsiServices().Symbols.GetSymbolScope(module, true, true)).ToList();
+
+            // If we haven't determined the Rimworld scope yet, our scopes may not be ready for querying. Since I'd rather
+            // that we were able to pull the scope from the dependencies than try to find it ourselves, let's check if the
+            // scopes are ready for querying first. Ofcourse, if we have no scopes at all, there's nothing to wait for
+            if (rimworldScope == null && allScopes.Any() && allScopes.Any(scope => !scope.GetAllShortNames().Any()))
+                return false;
 
             if (rimworldScope == null)
             {
-                AddRef(solution);
+                rimworldScope =
+                    allScopes.FirstOrDefault(scope => scope.GetTypeElementByCLRName("Verse.ThingDef") != null);
 
-                return false;
+                if (rimworldScope == null)
+                {
+                    AddRef(solution);
+
+                    return false;
+                }
+
+                rimworldModule = solution.PsiModules().GetModules()
+                    .First(module =>
+                        module.GetPsiServices().Symbols.GetSymbolScope(module, true, true)
+                            .GetTypeElementByCLRName("Verse.ThingDef") != null);
             }
 
-            rimworldModule = solution.PsiModules().GetModules()
-                .First(module =>
-                    module.GetPsiServices().Symbols.GetSymbolScope(module, true, true)
-                        .GetTypeElementByCLRName("Verse.ThingDef") != null);
+            return true;
         }
-
-        return true;
     }
 
     public static ISymbolScope GetScopeForClass(string className)
@@ -187,7 +192,7 @@ public class ScopeHelper
         {
             @"C:\Program Files (x86)\Steam\steamapps\",
             @"C:\Program Files\Steam\steamapps\",
-            "~/.steam/steam/steamapps/"
+            $"{Environment.GetFolderPath(Environment.SpecialFolder.UserProfile)}/steam/steam/steamapps/"
         };
 
         locations.AddRange(

@@ -12,18 +12,32 @@ into the definitions on which the XML sits.
 
 ## Features so far
 
- * Enjoy autocompletion of DefTypes and their properties
- * Ctrl+Click into a tag in order to view the Class or Property that the tag is referring to
- * Autocomplete from classes defined in `Class=""` attributes, such as for comps.
- * When referring to other XML Defs (such as `<thought>ThoughtDefName</thought>`), auto complete and link to that defs XML
- * Autocomplete certain values for properties with fixed options (Such as Altitude Layer, boolean and directions)
- * A Rimworld Run Configuration with a Debug option
+ * Autocompletion for Defs
+   * Autocomplete the DefTypes available
+   * Autocomplete the properties available for a given DefType
+   * Autocomplete the available DefNames when referencing other defs
+   * Autocomplete DefNames when using `DefDatabase<Def>.GetNamed()`
+   * Autocomplete DefNames when creating fields in `[DefOf]` classes
+   * Autocomplete certain values for properties with fixed options (Such as Altitude Layer, boolean and directions)
+ * Use `Ctrl+Click` to go references
+   * When using them on DefTypes, just to the C# class for that Def
+   * When using them on XML Properties, jump to the C# definition for that property
+   * When using them on DefName references, jump to the XML definition for that DefName
+   * When using them on certain XML values, jump to the C# definition for that value
+   * When using them on `[DefOf]` fields, or `DefDatabase<Def>.GetNamed()` calls, jump to the XML definition for that DefName
+ * Read the values in `Class=""` attributes to fetch the correct class to autocomplete from, such as in comps
+ * Support for Custom Def Classes (Such as `<MyMod.CustomThingDef>`)
+ * A Rimworld Run Configuration
+   * Automatically loads Unity Doorstop if run in Debug mode 
+   * Specify a ModList and Save file to load for just this one launch 
  * Rimworld Mod support in New Solution
  * Custom Rimworld XML Projects
+   * Automatically includes Rimworlds Core and DLC defs
+   * Reads your `About.xml` to automatically include the defs of mods that you rely on in your workspace
  * Basic validation for some XML Values
- * Support for Custom Def Classes (Such as `<MyMod.CustomThingDef>`)
  * The ability to perform Find Usages on XML Defs
  * A "Generate" menu option to generate properties for a given XML Def
+ * Includes a Rimworld Dictionary so that Rimworld terms don't get flagged as not real words by Rider
 
 ## Quick Architecture For Developers
 

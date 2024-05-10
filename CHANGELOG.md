@@ -1,5 +1,12 @@
 # Changelog
 
+## 2024.1
+ * Built for 2024.1
+ * Adding defName auto-completion in C# for DefDatabase and `[DefOf]`
+ * When defining a RunConfig, you can now select a ModList config and Save file to be loaded for just this one launch
+ * Added support for `[LoadAlias]`
+ * New Mod Template now adds a PublisherPlus configuration file
+
 ## 2023.4
  * Added support for Custom Def Classes
  * Implemented XML Def Find Usages, so you can just Right-Click a defName and see all usages of that def in XML

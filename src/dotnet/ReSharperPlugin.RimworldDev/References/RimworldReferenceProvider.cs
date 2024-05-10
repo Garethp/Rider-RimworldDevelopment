@@ -1,10 +1,13 @@
 using System;
+using System.IO;
 using System.Linq;
+using System.Text;
 using JetBrains.DataFlow;
 using JetBrains.Lifetimes;
 using JetBrains.ProjectModel;
 using JetBrains.ReSharper.Psi;
 using JetBrains.ReSharper.Psi.Caches;
+using JetBrains.ReSharper.Psi.Impl.Reflection2;
 using JetBrains.ReSharper.Psi.Resolve;
 using JetBrains.ReSharper.Psi.Tree;
 using JetBrains.ReSharper.Psi.Util;
@@ -46,7 +49,7 @@ public class RimworldReferenceFactory : IReferenceFactory
         if (element.Parent != null && element.NodeType.ToString() == "TEXT" &&
             element.Parent.GetText().StartsWith("<defName>"))
             return GetReferenceForDeclaredElement(element, oldReferences);
-        
+
         if (element.NodeType.ToString() == "TEXT") return GetReferencesForText(element, oldReferences);
         if (element is not XmlIdentifier identifier) return new ReferenceCollection();
         if (element.GetSourceFile() is not { } sourceFile) return new ReferenceCollection();
@@ -62,11 +65,11 @@ public class RimworldReferenceFactory : IReferenceFactory
 
             var allWorkingScopes =
                 ScopeHelper.AllScopes.Where(scope => scope.GetTypeElementByCLRName(className) is not null);
-            
+
             var @class = className.Contains(".")
                 ? ScopeHelper.GetScopeForClass(className).GetTypeElementByCLRName(className)
                 : rimworldSymbolScope.GetElementsByShortName(className).FirstOrDefault();
-            
+
             if (@class == null) return new ReferenceCollection();
             return new ReferenceCollection(new RimworldXmlReference(@class, identifier));
         }
@@ -75,11 +78,43 @@ public class RimworldReferenceFactory : IReferenceFactory
             RimworldXMLItemProvider.GetContextFromHierachy(hierarchy, rimworldSymbolScope, allSymbolScopes);
         if (classContext == null) return new ReferenceCollection();
 
-        var field = RimworldXMLItemProvider.GetAllFields(classContext, rimworldSymbolScope)
-            .FirstOrDefault(field => field.ShortName == identifier.GetText());
+        var possibleFields = RimworldXMLItemProvider.GetAllFields(classContext, rimworldSymbolScope);
+        var field = possibleFields
+            .FirstOrDefault(
+                field => field.ShortName == identifier.GetText()
+            ) ?? possibleFields.FirstOrDefault(field =>
+            field.GetAttributeInstances(AttributesSource.Self).Any(
+                attribute =>
+                {
+                    var match = identifier.GetText();
+
+                    if (attribute.GetClrName().FullName != "Verse.LoadAliasAttribute") return false;
+                    if (attribute.PositionParameterCount != 1) return false;
+
+                    var test = field.GetXMLDoc(true);
+
+                    if (!attribute.PositionParameter(0).ConstantValue.IsString())
+                    {
+                        var writer = new StringWriter(new StringBuilder());
+                        if (attribute is not MetadataAttributeInstance) return false;
+
+                        ((MetadataAttributeInstance)attribute).Dump(writer, "");
+                        writer.Close();
+
+                        if (writer.ToString().Contains($"Arguments: \"{match}\"")) return true;
+                        return false;
+                    }
+
+                    return attribute.PositionParameter(0).ConstantValue.StringValue == match;
+                }));
 
         if (field == null) return new ReferenceCollection();
 
+        if (field.ShortName != identifier.GetText())
+        {
+            return new ReferenceCollection(new RimworldXmlReference(field, identifier, field.ShortName));
+        }
+        
         return new ReferenceCollection(new RimworldXmlReference(field, identifier));
     }
 
@@ -112,18 +147,15 @@ public class RimworldReferenceFactory : IReferenceFactory
 
         var defType = classContext.ShortName;
         var defName = element.GetText();
-        
-        if (xmlSymbolTable.ExtraDefTagNames.ContainsKey($"{defType}/{defName}"))
-        {
-            var newDef = xmlSymbolTable.ExtraDefTagNames[$"{defType}/{defName}"];
-            defType = newDef.Split('/').First();
-            defName = newDef.Split('/').Last();
-        }
-        
-        if (xmlSymbolTable.GetTagByDef(defType, defName) is not { } tag)
+
+        var defNameTag = new DefNameValue(defType, defName);
+        defNameTag = xmlSymbolTable.GetDefName(defNameTag);
+
+        if (xmlSymbolTable.GetTagByDef(defNameTag) is not { } tag)
             return new ReferenceCollection();
-        
-        return new ReferenceCollection(new RimworldXmlDefReference(element, tag, defType, defName));
+
+        return new ReferenceCollection(
+            new RimworldXmlDefReference(element, tag, defNameTag.DefType, defNameTag.DefName));
     }
 
     /**
@@ -149,14 +181,15 @@ public class RimworldReferenceFactory : IReferenceFactory
 
         var xmlSymbolTable = element.GetSolution().GetComponent<RimworldSymbolScope>();
 
-        var tagId = $"{defTypeName}/{defName}";
-        if (!xmlSymbolTable.DefTags.ContainsKey(tagId)) return new ReferenceCollection();
+        var defNameTag = new DefNameValue(defTypeName, defName);
+        if (!xmlSymbolTable.HasTag(defNameTag)) return new ReferenceCollection();
+        defNameTag = xmlSymbolTable.GetDefName(defNameTag);
 
-        if (xmlSymbolTable.GetTagByDef(defTypeName, defName) is not { } tag)
+        if (xmlSymbolTable.GetTagByDef(defNameTag) is not { } tag)
             return new ReferenceCollection();
 
-        return new ReferenceCollection(new RimworldXmlDefReference(element, tag, defTypeName,
-            element.GetText()));
+        return new ReferenceCollection(new RimworldXmlDefReference(element, tag, defNameTag.DefType,
+            defNameTag.DefName));
     }
 
     public bool HasReference(ITreeNode element, IReferenceNameContainer names)

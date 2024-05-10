@@ -6,7 +6,9 @@ import com.intellij.execution.configurations.RunProfileState
 import com.intellij.execution.process.*
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.execution.runners.ProgramRunner
+import com.intellij.ide.actions.searcheverywhere.evaluate
 import com.intellij.util.system.OS
+import com.jetbrains.rd.util.lifetime.Lifetime
 import com.jetbrains.rider.debugger.DebuggerWorkerProcessHandler
 import com.jetbrains.rider.plugins.unity.run.configurations.UnityAttachProfileState
 import com.jetbrains.rider.run.configurations.remote.RemoteConfiguration
@@ -18,6 +20,8 @@ import kotlin.io.path.Path
 
 class RunState(
     private val rimworldLocation: String,
+    private val saveFilePath: String,
+    private val modListPath: String,
     private val rimworldState: RunProfileState,
     remoteConfiguration: RemoteConfiguration,
     executionEnvironment: ExecutionEnvironment,
@@ -51,20 +55,20 @@ class RunState(
             "Doorstop/pdb2mdb.exe",
         )
     )
-
-    override fun execute(
+    
+    override suspend fun execute(
         executor: Executor,
         runner: ProgramRunner<*>,
-        workerProcessHandler: DebuggerWorkerProcessHandler
+        workerProcessHandler: DebuggerWorkerProcessHandler,
+        lifetime: Lifetime
     ): ExecutionResult {
         setupDoorstop()
-
         val result = super.execute(executor, runner, workerProcessHandler)
         ProcessTerminatedListener.attach(workerProcessHandler.debuggerWorkerRealHandler)
 
         val rimworldResult = rimworldState.execute(executor, runner)
         workerProcessHandler.debuggerWorkerRealHandler.addProcessListener(createProcessListener(rimworldResult?.processHandler))
-
+        
         return result
     }
 
@@ -75,6 +79,7 @@ class RunState(
                 processHandler.removeProcessListener(this)
 
                 siblingProcessHandler?.getProcess()?.destroy()
+                QuickStartUtils.tearDown(saveFilePath)
                 removeDoorstep()
             }
         }

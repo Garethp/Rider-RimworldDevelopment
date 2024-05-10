@@ -27,11 +27,11 @@ namespace ReSharperPlugin.RimworldDev.RimworldXmlProject.Project;
 
     public IProjectProperties ProjectProperties { get; }
 
-    public void SetParentProjectPointer(
-      IProjectSearchDescriptor parentProjectSearchDescriptor)
+    public void SetParentProjectPointer(IProjectSearchDescriptor parentProjectSearchDescriptor)
     {
       if (parentProjectSearchDescriptor == ParentProjectPointer)
         return;
+      
       ParentProjectPointer = ParentProjectPointer == null ? parentProjectSearchDescriptor : throw new InvalidOperationException(string.Format("Parent project already defined for {0} ({1}). Existing parent: {2}. New parent: {3}", Name, ProjectFilePath, ParentProjectPointer, parentProjectSearchDescriptor));
     }
 
