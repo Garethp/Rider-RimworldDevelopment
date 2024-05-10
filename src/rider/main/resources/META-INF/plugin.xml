@@ -1,7 +1,7 @@
 <idea-plugin require-restart="true">
   <id>com.jetbrains.rider.plugins.rimworlddev</id>
   <name>Rimworld Development Environment</name>
-  <version>2024.1.4</version>
+  <version>2024.2</version>
   <vendor url="https://github.com/Garethp/Rider-RimworldDevelopment">Garethp</vendor>
   <idea-version since-build="251" />
   <depends>com.intellij.modules.rider</depends>
@@ -18,7 +18,7 @@ in your mods!</p>
   <change-notes>
 <![CDATA[
 <p><ul>
-<li>Fixed Quickstart (Modlist and Save) functionality when running on Linux</li>
+<li>Add support for Parent="" referencesin XML defs</li>
 </ul></p>
 ]]>
   </change-notes>
