@@ -2,6 +2,7 @@
 
 ## 2024.2
  * Adds support for [Parent=""] attributes
+ * When opening a file with Harmony Patches, adds a notifier to the user that they might want to install the Remodder plugin
 
 ## 2024.1
  * Built for 2024.1
