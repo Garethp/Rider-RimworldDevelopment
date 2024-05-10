@@ -1,7 +1,7 @@
 <idea-plugin require-restart="true">
   <id>com.jetbrains.rider.plugins.rimworlddev</id>
   <name>Rimworld Development Environment</name>
-  <version>2024.1</version>
+  <version>2024.2</version>
   <vendor url="https://github.com/Garethp/Rider-RimworldDevelopment">Garethp</vendor>
   <idea-version since-build="241" />
   <depends>com.intellij.modules.rider</depends>
@@ -18,11 +18,7 @@ in your mods!</p>
   <change-notes>
 <![CDATA[
 <p><ul>
-<li>Built for 2024.1</li>
-<li>Added References from C# to XML for DefDatabase and [DefOf]</li>
-<li>When defining a RunConfig, you can now select a ModList config and Save file to be loaded for just this one launch</li>
-<li>Added support for `[LoadAlias]`</li>
-<li>New Mod Template now adds a PublisherPlus configuration file</li>
+<li>Add support for Parent="" referencesin XML defs</li>
 </ul></p>
 ]]>
   </change-notes>
