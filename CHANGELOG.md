@@ -1,5 +1,8 @@
 # Changelog
 
+## 2024.2
+* Adds support for [Parent=""] attributes
+
 ## 2024.1.1
  * Fix Quickstart (Modlist and Save loading) when running on Linux
 
