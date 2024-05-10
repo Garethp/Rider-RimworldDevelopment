@@ -35,6 +35,9 @@ in your mods!</p>
     <backend.markup.adapterFactory language="XML" implementationClass="com.jetbrains.rider.daemon.RiderCacheAwareMarkupAdapterFactory" />
 
     <spellchecker.bundledDictionaryProvider implementation="RimworldDev.Rider.spellchecker.DictionaryProvider" />
+
+    <editorNotificationProvider
+            implementation="RimworldDev.Rider.HarmonyPluginNotifier.HarmonyPluginNotifier"/>
   </extensions>
   
 </idea-plugin>
