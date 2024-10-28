@@ -8,14 +8,12 @@ import kotlin.io.path.*
 class QuickStartUtils {
     companion object {
         fun getLudeonPath(): Path? {
-            val osName = System.getProperty("os.name").lowercase(Locale.getDefault()) ?: return null
-            val systemPath =
-                if (osName.contains("win"))
-                    (Path(System.getenv("APPDATA"), "..", "LocalLow", "Ludeon Studios", "RimWorld by Ludeon Studios"))
-                else
-                    (Path(SystemUtils.getUserHome().absolutePath, ".config", "unity3d", "Ludeon Studios", "RimWorld by Ludeon Studios"))
+            val possiblePaths = listOfNotNull(
+                System.getenv("APPDATA")?.let{ Path(it, "..", "LocalLow", "Ludeon Studios", "RimWorld by Ludeon Studios") },
+                Path(SystemUtils.getUserHome().absolutePath, ".config", "unity3d", "Ludeon Studios", "RimWorld by Ludeon Studios"),
+            )
 
-            return if (systemPath.exists()) systemPath else null
+            return possiblePaths.firstOrNull { path: Path -> path.exists() }
         }
 
         fun setup(modListPath: String, saveFilePath: String) {
