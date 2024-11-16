@@ -8,9 +8,9 @@ import kotlin.io.path.*
 class QuickStartUtils {
     companion object {
         fun getLudeonPath(): Path? {
-            val possiblePaths = listOf(
-                Path(System.getenv("APPDATA"), "..", "LocalLow", "Ludeon Studios", "RimWorld by Ludeon Studios"),
-                Path(SystemUtils.getUserHome().absolutePath, ".config", ".unity3d", "Ludeon Studios", "RimWorld by Ludeon Studios"),
+            val possiblePaths = listOfNotNull(
+                System.getenv("APPDATA")?.let{ Path(it, "..", "LocalLow", "Ludeon Studios", "RimWorld by Ludeon Studios") },
+                Path(SystemUtils.getUserHome().absolutePath, ".config", "unity3d", "Ludeon Studios", "RimWorld by Ludeon Studios"),
             )
 
             return possiblePaths.firstOrNull { path: Path -> path.exists() }
