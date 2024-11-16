@@ -10,7 +10,7 @@
   "identity": "RimworldDev.Template",
   "shortName": "rimworldmodtemplate",
   "tags": {
-    "type": "solution",
+    "type": "project",
     "language": "C#",
     "platform": "RimWorld"
   },

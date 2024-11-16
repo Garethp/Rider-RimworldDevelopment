@@ -1,5 +1,8 @@
 # Changelog
 
+## 2024.1.1
+ * Fix Quickstart (Modlist and Save loading) when running on Linux
+
 ## 2024.1
  * Built for 2024.1
  * Adding defName auto-completion in C# for DefDatabase and `[DefOf]`
