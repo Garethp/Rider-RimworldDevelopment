@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using JetBrains.Annotations;
 using JetBrains.Application;
+using JetBrains.Application.Components;
 using JetBrains.ProjectModel.ProjectsHost;
 using JetBrains.ProjectModel.ProjectsHost.Impl;
 using JetBrains.RdBackend.Common.Features.ProjectModel;
@@ -54,7 +55,7 @@ public sealed class RimworldSolutionMarkProvider : ISolutionMarkProvider
             var solutionFile = GetSolutionFile(directory);
             if (solutionFile is null) return null;
             
-            return new RimworldSolutionMark(aboutFile, solutionFile, new List<ISolutionConfigurationDefaults>());
+            return new RimworldSolutionMark(aboutFile, solutionFile, EmptyImmutableEnumerableObject<ISolutionConfigurationDefaults>.Instance);
         }
 
         return new RimworldVirtualSolutionMark(VirtualFileSystemPath

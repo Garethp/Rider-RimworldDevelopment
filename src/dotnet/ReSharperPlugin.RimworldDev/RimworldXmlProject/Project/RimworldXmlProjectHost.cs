@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Xml;
 using JetBrains.Annotations;
+using JetBrains.Application.Parts;
 using JetBrains.Application.platforms;
 using JetBrains.ProjectModel.MSBuild;
 using JetBrains.ProjectModel.Platforms;
@@ -22,7 +23,7 @@ using ReSharperPlugin.RimworldDev.RimworldXmlProject.Project;
 
 namespace ReSharperPlugin.RimworldDev.RimworldXmlProject.Project;
 
-[ProjectsHostComponent]
+[ProjectsHostComponent(Instantiation.DemandAnyThreadUnsafe)]
 public class RimworldXmlProjectHost : SolutionFileProjectHostBase
 {
     private readonly IPlatformManager myPlatformManager;

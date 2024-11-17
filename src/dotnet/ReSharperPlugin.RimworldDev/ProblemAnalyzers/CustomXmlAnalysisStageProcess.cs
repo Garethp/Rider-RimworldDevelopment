@@ -31,7 +31,7 @@ public sealed class CustomXmlAnalysisStageProcess : XmlDaemonStageProcessBase, I
     public override void Execute([InstantHandle] Action<DaemonStageResult> committer)
     {
         File.ProcessDescendants(this);
-        committer(new DaemonStageResult(myConsumer.Highlightings));
+        committer(new DaemonStageResult(myConsumer.CollectHighlightings()));
     }
 
     bool IRecursiveElementProcessor.InteriorShouldBeProcessed(ITreeNode element)
