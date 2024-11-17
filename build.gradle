@@ -3,30 +3,55 @@ import org.apache.tools.ant.taskdefs.condition.Os
 
 plugins {
     id 'java'
-    id 'org.jetbrains.kotlin.jvm' version '1.8.20'
-    id 'org.jetbrains.intellij' version '1.13.3'     // https://github.com/JetBrains/gradle-intellij-plugin/releases
-    id 'com.jetbrains.rdgen' version '2023.2.0'    // https://www.myget.org/feed/rd-snapshots/package/maven/com.jetbrains.rd/rd-gen
+    id 'org.jetbrains.kotlin.jvm' version '1.9.24'
+    id 'org.jetbrains.intellij.platform' version '2.1.0'
+
+    id 'com.jetbrains.rdgen' version '2024.3.0'    // https://www.myget.org/feed/rd-snapshots/package/maven/com.jetbrains.rd/rd-gen
 }
 
 ext {
     isWindows = Os.isFamily(Os.FAMILY_WINDOWS)
     rdLibDirectory = {
-        new File(setupDependencies.idea.get().classes, "lib/rd")
+        intellijPlatform.platformPath.resolve("lib").toFile()
     }
 }
 
 repositories {
+    mavenCentral()
+    intellijPlatform {
+        localPlatformArtifacts()
+        defaultRepositories()
+        jetbrainsRuntime()
+        intellijDependencies()
+    }
     maven { url 'https://cache-redirector.jetbrains.com/intellij-repository/snapshots' }
     maven { url 'https://cache-redirector.jetbrains.com/maven-central' }
 }
 
 wrapper {
-    gradleVersion = '7.3'
+    gradleVersion = '8.8'
     distributionType = Wrapper.DistributionType.ALL
     distributionUrl = "https://cache-redirector.jetbrains.com/services.gradle.org/distributions/gradle-${gradleVersion}-all.zip"
 }
 
 version = ext.PluginVersion
+
+dependencies {
+    intellijPlatform {
+        rider(ProductVersion)
+        instrumentationTools()
+
+        bundledPlugin "com.intellij.resharper.unity"
+
+    }
+}
+
+configurations {
+    riderModel {
+        canBeConsumed = true
+        canBeResolved = false
+    }
+}
 
 sourceSets {
     main {
@@ -36,8 +61,18 @@ sourceSets {
     }
 }
 
+intellijPlatform {
+    autoReload = false
+}
+
 compileKotlin {
-    kotlinOptions { jvmTarget = "1.8" }
+    kotlinOptions { jvmTarget = "17" }
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(17)
+    }
 }
 
 task setBuildTool {
@@ -54,7 +89,7 @@ task setBuildTool {
                 workingDir rootDir
             }
 
-            def directory = "C:\\Users\\**\\.dotnet"
+            def directory = "C:\\Program Files\\dotnet"
             if (directory) {
                 List<String> files = new FileNameFinder().getFileNames("${directory}", "**/dotnet.exe")
                 ext.executable = files.get(0)
@@ -109,25 +144,9 @@ buildPlugin {
     }
 }
 
-intellij {
-    type = 'RD'
-    version = "${ProductVersion}"
-    downloadSources = false
-    instrumentCode = false
-    // TODO: add plugins
-     plugins = ["rider-unity"]
-}
-
 runIde {
     // Match Rider's default heap size of 1.5Gb (default for runIde is 512Mb)
     maxHeapSize = "1500m"
-
-    // Rider's backend doesn't support dynamic plugins. It might be possible to work with auto-reload of the frontend
-    // part of a plugin, but there are dangers about keeping plugins in sync
-    autoReloadPlugins = false
-
-    // gradle-intellij-plugin will download the default version of the JBR for the snapshot. Update if required
-    // jbrVersion = "jbr_jcef-11_0_6b765.40" // https://confluence.jetbrains.com/display/JBR/Release+notes
 }
 
 rdgen {
@@ -137,11 +156,12 @@ rdgen {
 
     verbose = true
     classpath {
-        "${rdLibDirectory()}/rider-model.jar"
+        "${rdLibDirectory()}/rd.jar"
     }
     sources "${modelDir}/rider"
     hashFolder = "${buildDir}"
     packages = "model.rider"
+    println(intellijPlatform.platformPath.resolve("lib/rd/rider-model.jar"))
 
     generator {
         language = "kotlin"

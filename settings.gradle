@@ -4,7 +4,11 @@ pluginManagement {
         maven { url "https://cache-redirector.jetbrains.com/plugins.gradle.org" }
         maven { url "https://cache-redirector.jetbrains.com/dl.bintray.com/kotlin/kotlin-eap" }
         maven { url "https://cache-redirector.jetbrains.com/myget.org.rd-snapshots.maven" }
+        maven { url "https://cache-redirector.jetbrains.com/intellij-dependencies" }
+        maven { url "https://cache-redirector.jetbrains.com/plugins.gradle.org" }
+        maven { url "https://cache-redirector.jetbrains.com/maven-central" }
     }
+
     resolutionStrategy {
         eachPlugin {
             // Gradle has to map a plugin dependency to Maven coordinates - '{groupId}:{artifactId}:{version}'. It tries
