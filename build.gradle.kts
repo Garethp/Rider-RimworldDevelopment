@@ -40,7 +40,8 @@ dependencies {
       local(dir)
     } else {
       logger.lifecycle("*** Using Rider SDK from intellij-snapshots repository")
-      rider("2024.3")
+//      rider("2024.3")
+      rider("2025.1-SNAPSHOT", false)
     }
     jetbrainsRuntime()
 //    bundledPlugin("JavaScript")
@@ -50,7 +51,14 @@ dependencies {
 //    bundledPlugin("org.jetbrains.plugins.textmate")
     bundledPlugin("rider.intellij.plugin.appender")
     bundledPlugin("com.intellij.resharper.unity")
+    bundledPlugin("com.intellij.platform.images")
     instrumentationTools()
+  }
+}
+
+intellijPlatform {
+  pluginConfiguration {
+    name = "rimworlddev"
   }
 }
 
@@ -110,7 +118,7 @@ val resolvePlatformLibPath = tasks.create("resolvePlatformLibPath") {
 artifacts {
   add(riderModel.name, provider {
     val sdkRoot = intellijPlatform.platformPath
-    sdkRoot.resolve("lib/rd/rider-model.jar.jar").also {
+    sdkRoot.resolve("lib/rd/rider-model.jar").also {
       check(it.isFile) {
         "rider-model.jar is not found at $riderModel in $sdkRoot"
       }

@@ -4,6 +4,7 @@ plugins {
   // Version is configured in gradle.properties
   id("com.jetbrains.rdgen")
   id("org.jetbrains.kotlin.jvm")
+  id("org.jetbrains.intellij.platform.module")
 }
 
 repositories {
