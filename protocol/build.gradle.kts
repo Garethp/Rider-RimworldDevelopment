@@ -4,13 +4,9 @@ plugins {
   // Version is configured in gradle.properties
   id("com.jetbrains.rdgen")
   id("org.jetbrains.kotlin.jvm")
-  id("org.jetbrains.intellij.platform.module")
+//  id("org.jetbrains.intellij.platform.module")
 }
 
-repositories {
-  maven("https://cache-redirector.jetbrains.com/intellij-dependencies")
-  maven("https://cache-redirector.jetbrains.com/maven-central")
-}
 
 val isMonorepo = rootProject.projectDir != projectDir.parentFile
 val pluginRepoRoot: File = projectDir.parentFile
