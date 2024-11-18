@@ -18,13 +18,22 @@ apply {
 }
 
 repositories {
+  mavenLocal()
   maven("https://cache-redirector.jetbrains.com/intellij-dependencies")
   maven("https://cache-redirector.jetbrains.com/intellij-repository/releases")
   maven("https://cache-redirector.jetbrains.com/intellij-repository/snapshots")
   maven("https://cache-redirector.jetbrains.com/maven-central")
+  maven("https://cache-redirector.jetbrains.com/plugins.gradle.org")
+  maven("https://cache-redirector.jetbrains.com/dl.bintray.com/kotlin/kotlin-eap")
+  maven("https://cache-redirector.jetbrains.com/myget.org.rd-snapshots.maven")
   intellijPlatform {
     defaultRepositories()
     jetbrainsRuntime()
+    releases()
+    snapshots()
+    marketplace()
+    localPlatformArtifacts()
+    intellijDependencies()
   }
 }
 
@@ -41,7 +50,7 @@ dependencies {
     } else {
       logger.lifecycle("*** Using Rider SDK from intellij-snapshots repository")
 //      rider("2024.3")
-      rider("2025.1-SNAPSHOT", false)
+      rider("2025.1-SNAPSHOT")
     }
     jetbrainsRuntime()
 //    bundledPlugin("JavaScript")
@@ -51,7 +60,7 @@ dependencies {
 //    bundledPlugin("org.jetbrains.plugins.textmate")
     bundledPlugin("rider.intellij.plugin.appender")
     bundledPlugin("com.intellij.resharper.unity")
-    bundledPlugin("com.intellij.platform.images")
+//    bundledPlugin("com.intellij.platform.images")
     instrumentationTools()
   }
 }
@@ -61,6 +70,8 @@ intellijPlatform {
     name = "rimworlddev"
   }
 }
+
+println(intellijPlatform.platformPath.absolutePathString())
 
 val isMonorepo = rootProject.projectDir != projectDir
 val repoRoot: File = projectDir

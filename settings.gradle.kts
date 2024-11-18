@@ -49,11 +49,12 @@ pluginManagement {
 dependencyResolutionManagement {
   repositories {
     maven("https://cache-redirector.jetbrains.com/intellij-dependencies")
+    maven("https://cache-redirector.jetbrains.com/intellij-repository/releases")
+    maven("https://cache-redirector.jetbrains.com/intellij-repository/snapshots")
     maven("https://cache-redirector.jetbrains.com/maven-central")
     maven("https://cache-redirector.jetbrains.com/plugins.gradle.org")
     maven("https://cache-redirector.jetbrains.com/dl.bintray.com/kotlin/kotlin-eap")
     maven("https://cache-redirector.jetbrains.com/myget.org.rd-snapshots.maven")
-    maven("https://cache-redirector.jetbrains.com/intellij-dependencies")
   }
 }
 
