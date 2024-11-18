@@ -110,7 +110,7 @@ val resolvePlatformLibPath = tasks.create("resolvePlatformLibPath") {
 artifacts {
   add(riderModel.name, provider {
     val sdkRoot = intellijPlatform.platformPath
-    sdkRoot.resolve("lib/rd.jar").also {
+    sdkRoot.resolve("lib/rd/rider-model.jar.jar").also {
       check(it.isFile) {
         "rider-model.jar is not found at $riderModel in $sdkRoot"
       }
