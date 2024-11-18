@@ -126,6 +126,11 @@ val resolvePlatformLibPath = tasks.create("resolvePlatformLibPath") {
   }
 }
 
+val resolvePlatformModel = tasks.create("resolvePlatformModel") {
+  dependsOn(Constants.Tasks.INITIALIZE_INTELLIJ_PLATFORM_PLUGIN)
+  outputs.file(intellijPlatform.platformPath.resolve("lib/rd/rider-model.jar"))
+}
+
 artifacts {
   add(riderModel.name, provider {
     val sdkRoot = intellijPlatform.platformPath

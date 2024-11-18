@@ -14,7 +14,10 @@ val pluginRepoRoot: File = projectDir.parentFile
 sourceSets {
   main {
     kotlin {
-      srcDir(pluginRepoRoot.resolve("protocol/src/kotlin/model"))
+      srcDir(pluginRepoRoot.resolve("protocol/src/main/kotlin/model/rider"))
+    }
+    java {
+      rootProject.tasks.named("resolvePlatformModel").get().outputs.files.singleFile
     }
   }
 }
@@ -31,8 +34,9 @@ val rimworldGeneratorSettings = RimworldGeneratorSettings (
   )
 
 rdgen {
+
   verbose = true
-  packages = "model"
+  classpath(rootProject.tasks.named("resolvePlatformModel").get().outputs.files.singleFile)
 
   generator {
     language = "kotlin"
@@ -59,14 +63,15 @@ tasks.withType<RdGenTask> {
 }
 
 dependencies {
-  if (isMonorepo) {
-    implementation(project(":rider-model"))
-  } else {
     val rdVersion: String by project
     val rdKotlinVersion: String by project
+//    val riderModelJar: String by rootProject.ext
 
-    implementation("com.jetbrains.rd:rd-gen:$rdVersion")
+
+  implementation("com.jetbrains.rd:rd-gen:$rdVersion")
     implementation("org.jetbrains.kotlin:kotlin-stdlib:$rdKotlinVersion")
+  println(rootProject.tasks.named("resolvePlatformModel").get().outputs.files.singleFile)
+    implementation(files(rootProject.tasks.named("resolvePlatformModel").get().outputs.files.singleFile))
     implementation(
       project(
         mapOf(
@@ -75,5 +80,5 @@ dependencies {
         )
       )
     )
-  }
+
 }
