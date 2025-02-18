@@ -1,8 +1,5 @@
-// Reference https://www.jetbrains.org/intellij/sdk/docs/tutorials/build_system/gradle_guide.html
-import com.jetbrains.plugin.structure.base.utils.isFile
 import groovy.ant.FileNameFinder
 import org.apache.tools.ant.taskdefs.condition.Os
-import org.jetbrains.intellij.platform.gradle.Constants
 import java.io.ByteArrayOutputStream
 
 plugins {
@@ -89,15 +86,15 @@ val setBuildTool by tasks.registering {
                 workingDir(rootDir)
             }
 
-            val directory = "${System.getProperty("user.home")}\\.dotnet"
+            val directory = "${System.getProperty("user.home")}\\AppData\\Local\\Programs\\Rider\\tools\\MSBuild"
             if (directory.isNotEmpty()) {
-                val files = FileNameFinder().getFileNames(directory, "**/dotnet.exe")
+                val files = FileNameFinder().getFileNames(directory, "Current/Bin/MSBuild.exe")
                 extra["executable"] = files.get(0)
-//                args = mutableListOf("/v:minimal")
+                args = mutableListOf("/v:minimal")
             }
         }
 
-        args.add("${DotnetSolution}")
+        args.add(DotnetSolution)
         args.add("/p:Configuration=${BuildConfiguration}")
         args.add("/p:HostFullIdentifier=")
         extra["args"] = args
@@ -126,24 +123,11 @@ tasks.buildPlugin {
             into("${rootDir}/output")
         }
 
-        // TODO: See also org.jetbrains.changelog: https://github.com/JetBrains/gradle-changelog-plugin
         val changelogText = file("${rootDir}/CHANGELOG.md").readText()
         val changelogMatches = Regex("(?s)(-.+?)(?=##|$)").findAll(changelogText)
         val changeNotes = changelogMatches.map {
             it.groups[1]!!.value.replace("(?s)- ".toRegex(), "\u2022 ").replace("`", "").replace(",", "%2C").replace(";", "%3B")
         }.take(1).joinToString()
-
-//        val executable: String by setBuildTool.get().extra
-//        val arguments = (setBuildTool.get().extra["args"] as List<String>).toMutableList()
-//        arguments.add("/t:Pack")
-//        arguments.add("/p:PackageOutputPath=${rootDir}/output")
-//        arguments.add("/p:PackageReleaseNotes=${changeNotes}")
-//        arguments.add("/p:PackageVersion=${version}")
-//        exec {
-//            executable(executable)
-//            args(arguments)
-//            workingDir(rootDir)
-//        }
     }
 }
 
@@ -151,24 +135,10 @@ dependencies {
     intellijPlatform {
         rider(ProductVersion)
         jetbrainsRuntime()
-//        instrumentationTools()
 
-//        bundledModule("intellij.rider")
         bundledPlugin("com.intellij.resharper.unity")
-        // TODO: add plugins
-        // bundledPlugin("uml")
-        // bundledPlugin("com.jetbrains.ChooseRuntime:1.0.9")
     }
 }
-
-//intellij {
-//    type = 'RD'
-//    version = "${ProductVersion}"
-//    downloadSources = false
-//    instrumentCode = false
-//    // TODO: add plugins
-//     plugins = ["rider-unity"]
-//}
 
 tasks.runIde {
     // Match Rider's default heap size of 1.5Gb (default for runIde is 512Mb)
@@ -176,10 +146,7 @@ tasks.runIde {
 
     // Rider's backend doesn't support dynamic plugins. It might be possible to work with auto-reload of the frontend
     // part of a plugin, but there are dangers about keeping plugins in sync
-//    autoReloadPlugins = false
-
-    // gradle-intellij-plugin will download the default version of the JBR for the snapshot. Update if required
-    // jbrVersion = "jbr_jcef-11_0_6b765.40" // https://confluence.jetbrains.com/display/JBR/Release+notes
+    autoReload = false
 }
 
 //rdgen {
@@ -220,8 +187,6 @@ tasks.prepareSandbox {
     val dllFiles = listOf(
         "$outputFolder/${DotnetPluginId}.dll",
         "$outputFolder/${DotnetPluginId}.pdb",
-
-        // TODO: add additional assemblies
     )
 
     dllFiles.forEach({ f ->
@@ -241,7 +206,7 @@ val testDotNet by tasks.registering {
     doLast {
         exec {
             executable("dotnet")
-            args("test","${DotnetSolution}","--logger","GitHubActions")
+            args("test", DotnetSolution,"--logger","GitHubActions")
             workingDir(rootDir)
         }
     }
@@ -250,12 +215,12 @@ val testDotNet by tasks.registering {
 tasks.publishPlugin {
     dependsOn(testDotNet)
     dependsOn(tasks.buildPlugin)
-    token.set("${PublishToken}")
+    token.set(PublishToken)
 
     doLast {
         exec {
             executable("dotnet")
-            args("nuget","push","output/${DotnetPluginId}.${version}.nupkg","--api-key","${PublishToken}","--source","https://plugins.jetbrains.com")
+            args("nuget","push","output/${DotnetPluginId}.${version}.nupkg","--api-key",PublishToken,"--source","https://plugins.jetbrains.com")
             workingDir(rootDir)
         }
     }
