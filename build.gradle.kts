@@ -86,11 +86,18 @@ val setBuildTool by tasks.registering {
                 workingDir(rootDir)
             }
 
-            val directory = "${System.getProperty("user.home")}\\AppData\\Local\\Programs\\Rider\\tools\\MSBuild"
-            if (directory.isNotEmpty()) {
-                val files = FileNameFinder().getFileNames(directory, "Current/Bin/MSBuild.exe")
+            val vsWhereDirectory = stdout.toString().trim()
+            if (vsWhereDirectory.isNotEmpty()) {
+                val files = FileNameFinder().getFileNames("${vsWhereDirectory}\\MSBuild", "**/MSBuild.exe")
                 extra["executable"] = files.get(0)
                 args = mutableListOf("/v:minimal")
+            } else {
+                val directory = "${System.getProperty("user.home")}\\AppData\\Local\\Programs\\Rider\\tools\\MSBuild"
+                if (directory.isNotEmpty()) {
+                    val files = FileNameFinder().getFileNames(directory, "Current/Bin/MSBuild.exe")
+                    extra["executable"] = files.get(0)
+                    args = mutableListOf("/v:minimal")
+                }
             }
         }
 

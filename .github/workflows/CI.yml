@@ -6,6 +6,11 @@ jobs:
   Build:
     runs-on: windows-latest
     steps:
+      - name: configure_java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'corretto'
+          java-version: '17'
       - uses: actions/checkout@v4
         with:
           submodules: recursive
@@ -26,6 +31,11 @@ jobs:
   Test:
     runs-on: windows-latest
     steps:
+      - name: configure_java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'corretto'
+          java-version: '17'
       - uses: actions/checkout@v4
         with:
           submodules: recursive
