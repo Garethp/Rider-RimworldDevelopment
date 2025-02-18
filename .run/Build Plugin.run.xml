@@ -1,11 +1,11 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="Build Plugin" type="RunNativeExe" factoryName="Native Executable">
-    <option name="EXE_PATH" value="C:\Windows\System32\cmd.exe" />
+    <option name="EXE_PATH" value="$PROJECT_DIR$/../../../../Windows/System32/cmd.exe" />
     <option name="PROGRAM_PARAMETERS" value="/c gradlew.bat :buildPlugin -x compileDotNet" />
     <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
     <option name="PASS_PARENT_ENVS" value="1" />
     <envs>
-      <env name="JAVA_HOME" value="C:\Users\Gareth\.jdks\corretto-16.0.2" />
+      <env name="JAVA_HOME" value="C:\Users\Gareth\.jdks\corretto-17.0.7" />
     </envs>
     <option name="USE_EXTERNAL_CONSOLE" value="0" />
     <method v="2">
