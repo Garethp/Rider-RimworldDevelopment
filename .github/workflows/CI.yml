@@ -26,7 +26,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: ${{ github.event.repository.name }}.CI.${{ github.ref_name }}
+          name: ${{ github.event.repository.name }}.CI.${{ github.head_ref || github.ref_name }}
           path: output
   Test:
     runs-on: windows-latest
