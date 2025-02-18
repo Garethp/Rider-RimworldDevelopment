@@ -13,7 +13,6 @@ pluginManagement {
     val PublishToken: String by settings
     val ProductVersion: String by settings
 
-
     repositories {
         maven("https://cache-redirector.jetbrains.com/intellij-dependencies")
         maven("https://cache-redirector.jetbrains.com/plugins.gradle.org")
@@ -31,7 +30,6 @@ pluginManagement {
         id("com.jetbrains.rdgen") version rdVersion
         id("org.jetbrains.kotlin.jvm") version rdKotlinVersion
         id("org.jetbrains.intellij.platform") version intellijPlatformGradlePluginVersion
-//    id("org.jetbrains.grammarkit") version grammarKitVersion
         id("me.filippov.gradle.jvm.wrapper") version gradleJvmWrapperVersion
     }
 
@@ -57,5 +55,3 @@ dependencyResolutionManagement {
         maven("https://cache-redirector.jetbrains.com/myget.org.rd-snapshots.maven")
     }
 }
-
-//include(":protocol")

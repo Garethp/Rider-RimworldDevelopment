@@ -149,37 +149,6 @@ tasks.runIde {
     autoReload = false
 }
 
-//rdgen {
-//    def modelDir = new File(rootDir, "protocol/src/main/kotlin/model")
-//    def csOutput = new File(rootDir, "src/dotnet/${DotnetPluginId}/Rider")
-//    def ktOutput = new File(rootDir, "src/rider/main/kotlin/")
-//
-//    verbose = true
-//    classpath {
-//        "${rdLibDirectory()}/rider-model.jar"
-//    }
-//    sources "${modelDir}/rider"
-//    hashFolder = "${buildDir}"
-//    packages = "model.rider"
-//
-//    generator {
-//        language = "kotlin"
-//        transform = "asis"
-//        root = "com.jetbrains.rider.model.nova.ide.IdeRoot"
-//        namespace = "com.jetbrains.rider.model"
-//        directory = "$ktOutput"
-//    }
-//
-//    generator {
-//        language = "csharp"
-//        transform = "reversed"
-//        root = "com.jetbrains.rider.model.nova.ide.IdeRoot"
-//        namespace = "JetBrains.Rider.Model"
-//        directory = "$csOutput"
-//    }
-//}
-
-
 tasks.prepareSandbox {
     dependsOn(compileDotNet)
 

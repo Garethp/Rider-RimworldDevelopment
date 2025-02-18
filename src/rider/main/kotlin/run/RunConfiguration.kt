@@ -57,6 +57,7 @@ class RunConfiguration(project: Project, factory: ConfigurationFactory, name: St
         return getRimworldState(environment)
     }
 
+    @Deprecated("Please, override 'getRunProfileStateAsync' instead")
     @OptIn(ExperimentalCoroutinesApi::class)
     override fun getStateAsync(executor: Executor, environment: ExecutionEnvironment): Promise<RunProfileState> {
         val attachToDebugFactory = UnityAttachToPlayerFactory(UnityPlayerDebugConfigurationType())
