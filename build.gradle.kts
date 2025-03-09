@@ -192,14 +192,6 @@ tasks.publishPlugin {
     dependsOn(testDotNet)
     dependsOn(tasks.buildPlugin)
     token.set(PublishToken)
-
-    doLast {
-        exec {
-            executable("dotnet")
-            args("nuget","push","output/${DotnetPluginId}.${version}.nupkg","--api-key",PublishToken,"--source","https://plugins.jetbrains.com")
-            workingDir(rootDir)
-        }
-    }
 }
 
 tasks.patchPluginXml  {

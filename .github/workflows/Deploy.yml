@@ -1,0 +1,29 @@
+name: Deploy
+
+on:
+  push:
+    tags:
+      - '*.*.*'
+
+jobs:
+  Publish:
+    runs-on: windows-latest
+    environment: Deploy
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: configure_java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'corretto'
+          java-version: '17'
+          cache: 'gradle'
+      - run: ./gradlew :publishPlugin -PBuildConfiguration="Release" -PPluginVersion="${{ github.ref_name }}" -PPublishToken="${{ secrets.PUBLISH_TOKEN }}"
+        env:
+          PUBLISH_TOKEN: ${{ secrets.PUBLISH_TOKEN }}
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ${{ github.event.repository.name }}.${{ github.ref_name }}
+          path: output
