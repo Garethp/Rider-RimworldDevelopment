@@ -22,8 +22,9 @@ jobs:
       - run: ./gradlew :publishPlugin -PBuildConfiguration="Release" -PPluginVersion="${{ github.ref_name }}" -PPublishToken="${{ secrets.PUBLISH_TOKEN }}"
         env:
           PUBLISH_TOKEN: ${{ secrets.PUBLISH_TOKEN }}
-      - uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: ${{ github.event.repository.name }}.${{ github.ref_name }}
-          path: output
+      - name: Upload binaries to release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
+        run: |
+          gh release upload ${{ github.ref_name }} output/*
