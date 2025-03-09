@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using JetBrains;
 using JetBrains.Annotations;
+using JetBrains.Application.Parts;
 using JetBrains.Application.Threading;
 using JetBrains.Collections;
 using JetBrains.Lifetimes;
@@ -19,7 +20,7 @@ using ReSharperPlugin.RimworldDev.TypeDeclaration;
 
 namespace ReSharperPlugin.RimworldDev.SymbolScope;
 
-[PsiComponent]
+[PsiComponent(Instantiation.ContainerAsyncPrimaryThread)]
 public class RimworldSymbolScope : SimpleICache<List<RimworldXmlDefSymbol>>
 {
     private Dictionary<string, ITreeNode> DefTags = new();

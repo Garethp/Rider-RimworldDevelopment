@@ -1,4 +1,5 @@
 using JetBrains.Annotations;
+using JetBrains.Application.Parts;
 using JetBrains.DocumentModel;
 using JetBrains.ReSharper.Feature.Services.CodeCompletion.Impl;
 using JetBrains.ReSharper.Feature.Services.CodeCompletion.Infrastructure;
@@ -38,7 +39,7 @@ namespace ReSharperPlugin.RimworldDev
         public override string ContextId => nameof (XmlCodeCompletionContext);
     }
 
-    [IntellisensePart]
+    [IntellisensePart(Instantiation.DemandAnyThreadSafe)]
     public class RimworlXMLCompletionContextProvider: XmlCodeCompletionContextProvider
     {
         public override bool IsApplicable(CodeCompletionContext context)

@@ -5,6 +5,7 @@ build
 output
 .gradle
 .tmp
+.intellijPlatform
 
 # User-specific files
 *.suo

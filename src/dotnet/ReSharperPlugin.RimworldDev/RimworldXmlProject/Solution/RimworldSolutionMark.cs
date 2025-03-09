@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using JetBrains.Annotations;
+using JetBrains.Application.Components;
 using JetBrains.ProjectModel.ProjectsHost;
 using JetBrains.ProjectModel.ProjectsHost.Impl;
 using JetBrains.Util;
@@ -12,7 +13,7 @@ public class RimworldSolutionMark : SolutionMark
     public RimworldSolutionMark(
         [NotNull] VirtualFileSystemPath aboutFile,
         [NotNull] VirtualFileSystemPath solutionFilePath,
-        [NotNull] IReadOnlyList<ISolutionConfigurationDefaults> solutionConfigurationDefaultsSet
+        [NotNull] IImmutableEnumerable<ISolutionConfigurationDefaults> solutionConfigurationDefaultsSet
         ) : base(
         solutionFilePath, solutionConfigurationDefaultsSet)
     {
