@@ -15,11 +15,30 @@ import com.jetbrains.rd.platform.util.lifetime
 import com.jetbrains.rider.debugger.IRiderDebuggable
 import com.jetbrains.rider.plugins.unity.run.configurations.UnityAttachToPlayerFactory
 import com.jetbrains.rider.plugins.unity.run.configurations.UnityPlayerDebugConfigurationOptions
-import com.jetbrains.rider.plugins.unity.run.configurations.UnityPlayerDebugConfigurationType
 import com.jetbrains.rider.run.configurations.AsyncRunConfiguration
 import com.jetbrains.rider.run.getProcess
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import org.jetbrains.concurrency.Promise
+import com.jetbrains.rider.plugins.unity.UnityBundle
+import icons.UnityIcons
+
+
+internal class UnityPlayerDebugConfigurationTypeInternal : ConfigurationTypeBase(
+    ID,
+    UnityBundle.message("configuration.type.name.attach.to.unity.player"),
+    UnityBundle.message("configuration.type.description.attach.to.unity.player.and.debug"),
+    UnityIcons.RunConfigurations.AttachToPlayer
+), VirtualConfigurationType {
+    val attachToPlayerFactory = UnityAttachToPlayerFactory(this)
+
+    init {
+        addFactory(attachToPlayerFactory)
+    }
+
+    companion object {
+        const val ID = "UnityPlayer"
+    }
+}
 
 
 class RunConfiguration(project: Project, factory: ConfigurationFactory, name: String) :
@@ -60,7 +79,7 @@ class RunConfiguration(project: Project, factory: ConfigurationFactory, name: St
     @Deprecated("Please, override 'getRunProfileStateAsync' instead")
     @OptIn(ExperimentalCoroutinesApi::class)
     override fun getStateAsync(executor: Executor, environment: ExecutionEnvironment): Promise<RunProfileState> {
-        val attachToDebugFactory = UnityAttachToPlayerFactory(UnityPlayerDebugConfigurationType())
+        val attachToDebugFactory = UnityAttachToPlayerFactory(UnityPlayerDebugConfigurationTypeInternal())
         val attachToDebug = attachToDebugFactory.createTemplateConfiguration(project)
         attachToDebug.name = "Custom Player"
 
