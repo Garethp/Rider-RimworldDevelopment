@@ -6,7 +6,7 @@ plugins {
     id("java")
     alias(libs.plugins.kotlinJvm)
     id("org.jetbrains.intellij.platform") version "2.2.1"     // https://github.com/JetBrains/gradle-intellij-plugin/releases
-    id("com.jetbrains.rdgen") version libs.versions.rdGen    // https://www.myget.org/feed/rd-snapshots/package/maven/com.jetbrains.rd/rd-gen
+//    id("com.jetbrains.rdgen") version libs.versions.rdGen    // https://www.myget.org/feed/rd-snapshots/package/maven/com.jetbrains.rd/rd-gen
     id("me.filippov.gradle.jvm.wrapper") version "0.14.0"
 }
 

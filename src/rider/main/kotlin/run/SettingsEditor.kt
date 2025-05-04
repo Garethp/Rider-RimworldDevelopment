@@ -21,24 +21,18 @@ class SettingsEditor(project: Project) : SettingsEditor<RunConfiguration>() {
 
     init {
         exePath.addBrowseFolderListener(
-            "Executable Path",
-            "",
             null,
-            FileChooserDescriptorFactory.createSingleFileDescriptor()
+            FileChooserDescriptorFactory.singleFile().withTitle("Executable Path").withDescription("")
         )
 
         modListPath.addBrowseFolderListener(
-            "Modlist Path",
-            "",
             project,
-            FileChooserDescriptorFactory.createSingleFileDescriptor()
+            FileChooserDescriptorFactory.singleFile().withTitle("Modlist Path").withDescription("")
         )
 
         saveFilePath.addBrowseFolderListener(
-            "Save File Path",
-            "",
             project,
-            FileChooserDescriptorFactory.createSingleFileDescriptor()
+            FileChooserDescriptorFactory.singleFile().withTitle("Save File Path").withDescription("")
         )
 
         myPanel = FormBuilder
