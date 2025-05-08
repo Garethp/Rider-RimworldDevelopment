@@ -231,7 +231,7 @@ tasks.publishPlugin {
 
 tasks.patchPluginXml {
     val changelogText = file("${rootDir}/CHANGELOG.md").readText()
-        .split("\r")
+        .lines()
         .dropWhile { !it.trim().startsWith("##") }
         .drop(1)
         .takeWhile { !it.trim().startsWith("##") }
