@@ -20,7 +20,13 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="JetBrains.ReSharper.SDK" Version="$(SdkVersion)" PrivateAssets="all" />
+    <PackageReference Include="JetBrains.Annotations" Version="2024.3.0" />
+    <PackageReference Include="JetBrains.Lifetimes" Version="$(SdkVersion)" />
+    <PackageReference Include="JetBrains.RdFramework" Version="$(SdkVersion)" />
+    <PackageReference Include="JetBrains.Rider.SDK" Version="$(SdkVersion)">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
     <PackageReference Include="Wave" Version="$(WaveVersion)" />
     <!-- TODO: https://github.com/NuGet/Home/issues/7154 -->
   </ItemGroup>
@@ -54,7 +60,7 @@
   <ItemGroup>
     <None Remove="projectTemplates\**" />
   </ItemGroup>
-
+  
   <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
 
 </Project>
