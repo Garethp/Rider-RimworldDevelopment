@@ -1,7 +1,7 @@
 <idea-plugin require-restart="true">
   <id>com.jetbrains.rider.plugins.rimworlddev</id>
   <name>Rimworld Development Environment</name>
-  <version>2024.1.6</version>
+  <version>0.0.0</version>
   <vendor url="https://github.com/Garethp/Rider-RimworldDevelopment">Garethp</vendor>
   <idea-version since-build="251" />
   <depends>com.intellij.modules.rider</depends>
@@ -15,13 +15,7 @@ in your mods!</p>
 ]]>
   </description>
   
-  <change-notes>
-<![CDATA[
-<p><ul>
-<li>Restore missing new project template</li>
-</ul></p>
-]]>
-  </change-notes>
+  <change-notes>Will be auto-generated</change-notes>
 
   <extensions defaultExtensionNs="com.intellij">
     <applicationConfigurable groupId="language" instance="RimworldDev.Rider.settings.RimworldSettings" displayName="Rimworld" id="preferences.build.rimworldPlugin" />

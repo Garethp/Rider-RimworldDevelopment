@@ -29,6 +29,7 @@ val ProductVersion: String by project
 val DotnetPluginId: String by project
 val RiderPluginId: String by project
 val PublishToken: String by project
+val PluginVersion: String by project
 
 allprojects {
     repositories {
@@ -57,7 +58,8 @@ apply {
 tasks.wrapper {
     gradleVersion = "8.8"
     distributionType = Wrapper.DistributionType.ALL
-    distributionUrl = "https://cache-redirector.jetbrains.com/services.gradle.org/distributions/gradle-${gradleVersion}-all.zip"
+    distributionUrl =
+        "https://cache-redirector.jetbrains.com/services.gradle.org/distributions/gradle-${gradleVersion}-all.zip"
 }
 
 version = extra["PluginVersion"] as String
@@ -140,6 +142,7 @@ val buildResharperPlugin by tasks.registering {
         arguments.add("/t:Restore;Rebuild;Pack")
         arguments.add("/v:minimal")
         arguments.add("/p:PackageOutputPath=\"$rootDir/output\"")
+        arguments.add("/p:PackageVersion=$PluginVersion")
         exec {
             executable(executable)
             args(arguments)
@@ -154,12 +157,6 @@ tasks.buildPlugin {
             from("${buildDir}/distributions/${rootProject.name}-${version}.zip")
             into("${rootDir}/output")
         }
-
-        val changelogText = file("${rootDir}/CHANGELOG.md").readText()
-        val changelogMatches = Regex("(?s)(-.+?)(?=##|$)").findAll(changelogText)
-        val changeNotes = changelogMatches.map {
-            it.groups[1]!!.value.replace("(?s)- ".toRegex(), "\u2022 ").replace("`", "").replace(",", "%2C").replace(";", "%3B")
-        }.take(1).joinToString()
     }
 }
 
@@ -206,7 +203,7 @@ tasks.prepareSandbox {
         from(file, { into("${rootProject.name}/dotnet") })
     })
 
-    from("${rootDir}/src/dotnet/${DotnetPluginId}/projectTemplates", { into("${rootProject.name}/projectTemplates")})
+    from("${rootDir}/src/dotnet/${DotnetPluginId}/projectTemplates", { into("${rootProject.name}/projectTemplates") })
 
     doLast {
         dllFiles.forEach({ f ->
@@ -220,7 +217,7 @@ val testDotNet by tasks.registering {
     doLast {
         exec {
             executable("dotnet")
-            args("test", DotnetSolution,"--logger","GitHubActions")
+            args("test", DotnetSolution, "--logger", "GitHubActions")
             workingDir(rootDir)
         }
     }
@@ -232,6 +229,18 @@ tasks.publishPlugin {
     token.set(PublishToken)
 }
 
-tasks.patchPluginXml  {
+tasks.patchPluginXml {
+    val changelogText = file("${rootDir}/CHANGELOG.md").readText()
+        .split("\r")
+        .dropWhile { !it.trim().startsWith("##") }
+        .drop(1)
+        .takeWhile { !it.trim().startsWith("##") }
+        .filter { it.trim().isNotEmpty() }
+        .joinToString("\r\n") {
+            "<li>${it.trim().replace(Regex("^\\*\\s+?"), "")}</li>"
+        }.trim()
+
+    pluginVersion.set(PluginVersion)
+    changeNotes.set("<ul>\r\n$changelogText\r\n</ul>");
     untilBuild.set(provider { null })
 }

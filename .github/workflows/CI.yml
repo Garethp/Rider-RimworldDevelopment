@@ -28,7 +28,7 @@ jobs:
           key: ${{ runner.os }}-Build-${{ hashFiles('gradlew.bat', 'src/dotnet/*/*.csproj', 'src/dotnet/*.props', 'gradle-wrapper.properties') }}
       - run: ./gradlew :buildPlugin --no-daemon
       - run: ./gradlew :buildResharperPlugin --no-daemon
-      - run: nuget --help
+      - run: nuget -verify output/ReSharperPlugin*.nupkg
       - uses: actions/upload-artifact@v4
         if: always()
         with:
