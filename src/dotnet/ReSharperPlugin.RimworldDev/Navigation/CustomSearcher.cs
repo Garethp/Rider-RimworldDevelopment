@@ -64,7 +64,7 @@ public class CustomSearcher : IDomainSpecificSearcher
 
     private bool CanContainWord([NotNull] IPsiSourceFile sourceFile)
     {
-        return myWordsInText.Any(word => myWordIndex?.CanContainWord(sourceFile, word) == true);
+        return myWordsInText.Any(word => myWordIndex?.CanContainAllSubwords(sourceFile, word) == true);
     }
 
     public bool ProcessElement<TResult>(ITreeNode element, IFindResultConsumer<TResult> consumer)
