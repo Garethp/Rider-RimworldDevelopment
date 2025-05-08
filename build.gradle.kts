@@ -132,6 +132,21 @@ val compileDotNet by tasks.registering {
     }
 }
 
+val buildResharperPlugin by tasks.registering {
+    dependsOn(setBuildTool)
+    doLast {
+        val executable: String by setBuildTool.get().extra
+        val arguments = (setBuildTool.get().extra["args"] as List<String>).toMutableList()
+        arguments.add("/t:Restore;Rebuild;Pack")
+        arguments.add("/v:minimal")
+        arguments.add("/p:PackageOutputPath=\"$rootDir/output\"")
+        exec {
+            executable(executable)
+            args(arguments)
+            workingDir(rootDir)
+        }
+    }
+}
 
 tasks.buildPlugin {
     doLast {
