@@ -192,13 +192,16 @@ public class ScopeHelper
         {
             @"C:\Program Files (x86)\Steam\steamapps\",
             @"C:\Program Files\Steam\steamapps\",
-            $"{Environment.GetFolderPath(Environment.SpecialFolder.UserProfile)}/steam/steam/steamapps/"
+            $"{Environment.GetFolderPath(Environment.SpecialFolder.UserProfile)}/steam/steam/steamapps/",
+            $"{Environment.GetFolderPath(Environment.SpecialFolder.UserProfile)}/snap/steam/common/.local/share/Steam/steamapps/",
+            $"{Environment.GetFolderPath(Environment.SpecialFolder.UserProfile)}/.local/share/Steam/steamapps/",
         };
 
         locations.AddRange(
             DriveInfo
                 .GetDrives()
                 .Select(drive => $@"{drive.RootDirectory.Name}/SteamLibrary/steamapps/")
+                .Select(location => !RuntimeInfo.IsRunningUnderWindows ? $"/{location}" : location)
         );
 
         return locations

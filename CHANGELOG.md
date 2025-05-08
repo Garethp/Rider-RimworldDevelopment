@@ -2,6 +2,10 @@
 
 ## 2024.1.6
  * Restore missing new project template
+ * Start automatically publishing ReSharper versions
+ * Fix some exceptions for non-absolute paths under non-Windows systems
+ * Start automatically generating the changelogs under the plugin xml
+ * Look for Steam in more locations on Linux
 
 ## 2024.1.5
  * Fix case-sensitive matching of mod dependencies
