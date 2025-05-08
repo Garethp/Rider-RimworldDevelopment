@@ -214,6 +214,8 @@ public class ScopeHelper
 
     public static Dictionary<string, string> GetModLocations(string basePath, List<string> desiredModIds)
     {
+        desiredModIds = desiredModIds.Select(x => x.ToLower()).ToList();
+        
         var directoriesToCheck = FindModDirectories(basePath);
         var foundMods = new Dictionary<string, string>();
 
@@ -233,7 +235,7 @@ public class ScopeHelper
                 var modId = document?.GetElementsByTagName("ModMetaData")[0]?.GetChildElements("packageId")
                     .FirstOrDefault()?.InnerText;
 
-                if (modId == null || !desiredModIds.Contains(modId)) continue;
+                if (modId == null || !desiredModIds.Contains(modId?.ToLower())) continue;
 
                 desiredModIds.Remove(modId);
                 if (foundMods.ContainsKey(modId)) continue;

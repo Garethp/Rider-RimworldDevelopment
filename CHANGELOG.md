@@ -1,5 +1,8 @@
 # Changelog
 
+## 2024.1.5
+ * Fix case-sensitive matching of mod dependencies
+
 ## 2024.1.1
  * Fix Quickstart (Modlist and Save loading) when running on Linux
 

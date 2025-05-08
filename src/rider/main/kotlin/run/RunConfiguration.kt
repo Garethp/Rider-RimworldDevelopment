@@ -20,6 +20,8 @@ import com.jetbrains.rider.run.getProcess
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import org.jetbrains.concurrency.Promise
 import com.jetbrains.rider.plugins.unity.UnityBundle
+import com.jetbrains.rider.plugins.unity.run.configurations.unityExe.UnityExeConfiguration
+import com.jetbrains.rider.run.RiderRunBundle
 import icons.UnityIcons
 
 
@@ -76,9 +78,25 @@ class RunConfiguration(project: Project, factory: ConfigurationFactory, name: St
         return getRimworldState(environment)
     }
 
+    @Suppress("UsagesOfObsoleteApi")
     @Deprecated("Please, override 'getRunProfileStateAsync' instead")
-    @OptIn(ExperimentalCoroutinesApi::class)
-    override fun getStateAsync(executor: Executor, environment: ExecutionEnvironment): Promise<RunProfileState> {
+    override fun getStateAsync(
+        executor: Executor,
+        environment: ExecutionEnvironment
+    ): Promise<RunProfileState> {
+        @Suppress("DEPRECATION")
+        throw UnsupportedOperationException(
+            RiderRunBundle.message(
+                "obsolete.synchronous.api.is.used.message",
+                UnityExeConfiguration::getStateAsync.name
+            )
+        )
+    }
+
+    override suspend fun getRunProfileStateAsync(
+        executor: Executor,
+        environment: ExecutionEnvironment
+    ): RunProfileState {
         val attachToDebugFactory = UnityAttachToPlayerFactory(UnityPlayerDebugConfigurationTypeInternal())
         val attachToDebug = attachToDebugFactory.createTemplateConfiguration(project)
         attachToDebug.name = "Custom Player"
@@ -89,19 +107,16 @@ class RunConfiguration(project: Project, factory: ConfigurationFactory, name: St
 
         attachToDebug.loadState(attachToDebugOptions)
 
-        return environment.project.lifetime.startOnUiAsync {
-            RunState(
-                getScriptName(),
-                getSaveFilePath(),
-                getModListPath(),
-                getRimworldState(environment),
-                UnityDebugRemoteConfiguration(),
-                environment,
-                "CustomPlayer"
-            )
-        }.toPromise()
+        return RunState(
+            getScriptName(),
+            getSaveFilePath(),
+            getModListPath(),
+            getRimworldState(environment),
+            UnityDebugRemoteConfiguration(),
+            environment,
+            "CustomPlayer"
+        );
     }
-
 
     override fun getConfigurationEditor(): SettingsEditor<out RunConfiguration> {
         return RimworldDev.Rider.run.SettingsEditor(project)
