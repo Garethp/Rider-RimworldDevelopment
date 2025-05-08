@@ -1,10 +1,14 @@
 name: CI
 
-on: [push, pull_request]
+on:
+  push:
+    branches:
+      - main
+  pull_request:
 
 jobs:
   Build:
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
@@ -13,7 +17,7 @@ jobs:
         uses: actions/setup-java@v4
         with:
           distribution: 'corretto'
-          java-version: '17'
+          java-version: '21'
           cache: 'gradle'
       - uses: actions/cache@v4
         with:
@@ -22,15 +26,16 @@ jobs:
             ~/.nuget/packages
             ~/.gradle/caches
             ~/.gradle/wrapper
-          key: ${{ runner.os }}-Build-${{ hashFiles('gradlew.bat', 'src/dotnet/*/*.csproj', 'src/dotnet/*.props', 'gradle-wrapper.properties') }}
+          key: ${{ runner.os }}-Build-${{ hashFiles('gradlew.bat', 'src/dotnet/*/*.csproj', './*.props', 'gradle-wrapper.properties') }}
       - run: ./gradlew :buildPlugin --no-daemon
+      - run: ./gradlew :buildResharperPlugin --no-daemon
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: ${{ github.event.repository.name }}.CI.${{ github.head_ref || github.ref_name }}
           path: output
   Test:
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
@@ -49,5 +54,5 @@ jobs:
             ~/.nuget/packages
             ~/.gradle/caches
             ~/.gradle/wrapper
-          key: ${{ runner.os }}-Test-${{ hashFiles('gradlew.bat', 'src/dotnet/*/*.csproj', 'src/dotnet/*.props', 'gradle-wrapper.properties') }}
+          key: ${{ runner.os }}-Test-${{ hashFiles('gradlew.bat', 'src/dotnet/*/*.csproj', './*.props', 'gradle-wrapper.properties') }}
       - run: ./gradlew :testDotNet --no-daemon
