@@ -1,5 +1,8 @@
 # Changelog
 
+## 2024.1.6
+ * Restore missing new project template
+
 ## 2024.1.5
  * Fix case-sensitive matching of mod dependencies
 

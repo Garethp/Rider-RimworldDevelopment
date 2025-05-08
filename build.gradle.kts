@@ -10,6 +10,15 @@ plugins {
     id("me.filippov.gradle.jvm.wrapper") version "0.14.0"
 }
 
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_21
+
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
+
 val isWindows = Os.isFamily(Os.FAMILY_WINDOWS)
 extra["isWindows"] = isWindows
 
@@ -69,7 +78,7 @@ tasks.instrumentTestCode {
 }
 
 tasks.compileKotlin {
-    kotlinOptions { jvmTarget = "17" }
+    kotlinOptions { jvmTarget = "21" }
 }
 
 val setBuildTool by tasks.registering {
@@ -169,6 +178,8 @@ tasks.prepareSandbox {
         val file = file(f)
         from(file, { into("${rootProject.name}/dotnet") })
     })
+
+    from("${rootDir}/src/dotnet/${DotnetPluginId}/projectTemplates", { into("${rootProject.name}/projectTemplates")})
 
     doLast {
         dllFiles.forEach({ f ->
