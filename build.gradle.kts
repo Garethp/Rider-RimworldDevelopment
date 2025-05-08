@@ -1,11 +1,12 @@
 import groovy.ant.FileNameFinder
 import org.apache.tools.ant.taskdefs.condition.Os
+import org.jetbrains.intellij.platform.gradle.IntelliJPlatformType
 import java.io.ByteArrayOutputStream
 
 plugins {
     id("java")
     alias(libs.plugins.kotlinJvm)
-    id("org.jetbrains.intellij.platform") version "2.2.1"     // https://github.com/JetBrains/gradle-intellij-plugin/releases
+    id("org.jetbrains.intellij.platform") version "2.5.0"     // https://github.com/JetBrains/gradle-intellij-plugin/releases
 //    id("com.jetbrains.rdgen") version libs.versions.rdGen    // https://www.myget.org/feed/rd-snapshots/package/maven/com.jetbrains.rd/rd-gen
     id("me.filippov.gradle.jvm.wrapper") version "0.14.0"
 }
@@ -149,10 +150,21 @@ tasks.buildPlugin {
 
 dependencies {
     intellijPlatform {
-        rider(ProductVersion)
+        rider(ProductVersion, useInstaller = false)
         jetbrainsRuntime()
 
         bundledPlugin("com.intellij.resharper.unity")
+    }
+}
+
+intellijPlatform {
+    pluginVerification {
+        freeArgs = listOf("-mute", "TemplateWordInPluginId")
+
+        ides {
+            ide(IntelliJPlatformType.Rider, ProductVersion)
+            recommended()
+        }
     }
 }
 
