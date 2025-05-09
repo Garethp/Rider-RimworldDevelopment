@@ -282,7 +282,7 @@ public class RimworldXMLItemProvider : ItemsProviderOfSpecificContext<RimworldXm
     // classes that it inherits from
     public static List<IField> GetAllPublicFields(ITypeElement desiredClass, ISymbolScope symbolScope)
     {
-        return desiredClass.EnumerateTypeMembersWholeHierarchyIncludeOverridenMembersFromBase<IField>()
+        return desiredClass.GetAllClassMembers<IField>()
             .Where(field => !field.Member.GetAttributeInstances(AttributesSource.All)
                 .Select(attribute => attribute.GetAttributeShortName()).Contains("UnsavedAttribute"))
             .Where(member =>
