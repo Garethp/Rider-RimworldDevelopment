@@ -1,5 +1,8 @@
 # Changelog
 
+## 2024.1.7
+ * Solved some incompatibilities for ReSharper
+
 ## 2024.1.6
  * Restore missing new project template
  * Start automatically publishing ReSharper versions
