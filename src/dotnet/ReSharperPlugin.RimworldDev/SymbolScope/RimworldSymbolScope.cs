@@ -34,8 +34,7 @@ public struct DefTag
     public bool IsAbstract { get; }
 }
 
-[PsiComponent(Instantiation.ContainerAsyncPrimaryThread)]
-public class RimworldSymbolScope : SimpleICache<List<RimworldXmlDefSymbol>>
+[PsiComponent(Instantiation.ContainerAsyncPrimaryThread)]public class RimworldSymbolScope : SimpleICache<List<RimworldXmlDefSymbol>>
 {
     private Dictionary<string, DefTag> DefTags = new();
     private Dictionary<string, string> ExtraDefTagNames = new();

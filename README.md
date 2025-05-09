@@ -29,6 +29,7 @@ into the definitions on which the XML sits.
    * When using them on `Parent=""` attributes, jump to the XML definition for that parent
  * Read the values in `Class=""` attributes to fetch the correct class to autocomplete from, such as in comps
  * Support for Custom Def Classes (Such as `<MyMod.CustomThingDef>`)
+ * Support for using Refactoring to Rename a Def, renaming all of its usages in XML and C#
  * A Rimworld Run Configuration
    * Automatically loads Unity Doorstop if run in Debug mode 
    * Specify a ModList and Save file to load for just this one launch 
