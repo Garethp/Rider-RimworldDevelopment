@@ -41,6 +41,38 @@
       "isRequired": "false",
       "defaultValue": ""
     },
+    "PublisherPlus": {
+      "type": "parameter",
+      "datatype": "bool",
+      "displayName": "Include a PublisherPlus config",
+      "description": "If enabled, a PublisherPlus config file will be included in the mod",
+      "isRequired": "false",
+      "defaultValue": "true"
+    },
+    "CSharp": {
+      "type": "parameter",
+      "datatype": "bool",
+      "displayName": "Add a C# Project and Sources",
+      "description": "If enabled, this mod will be created with a .sln file, Sources folder and a csproj file",
+      "isRequired": "false",
+      "defaultValue": "true"
+    },
+    "XML": {
+      "type": "parameter",
+      "datatype": "bool",
+      "displayName": "Add a Defs folder with a starting XML file",
+      "description": "If enabled, this mod will be created with a Defs folder and a starting XML file",
+      "isRequired": "false",
+      "defaultValue": "true"
+    },
+    "Languages": {
+      "type": "parameter",
+      "datatype": "bool",
+      "displayName": "Add a Languages folder",
+      "description": "If enabled, this mod will be created with a Languages folder with a starting English.xml file",
+      "isRequired": "false",
+      "defaultValue": "true"
+    },
     "AssemblyDir": {
       "type": "derived",
       "valueSource": "RimworldDLL",
@@ -64,11 +96,22 @@
         {
           "type": "conditional",
           "configuration": {
-            "if": [ "<!--#if" ],
-            "else": [ "#else", "<!--#else" ],
-            "elseif": [ "#elseif", "<!--#elseif" ],
-            "endif": [ "#endif", "<!--#endif" ],
-            "trim" : "true",
+            "if": [
+              "<!--#if"
+            ],
+            "else": [
+              "#else",
+              "<!--#else"
+            ],
+            "elseif": [
+              "#elseif",
+              "<!--#elseif"
+            ],
+            "endif": [
+              "#endif",
+              "<!--#endif"
+            ],
+            "trim": "true",
             "wholeLine": "true"
           }
         }
@@ -82,6 +125,28 @@
       "replacement": "$1"
     }
   },
+  "sources": [
+    {
+      "modifiers": [
+        {
+          "condition": "PublisherPlus == false",
+          "exclude": ["_PublisherPlus.xml"]
+        },
+        {
+          "condition": "CSharp == false",
+          "exclude": ["Source/**/*"]
+        },
+        {
+          "condition": "XML == false",
+          "exclude": ["Defs/**/*"]
+        },
+        {
+          "condition": "Languages == false",
+          "exclude": ["Languages/**/*"]
+        }
+      ]
+    }
+  ],
   "primaryOutputs": [
     {
       "path": "About/About.xml"
@@ -120,9 +185,11 @@
     },
     {
       "description": "Restore NuGet packages required by this project.",
-      "manualInstructions": [{
-        "text": "Run 'dotnet restore'"
-      }],
+      "manualInstructions": [
+        {
+          "text": "Run 'dotnet restore'"
+        }
+      ],
       "actionId": "210D431B-A78B-4D2F-B762-4ED3E3EA9025",
       "continueOnError": true
     }
