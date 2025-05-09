@@ -54,7 +54,10 @@ public class RenameDefWorkflow(ISolution solution, string actionId) : RenameWork
             return new();
 
         // @TODO: Check, can we make a rename factory to just **work** with the in-built renaming
-        declaredElements = data2.Where(x => RenameRefactoringService.Instance.CheckRenameAvailability(x) == RenameAvailabilityCheckResult.CanBeRenamed).ToList();
+        declaredElements = data2.Where(x =>
+                RenameRefactoringService.Instance.CheckRenameAvailability(x) ==
+                RenameAvailabilityCheckResult.CanBeRenamed)
+            .ToList();
         // declaredElements = data2.ToList();
         return declaredElements;
     }
@@ -109,8 +112,16 @@ public class RenameDefWorkflow(ISolution solution, string actionId) : RenameWork
             declaredElements = declaredElements.Concat(second).AsList();
         }
 
-        DataModel = new RenameDataModel(declaredElements, data, canHaveFileRenames, WorkflowExecuterLifetime, Solution,
-            renameHelperBase.GetOptionsModel(primaryDeclaredElement, data, WorkflowExecuterLifetime));
+        DataModel = new RenameDataModel(
+            declaredElements,
+            data,
+            canHaveFileRenames,
+            WorkflowExecuterLifetime,
+            Solution,
+            renameHelperBase.GetOptionsModel(primaryDeclaredElement, data, WorkflowExecuterLifetime),
+            this
+        );
+
         return true;
     }
 
