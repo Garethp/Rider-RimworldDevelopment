@@ -25,6 +25,7 @@ public class RimworldXmlProjectHost : SolutionFileProjectHostBase
     private readonly RimworldProjectStructureBuilder myStructureBuilder;
     private readonly FileSystemWildcardService myWildcardService;
     private readonly ProjectFilePropertiesFactory myProjectFilePropertiesFactory;
+    private bool hasReloaded = false;
     
     public RimworldXmlProjectHost(
         IPlatformManager platformManager,
@@ -48,8 +49,17 @@ public class RimworldXmlProjectHost : SolutionFileProjectHostBase
     protected override void Reload(ProjectHostReloadChange change, FileSystemPath logPath)
     {
         if (change.ProjectMark is not RimworldProjectMark projectMark) return;
-        projectMark.Dependencies.ForEach(dependency => dependency.UpdateParent(projectMark));
-        
+
+        // This is just a bit of a hacky workaround to re-assign our projects dependencies to be children of our project
+        // since it doesn't work with `ICustomProjectMarkProvider` as of Rider 2025.1
+        //
+        // @TODO: Remove this if that issue gets fixed.
+        if (!hasReloaded)
+        {
+            projectMark.Dependencies.ForEach(dependency => dependency.UpdateParent(projectMark));
+            hasReloaded = true;
+        }
+
         var siteProjectLocation = GetProjectLocation(projectMark);
 
         var targetFramework =
