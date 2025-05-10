@@ -1,0 +1,52 @@
+<Project>
+
+  <PropertyGroup>
+    <SdkVersion>2025.1.0</SdkVersion>
+
+    <Title>Rimworld Development Environment</Title>
+    <Description>Bring the intelligence of your IDE to Rimworld XML files. Use information backed by Rimworlds DLL file to autocomplete your XML, Ctrl+Click into the C# that your XML gets translated into and see what options you have when adding items in your mods!</Description>
+
+    <Authors>Garethp</Authors>
+    <Copyright>Copyright $([System.DateTime]::Now.Year) Maintainers of Rimworld Development Environment</Copyright>
+    <PackageTags>rimworld</PackageTags>
+
+    <PackageProjectUrl>https://github.com/Garethp/Rider-RimworldDevelopment</PackageProjectUrl>
+    <PackageLicenseUrl>https://opensource.org/license/mit/</PackageLicenseUrl>
+    <PackageIconUrl></PackageIconUrl>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <NoPackageAnalysis>true</NoPackageAnalysis>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>None</ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>
+
+    <BaseIntermediateOutputPath>obj\$(MSBuildProjectName)\</BaseIntermediateOutputPath>
+    <DefaultItemExcludes>$(DefaultItemExcludes);obj\**</DefaultItemExcludes>
+    <OutputPath>bin\$(MSBuildProjectName)\$(Configuration)\</OutputPath>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)'=='Debug'">
+    <DefineConstants>TRACE;DEBUG;JET_MODE_ASSERT</DefineConstants>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <WaveVersionBase>$(SdkVersion.Substring(2,2))$(SdkVersion.Substring(5,1))</WaveVersionBase>
+    <WaveVersion>$(WaveVersionBase).0.0$(SdkVersion.Substring(8))</WaveVersion>
+    <UpperWaveVersion>$(WaveVersionBase).9999.0</UpperWaveVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="JetBrains.Annotations" Version="2024.3.0" />
+    <PackageReference Include="JetBrains.Lifetimes" Version="$(SdkVersion)" />
+    <PackageReference Include="JetBrains.RdFramework" Version="$(SdkVersion)" />
+    <PackageReference Include="JetBrains.Rider.SDK" Version="$(SdkVersion)">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.0" PrivateAssets="All" />
+  </ItemGroup>
+
+</Project>

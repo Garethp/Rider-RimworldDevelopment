@@ -1,7 +1,13 @@
 import groovy.ant.FileNameFinder
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.jsonArray
+import kotlinx.serialization.json.jsonObject
 import org.apache.tools.ant.taskdefs.condition.Os
 import org.jetbrains.intellij.platform.gradle.IntelliJPlatformType
 import java.io.ByteArrayOutputStream
+import java.net.URL
+import java.nio.file.Files
+import java.nio.file.Paths
 
 plugins {
     id("java")
@@ -134,23 +140,6 @@ val compileDotNet by tasks.registering {
     }
 }
 
-val buildResharperPlugin by tasks.registering {
-    dependsOn(setBuildTool)
-    doLast {
-        val executable: String by setBuildTool.get().extra
-        val arguments = (setBuildTool.get().extra["args"] as List<String>).toMutableList()
-        arguments.add("/t:Restore;Rebuild;Pack")
-        arguments.add("/v:minimal")
-        arguments.add("/p:PackageOutputPath=\"$rootDir/output\"")
-        arguments.add("/p:PackageVersion=$PluginVersion")
-        exec {
-            executable(executable)
-            args(arguments)
-            workingDir(rootDir)
-        }
-    }
-}
-
 tasks.buildPlugin {
     doLast {
         copy {
@@ -243,4 +232,63 @@ tasks.patchPluginXml {
     pluginVersion.set(PluginVersion)
     changeNotes.set("<ul>\r\n$changelogText\r\n</ul>");
     untilBuild.set(provider { null })
+}
+
+val buildResharperPlugin by tasks.registering {
+    dependsOn(setBuildTool)
+    doLast {
+        val executable: String by setBuildTool.get().extra
+        val arguments = (setBuildTool.get().extra["args"] as List<String>).toMutableList()
+        arguments.add("/t:Restore;Rebuild;Pack")
+        arguments.add("/v:minimal")
+        arguments.add("/p:PackageOutputPath=\"$rootDir/output\"")
+        arguments.add("/p:PackageVersion=$PluginVersion")
+        exec {
+            executable(executable)
+            args(arguments)
+            workingDir(rootDir)
+        }
+    }
+}
+
+val runVisualStudio by tasks.registering {
+    // TODO: Read this from config
+    val hiveName = "RimworldDev"
+    val sdkVersion = "2025.1"
+
+    // TODO: Use vswhere to determine this
+    val vsVersion = "17"
+
+    val solutionLocation = "${rootDir}/src/dotnet/${DotnetPluginId}/${DotnetSolution}"
+
+    // TODO: Check if things are already installed
+
+    val releaseUrl = "https://data.services.jetbrains.com/products/releases?code=RSU&type=eap&type=release&majorVersion=$sdkVersion"
+    val releasesInfo = Json.parseToJsonElement(URL(releaseUrl).readText()).jsonObject
+    val version = releasesInfo["RSU"]!!.jsonArray[0].jsonObject
+    val downloadLink = version["downloads"]!!.jsonObject["windows"]!!.jsonObject["link"]!!
+        .toString()
+        .trim('"')
+        .replace(".exe", ".Checked.exe")
+
+    val fileName = downloadLink.split("/").last()
+    val installerLocation = "${rootDir}/build/installer/${fileName}"
+
+    if (file(installerLocation).exists()) {
+        println("Using cached installer from $installerLocation")
+    } else {
+        println("Downloading $fileName installer")
+        Files.createDirectories(Paths.get(file(installerLocation).parent))
+        URL(downloadLink).openStream().use { input ->
+            file(installerLocation).outputStream().use { output ->
+                input.copyTo(output)
+            }
+        }
+    }
+
+    println("Installing experimental hive")
+    exec {
+        executable(installerLocation)
+        args("/Silent=true", "/SpecificProductNames=ReSharper", "/Hive=$hiveName", "/VsVersion=$vsVersion.0")
+    }
 }
