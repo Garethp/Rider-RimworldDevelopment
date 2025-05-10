@@ -9,7 +9,7 @@ using JetBrains.ProjectModel.Update;
 using JetBrains.Util;
 using JetBrains.Util.Dotnet.TargetFrameworkIds;
 
-namespace ReSharperPlugin.RimworldDev.RimworldXmlProject.Project;
+namespace ReSharperPlugin.RimworldDev.RimworldXmlProject;
 
   public class RimworldProjectDescriptor : 
     UserDataHolder,

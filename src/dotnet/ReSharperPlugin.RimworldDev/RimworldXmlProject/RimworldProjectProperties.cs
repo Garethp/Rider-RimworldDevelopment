@@ -9,14 +9,11 @@ using JetBrains.ProjectModel.Properties;
 using JetBrains.ProjectModel.Properties.Common;
 using JetBrains.ProjectModel.Properties.CSharp;
 using JetBrains.ProjectModel.Properties.Managed;
-using JetBrains.ProjectModel.Properties.WebSite;
 using JetBrains.ProjectModel.Propoerties;
-using JetBrains.Rider.Model;
 using JetBrains.Serialization;
-using JetBrains.Util;
 using JetBrains.Util.Dotnet.TargetFrameworkIds;
 
-namespace ReSharperPlugin.RimworldDev.RimworldXmlProject.Project;
+namespace ReSharperPlugin.RimworldDev.RimworldXmlProject;
 
 public class RimworldProjectProperties<TProjectConfiguration> : ProjectPropertiesBase<TProjectConfiguration>
     where TProjectConfiguration : ProjectConfigurationBase, new()

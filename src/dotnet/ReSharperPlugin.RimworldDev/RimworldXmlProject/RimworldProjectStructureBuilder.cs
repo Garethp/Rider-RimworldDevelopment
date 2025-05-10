@@ -7,7 +7,7 @@ using JetBrains.ProjectModel.Properties;
 using JetBrains.ProjectModel.Update;
 using JetBrains.Util;
 
-namespace ReSharperPlugin.RimworldDev.RimworldXmlProject.Project;
+namespace ReSharperPlugin.RimworldDev.RimworldXmlProject;
 
 
 public class RimworldProjectStructureBuilder

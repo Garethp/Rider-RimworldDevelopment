@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Xml;
 using JetBrains.Annotations;
 using JetBrains.Application.Parts;
 using JetBrains.Application.platforms;
@@ -14,14 +12,11 @@ using JetBrains.ProjectModel.ProjectsHost.Impl.FileSystem;
 using JetBrains.ProjectModel.ProjectsHost.LiveTracking;
 using JetBrains.ProjectModel.Properties;
 using JetBrains.ProjectModel.Properties.Managed;
-using JetBrains.ProjectModel.Search;
 using JetBrains.ProjectModel.Update;
-using JetBrains.ReSharper.Psi.Xml.Impl.Tree;
 using JetBrains.Util;
 using JetBrains.Util.Dotnet.TargetFrameworkIds;
-using ReSharperPlugin.RimworldDev.RimworldXmlProject.Project;
 
-namespace ReSharperPlugin.RimworldDev.RimworldXmlProject.Project;
+namespace ReSharperPlugin.RimworldDev.RimworldXmlProject;
 
 [ProjectsHostComponent(Instantiation.DemandAnyThreadUnsafe)]
 public class RimworldXmlProjectHost : SolutionFileProjectHostBase
@@ -52,7 +47,8 @@ public class RimworldXmlProjectHost : SolutionFileProjectHostBase
 
     protected override void Reload(ProjectHostReloadChange change, FileSystemPath logPath)
     {
-        var projectMark = change.ProjectMark;
+        if (change.ProjectMark is not RimworldProjectMark projectMark) return;
+        projectMark.Dependencies.ForEach(dependency => dependency.UpdateParent(projectMark));
         
         var siteProjectLocation = GetProjectLocation(projectMark);
 
