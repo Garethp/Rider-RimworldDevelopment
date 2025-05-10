@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Xml;
 using JetBrains.Annotations;
 using JetBrains.Application.Parts;
 using JetBrains.Application.platforms;
@@ -14,14 +12,11 @@ using JetBrains.ProjectModel.ProjectsHost.Impl.FileSystem;
 using JetBrains.ProjectModel.ProjectsHost.LiveTracking;
 using JetBrains.ProjectModel.Properties;
 using JetBrains.ProjectModel.Properties.Managed;
-using JetBrains.ProjectModel.Search;
 using JetBrains.ProjectModel.Update;
-using JetBrains.ReSharper.Psi.Xml.Impl.Tree;
 using JetBrains.Util;
 using JetBrains.Util.Dotnet.TargetFrameworkIds;
-using ReSharperPlugin.RimworldDev.RimworldXmlProject.Project;
 
-namespace ReSharperPlugin.RimworldDev.RimworldXmlProject.Project;
+namespace ReSharperPlugin.RimworldDev.RimworldXmlProject;
 
 [ProjectsHostComponent(Instantiation.DemandAnyThreadUnsafe)]
 public class RimworldXmlProjectHost : SolutionFileProjectHostBase
@@ -30,6 +25,7 @@ public class RimworldXmlProjectHost : SolutionFileProjectHostBase
     private readonly RimworldProjectStructureBuilder myStructureBuilder;
     private readonly FileSystemWildcardService myWildcardService;
     private readonly ProjectFilePropertiesFactory myProjectFilePropertiesFactory;
+    private bool hasReloaded = false;
     
     public RimworldXmlProjectHost(
         IPlatformManager platformManager,
@@ -52,8 +48,18 @@ public class RimworldXmlProjectHost : SolutionFileProjectHostBase
 
     protected override void Reload(ProjectHostReloadChange change, FileSystemPath logPath)
     {
-        var projectMark = change.ProjectMark;
-        
+        if (change.ProjectMark is not RimworldProjectMark projectMark) return;
+
+        // This is just a bit of a hacky workaround to re-assign our projects dependencies to be children of our project
+        // since it doesn't work with `ICustomProjectMarkProvider` as of Rider 2025.1
+        //
+        // @TODO: Remove this if that issue gets fixed.
+        if (!hasReloaded)
+        {
+            projectMark.Dependencies.ForEach(dependency => dependency.UpdateParent(projectMark));
+            hasReloaded = true;
+        }
+
         var siteProjectLocation = GetProjectLocation(projectMark);
 
         var targetFramework =

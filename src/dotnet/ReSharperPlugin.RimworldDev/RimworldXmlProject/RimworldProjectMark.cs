@@ -1,15 +1,12 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Xml;
 using JetBrains.Annotations;
 using JetBrains.ProjectModel.ProjectsHost;
-using JetBrains.ProjectModel.ProjectsHost.Impl;
 using JetBrains.ProjectModel.SolutionStructure.SolutionConfigurations;
 using JetBrains.Util;
 
-namespace ReSharperPlugin.RimworldDev.RimworldXmlProject.Project;
+namespace ReSharperPlugin.RimworldDev.RimworldXmlProject;
 
 public class RimworldProjectMark : ProjectMarkBase
 {
