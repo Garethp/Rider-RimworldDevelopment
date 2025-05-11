@@ -197,6 +197,14 @@ tasks.prepareSandbox {
     val dllFiles = listOf(
         "$outputFolder/${DotnetPluginId}.dll",
         "$outputFolder/${DotnetPluginId}.pdb",
+
+        // Not 100% sure why, but we manually need to include these dependencies for Remodder to work
+        "$outputFolder/0Harmony.dll",
+        "$outputFolder/AsmResolver.dll",
+        "$outputFolder/AsmResolver.DotNet.dll",
+        "$outputFolder/AsmResolver.PE.dll",
+        "$outputFolder/AsmResolver.PE.File.dll",
+        "$outputFolder/ICSharpCode.Decompiler.dll"
     )
 
     dllFiles.forEach({ f ->
