@@ -40,6 +40,7 @@ into the definitions on which the XML sits.
  * The ability to perform Find Usages on XML Defs
  * A "Generate" menu option to generate properties for a given XML Def
  * Includes a Rimworld Dictionary so that Rimworld terms don't get flagged as not real words by Rider
+ * Transpilation Explorer, curtesy of [Zetrith](https://github.com/Zetrith/Remodder)
 
 ## Quick Architecture For Developers
 
@@ -76,6 +77,10 @@ our own custom context provider which grabs the solution from the XML File and a
 
 The other is the [`RimworldXmlReference`](./src/dotnet/ReSharperPlugin.RimworldDev/References/RimworldXmlReference.cs)
 which is just a class that we have to define to hold our reference from the XML to the C#.
+
+## Acknowledgements
+The feature of exploring transpiled code is taken from Zetrith's open source plugin, [Remodder](https://github.com/Zetrith/Remodder).
+The feature would not have happened without them.
 
 ## FAQ
 
