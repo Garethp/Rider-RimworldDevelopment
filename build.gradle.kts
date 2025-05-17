@@ -1,5 +1,7 @@
+import com.jetbrains.plugin.structure.base.utils.isFile
 import groovy.ant.FileNameFinder
 import org.apache.tools.ant.taskdefs.condition.Os
+import org.jetbrains.intellij.platform.gradle.Constants
 import org.jetbrains.intellij.platform.gradle.IntelliJPlatformType
 import java.io.ByteArrayOutputStream
 
@@ -7,7 +9,6 @@ plugins {
     id("java")
     alias(libs.plugins.kotlinJvm)
     id("org.jetbrains.intellij.platform") version "2.5.0"     // https://github.com/JetBrains/gradle-intellij-plugin/releases
-//    id("com.jetbrains.rdgen") version libs.versions.rdGen    // https://www.myget.org/feed/rd-snapshots/package/maven/com.jetbrains.rd/rd-gen
     id("me.filippov.gradle.jvm.wrapper") version "0.14.0"
 }
 
@@ -196,6 +197,14 @@ tasks.prepareSandbox {
     val dllFiles = listOf(
         "$outputFolder/${DotnetPluginId}.dll",
         "$outputFolder/${DotnetPluginId}.pdb",
+
+        // Not 100% sure why, but we manually need to include these dependencies for Remodder to work
+        "$outputFolder/0Harmony.dll",
+        "$outputFolder/AsmResolver.dll",
+        "$outputFolder/AsmResolver.DotNet.dll",
+        "$outputFolder/AsmResolver.PE.dll",
+        "$outputFolder/AsmResolver.PE.File.dll",
+        "$outputFolder/ICSharpCode.Decompiler.dll"
     )
 
     dllFiles.forEach({ f ->
@@ -243,4 +252,21 @@ tasks.patchPluginXml {
     pluginVersion.set(PluginVersion)
     changeNotes.set("<ul>\r\n$changelogText\r\n</ul>");
     untilBuild.set(provider { null })
+}
+
+val riderModel: Configuration by configurations.creating {
+    isCanBeConsumed = true
+    isCanBeResolved = false
+}
+
+artifacts {
+    add(riderModel.name, provider {
+        intellijPlatform.platformPath.resolve("lib/rd/rider-model.jar").also {
+            check(it.isFile) {
+                "rider-model.jar is not found at $riderModel"
+            }
+        }
+    }) {
+        builtBy(Constants.Tasks.INITIALIZE_INTELLIJ_PLATFORM_PLUGIN)
+    }
 }
