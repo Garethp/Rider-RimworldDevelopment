@@ -29,6 +29,7 @@ in your mods!</p>
     <backend.markup.adapterFactory language="XML" implementationClass="com.jetbrains.rider.daemon.RiderCacheAwareMarkupAdapterFactory" />
 
     <spellchecker.bundledDictionaryProvider implementation="RimworldDev.Rider.spellchecker.DictionaryProvider" />
+    <toolWindow factoryClass="RimworldDev.Rider.remodder.RemodderToolWindowFactory" id="Remodder"/>
   </extensions>
   
 </idea-plugin>

@@ -19,12 +19,14 @@ into the definitions on which the XML sits.
    * Autocomplete DefNames when using `DefDatabase<Def>.GetNamed()`
    * Autocomplete DefNames when creating fields in `[DefOf]` classes
    * Autocomplete certain values for properties with fixed options (Such as Altitude Layer, boolean and directions)
+   * Autocompletion for `Parent=""` attributes
  * Use `Ctrl+Click` to go references
    * When using them on DefTypes, just to the C# class for that Def
    * When using them on XML Properties, jump to the C# definition for that property
    * When using them on DefName references, jump to the XML definition for that DefName
    * When using them on certain XML values, jump to the C# definition for that value
    * When using them on `[DefOf]` fields, or `DefDatabase<Def>.GetNamed()` calls, jump to the XML definition for that DefName
+   * When using them on `Parent=""` attributes, jump to the XML definition for that parent
  * Read the values in `Class=""` attributes to fetch the correct class to autocomplete from, such as in comps
  * Support for Custom Def Classes (Such as `<MyMod.CustomThingDef>`)
  * A Rimworld Run Configuration
@@ -38,6 +40,7 @@ into the definitions on which the XML sits.
  * The ability to perform Find Usages on XML Defs
  * A "Generate" menu option to generate properties for a given XML Def
  * Includes a Rimworld Dictionary so that Rimworld terms don't get flagged as not real words by Rider
+ * Transpilation Explorer, curtesy of [Zetrith](https://github.com/Zetrith/Remodder)
 
 ## Quick Architecture For Developers
 
@@ -74,6 +77,10 @@ our own custom context provider which grabs the solution from the XML File and a
 
 The other is the [`RimworldXmlReference`](./src/dotnet/ReSharperPlugin.RimworldDev/References/RimworldXmlReference.cs)
 which is just a class that we have to define to hold our reference from the XML to the C#.
+
+## Acknowledgements
+The feature of exploring transpiled code is taken from Zetrith's open source plugin, [Remodder](https://github.com/Zetrith/Remodder).
+The feature would not have happened without them.
 
 ## FAQ
 

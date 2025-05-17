@@ -1,5 +1,10 @@
 # Changelog
 
+## 2024.2
+ * Adds support for [Parent=""] attributes
+ * Makes the New Mod template modular, allowing you to select the components you want included in your mod
+ * Bundled in Zetrith's Remodder code into this plugin
+
 ## 2024.1.7
  * Solved some incompatibilities for ReSharper
 

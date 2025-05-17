@@ -8,7 +8,7 @@
   <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
 
   <PropertyGroup>
-    <TargetFramework>net472</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
     <IsPackable>True</IsPackable>
     <DefineConstants>$(DefineConstants);RESHARPER</DefineConstants>
     <IncludeBuildOutput>false</IncludeBuildOutput>
@@ -42,6 +42,9 @@
     <Compile Remove="projectTemplates\**" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Remove="Remodder\**" />
+  </ItemGroup>
 
   <ItemGroup>
     <EmbeddedResource Remove="projectTemplates\**" />

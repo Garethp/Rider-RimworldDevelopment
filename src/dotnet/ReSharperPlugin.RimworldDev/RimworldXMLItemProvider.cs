@@ -48,6 +48,11 @@ public class RimworldXMLItemProvider : ItemsProviderOfSpecificContext<RimworldXm
         if (context.TreeNode is XmlTagEndToken && context.TreeNode.PrevSibling is XmlIdentifier &&
             context.TreeNode.PrevSibling.PrevSibling?.GetText() != "</") return true;
 
+        if (context.TreeNode is XmlValueToken &&
+            context.TreeNode.Parent is XmlAttribute attribute &&
+            attribute.AttributeName == "ParentName"
+           ) return true;
+
         return false;
     }
 
@@ -79,7 +84,6 @@ public class RimworldXMLItemProvider : ItemsProviderOfSpecificContext<RimworldXm
         if (context.TreeNode is XmlFloatingTextToken && context.TreeNode.NodeType.ToString() == "TEXT")
         {
             AddTextLookupItems(context, collector);
-            var a = 1 + 1;
             return base.AddLookupItems(context, collector);
         }
 
@@ -87,6 +91,15 @@ public class RimworldXMLItemProvider : ItemsProviderOfSpecificContext<RimworldXm
             context.TreeNode.PrevSibling.PrevSibling?.GetText() != "</")
         {
             AddTextLookupItems(context, collector);
+            return base.AddLookupItems(context, collector);
+        }
+
+        if (context.TreeNode is XmlValueToken &&
+            context.TreeNode.Parent is XmlAttribute attribute &&
+            attribute.AttributeName == "ParentName"
+           )
+        {
+            AddParentNameItems(context, collector);
             return base.AddLookupItems(context, collector);
         }
 
@@ -123,6 +136,33 @@ public class RimworldXMLItemProvider : ItemsProviderOfSpecificContext<RimworldXm
         }
 
         return base.AddLookupItems(context, collector);
+    }
+
+    protected void AddParentNameItems(RimworldXmlCodeCompletionContext context, IItemsCollector collector)
+    {
+        if (context.TreeNode?.Parent is not XmlAttribute attribute) return;
+        if (attribute.Parent is not XmlTagHeaderNode defTag) return;
+
+        var defClassName = defTag.ContainerName;
+        var defClass = ScopeHelper.GetScopeForClass(defClassName);
+        
+        var xmlSymbolTable = context.TreeNode!.GetSolution().GetSolution().GetComponent<RimworldSymbolScope>();
+
+        var keys = xmlSymbolTable.GetDefsByType(defClassName);
+
+        foreach (var key in keys)
+        {
+            if (!xmlSymbolTable.IsDefAbstract(key)) continue;
+            
+            var defType = key.Split('/').First();
+            var defName = key.Split('/').Last();
+
+            var item = xmlSymbolTable.GetTagByDef(defType, defName);
+
+            var lookup = LookupFactory.CreateDeclaredElementLookupItem(context, defName,
+                new DeclaredElementInstance(new XMLTagDeclaredElement(item, defType, defName, false)));
+            collector.Add(lookup);
+        }
     }
 
     protected void AddTextLookupItems(RimworldXmlCodeCompletionContext context, IItemsCollector collector)
@@ -197,8 +237,6 @@ public class RimworldXMLItemProvider : ItemsProviderOfSpecificContext<RimworldXm
                 new DeclaredElementInstance(new XMLTagDeclaredElement(item, defType, defName, false)));
             collector.Add(lookup);
         }
-
-        return;
     }
 
     protected void AddThingDefClasses(RimworldXmlCodeCompletionContext context, IItemsCollector collector,
@@ -296,7 +334,7 @@ public class RimworldXMLItemProvider : ItemsProviderOfSpecificContext<RimworldXm
                     .FirstOrDefault(attribute => attribute.GetClrName().FullName == "Verse.LoadAliasAttribute");
 
                 if (loadAliasAttributes != null) return true;
-                
+
                 return false;
             })
             .Select(member => member.Member)
@@ -499,18 +537,18 @@ public class RimworldXMLItemProvider : ItemsProviderOfSpecificContext<RimworldXm
                 );
 
                 if (loadAliasAttribute == null) continue;
-                
+
                 var writer = new StringWriter(new StringBuilder());
-                ((MetadataAttributeInstance) loadAliasAttribute).Dump(writer, "");
+                ((MetadataAttributeInstance)loadAliasAttribute).Dump(writer, "");
                 writer.Close();
 
                 var match = Regex.Match(writer.ToString(), "Arguments: \"(.*?)\"");
                 if (match.Groups.Count < 2) continue;
-                
-                
+
+
                 collector.Add(LookupFactory.CreateDeclaredElementLookupItem(context, match.Groups[1].Value,
                     new DeclaredElementInstance(field), true, false, QualifierKind.NONE));
-                
+
                 continue;
             }
 
