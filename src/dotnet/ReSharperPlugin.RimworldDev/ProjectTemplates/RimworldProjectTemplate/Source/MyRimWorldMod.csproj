@@ -30,13 +30,23 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <Reference Include="System"/>
-        <Reference Include="System.Core"/>
-        <Reference Include="System.Xml"/>
-    </ItemGroup>
 
+    </ItemGroup>
+    
 <!--#if(assemblyExists)-->
     <ItemGroup>
+        <Reference Include="System">
+            <HintPath>AssemblyDir\System.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="System.Core">
+            <HintPath>AssemblyDir\System.Core.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="System.Xml">
+            <HintPath>AssemblyDir\System.Xml.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
         <Reference Include="Assembly-CSharp">
             <HintPath>Assembly-CSharp.dll</HintPath>
             <Private>False</Private>
@@ -52,7 +62,7 @@
         If that reference does not exist, it will add Krafs Rimworld Ref to the project. If it does exist, Krafs won't be added
         as a reference. This basically means that Krafs is treated as a fallback if Assembly-CSharp is not found -->
     <ItemGroup Condition="'@(Reference->WithMetadataValue('Identity', 'Assembly-CSharp')->Metadata('HintPath')->Exists())' == ''">
-        <PackageReference Include="Krafs.Rimworld.Ref" Version="1.4-*" />
+        <PackageReference Include="Krafs.Rimworld.Ref" Version="1.6.*" />
     </ItemGroup>
 
     <!-- To modify your build process, add your task inside one of the targets below and uncomment it.
