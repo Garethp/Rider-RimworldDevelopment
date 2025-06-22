@@ -19,14 +19,6 @@ jobs:
           distribution: 'corretto'
           java-version: '21'
           cache: 'gradle'
-      - uses: actions/cache@v4
-        with:
-          path: |
-            build/gradle-jvm
-            ~/.nuget/packages
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-          key: ${{ runner.os }}-Build-${{ hashFiles('gradlew.bat', 'src/dotnet/*/*.csproj', './*.props', 'gradle-wrapper.properties') }}
       - run: ./gradlew :buildPlugin --no-daemon
       - run: ./gradlew :buildResharperPlugin --no-daemon
       - uses: actions/upload-artifact@v4
@@ -46,13 +38,4 @@ jobs:
           distribution: 'corretto'
           java-version: '17'
           cache: 'gradle'
-      - uses: actions/cache@v4
-        with:
-          path: |
-            build/gradle-jvm
-            packages
-            ~/.nuget/packages
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-          key: ${{ runner.os }}-Test-${{ hashFiles('gradlew.bat', 'src/dotnet/*/*.csproj', './*.props', 'gradle-wrapper.properties') }}
       - run: ./gradlew :testDotNet --no-daemon
