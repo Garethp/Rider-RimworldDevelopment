@@ -39,6 +39,7 @@
     <PackageReference Include="JetBrains.Annotations" Version="2024.3.0" />
     <PackageReference Include="JetBrains.Lifetimes" Version="$(SdkVersion)" />
     <PackageReference Include="JetBrains.RdFramework" Version="$(SdkVersion)" />
+    <PackageReference Include="System.Diagnostics.TraceSource" Version="4.3.0" />
     <PackageReference Include="JetBrains.Rider.SDK" Version="$(SdkVersion)">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>

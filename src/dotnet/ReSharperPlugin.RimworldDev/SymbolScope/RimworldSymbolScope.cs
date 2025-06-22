@@ -3,6 +3,7 @@ using System.Linq;
 using JetBrains;
 using JetBrains.Annotations;
 using JetBrains.Application.Parts;
+using JetBrains.Application.Parts;
 using JetBrains.Application.Threading;
 using JetBrains.Collections;
 using JetBrains.Lifetimes;
@@ -15,15 +16,28 @@ using JetBrains.ReSharper.Psi.Files;
 using JetBrains.ReSharper.Psi.Resolve;
 using JetBrains.ReSharper.Psi.Tree;
 using JetBrains.ReSharper.Psi.Util;
+using JetBrains.ReSharper.Psi.Xml.Impl.Tree;
 using JetBrains.ReSharper.Psi.Xml.Tree;
 using ReSharperPlugin.RimworldDev.TypeDeclaration;
 
 namespace ReSharperPlugin.RimworldDev.SymbolScope;
 
+public struct DefTag
+{
+    public DefTag(ITreeNode treeNode, bool isAbstract = false)
+    {
+        TreeNode = treeNode;
+        IsAbstract = isAbstract;
+    }
+
+    public ITreeNode TreeNode { get; }
+    public bool IsAbstract { get; }
+}
+
 [PsiComponent(Instantiation.ContainerAsyncPrimaryThread)]
 public class RimworldSymbolScope : SimpleICache<List<RimworldXmlDefSymbol>>
 {
-    private Dictionary<string, ITreeNode> DefTags = new();
+    private Dictionary<string, DefTag> DefTags = new();
     private Dictionary<string, string> ExtraDefTagNames = new();
     private Dictionary<string, XMLTagDeclaredElement> _declaredElements = new();
     private SymbolTable _symbolTable;
@@ -58,7 +72,12 @@ public class RimworldSymbolScope : SimpleICache<List<RimworldXmlDefSymbol>>
         if (!DefTags.ContainsKey(defId))
             return null;
 
-        return DefTags[defId];
+        return DefTags[defId].TreeNode;
+    }
+
+    public bool IsDefAbstract(string defId)
+    {
+        return DefTags.ContainsKey(defId) && DefTags[defId].IsAbstract;
     }
 
     public DefNameValue GetDefName(DefNameValue value) =>
@@ -88,15 +107,33 @@ public class RimworldSymbolScope : SimpleICache<List<RimworldXmlDefSymbol>>
         var tags = xmlFile.GetNestedTags<IXmlTag>("Defs/*").Where(tag =>
         {
             var defNameTag = tag.GetNestedTags<IXmlTag>("defName").FirstOrDefault();
-            return defNameTag is not null;
+            if (defNameTag is not null) return true;
+
+            var nameAttribute = tag.GetAttribute("Name");
+            return nameAttribute is not null;
         });
 
         List<RimworldXmlDefSymbol> defs = new();
 
         foreach (var tag in tags)
         {
-            var defName = tag.GetNestedTags<IXmlTag>("defName").FirstOrDefault()?.InnerText;
-            var defNameTag = tag.GetNestedTags<IXmlTag>("defName").FirstOrDefault().Children().ElementAt(1);
+            var defName = tag
+                              .GetNestedTags<IXmlTag>("defName")
+                              .FirstOrDefault()?.InnerText ??
+                          tag
+                              .GetAttribute("Name")?
+                              .Children()
+                              .FirstOrDefault(element => element is IXmlValueToken)?
+                              .GetUnquotedText();
+            
+            var defNameTag = tag.GetNestedTags<IXmlTag>("defName").
+                                 FirstOrDefault()?.
+                                 Children().
+                                 ElementAt(1) ??
+                             tag.GetAttribute("Name")?.
+                                 Children().
+                                 FirstOrDefault(element => element is IXmlValueToken);
+            
             if (defName is null) continue;
 
             defs.Add(new RimworldXmlDefSymbol(defNameTag, defName, tag.GetTagName()));
@@ -132,12 +169,27 @@ public class RimworldSymbolScope : SimpleICache<List<RimworldXmlDefSymbol>>
         cacheItem?.ForEach(item =>
         {
             var matchingDefTag = xmlFile
-                .GetNestedTags<IXmlTag>("Defs/*/defName").FirstOrDefault(tag =>
-                    tag.Children().ElementAt(1).GetTreeStartOffset().Offset == item.DocumentOffset);
-
+                                     .GetNestedTags<IXmlTag>("Defs/*/defName").FirstOrDefault(tag =>
+                                         tag.Children().ElementAt(1).GetTreeStartOffset().Offset ==
+                                         item.DocumentOffset) ??
+                                 xmlFile
+                                     .GetNestedTags<IXmlTag>("Defs/*")
+                                     .FirstOrDefault(tag =>
+                                         tag.GetAttribute("Name")?
+                                             .Children()
+                                             .FirstOrDefault(element => element is IXmlValueToken)?
+                                             .GetTreeStartOffset().Offset == item.DocumentOffset
+                                     )?
+                                     .GetAttribute("Name")?
+                                     .Children()
+                                     .FirstOrDefault(element => element is IXmlValueToken);
+            
             if (matchingDefTag is null) return;
 
-            var xmlTag = matchingDefTag.Children().ElementAt(1);
+            // If the DefName is in a [Name=""] Attribute, it'll be matched to a XmlValueToken, which doesn't have any
+            // children. Otherwise, it'll be matched to the XmlTag for <defName>, where we want the first child as the
+            // string value
+            var xmlTag = matchingDefTag is IXmlValueToken ? matchingDefTag : matchingDefTag.Children().ElementAt(1);
 
             AddDefTagToList(item, xmlTag);
         });
@@ -168,10 +220,15 @@ public class RimworldSymbolScope : SimpleICache<List<RimworldXmlDefSymbol>>
                     }
                 }
 
+                var isAbstract = xmlTag is IXmlValueToken && 
+                                  xmlTag.Parent?.Parent is XmlTagHeaderNode defTypeTag && 
+                                  defTypeTag.GetAttribute("Abstract") is {} attribute && 
+                                  attribute.UnquotedValue.ToLower() == "true";
+
                 if (!DefTags.ContainsKey($"{item.DefType}/{item.DefName}"))
-                    DefTags.Add($"{item.DefType}/{item.DefName}", xmlTag);
+                    DefTags.Add($"{item.DefType}/{item.DefName}", new DefTag(xmlTag, isAbstract));
                 else
-                    DefTags[$"{item.DefType}/{item.DefName}"] = xmlTag;
+                    DefTags[$"{item.DefType}/{item.DefName}"] = new DefTag(xmlTag, isAbstract);
             }
         }
     }

@@ -8,11 +8,14 @@
   <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
 
   <PropertyGroup>
-    <TargetFramework>net472</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
     <AssemblyName>ReSharperPlugin.RimworldDev</AssemblyName>
     <RootNamespace>$(AssemblyName)</RootNamespace>
     <IsPackable>false</IsPackable>
     <DefineConstants>$(DefineConstants);RIDER</DefineConstants>
+    
+    <!-- This is needed to force our dependant DLLs to be present in the build folder, which we then copy over in gradle -->
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
   </PropertyGroup>
 
   <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
@@ -20,8 +23,15 @@
     <DebugSymbols>true</DebugSymbols>
   </PropertyGroup>
 
+  <!-- These packages are used for the Remodder feature -->
   <ItemGroup>
+    <PackageReference Include="AsmResolver" Version="5.5.1" />
+    <PackageReference Include="AsmResolver.DotNet" Version="5.5.1" />
+    <PackageReference Include="ICSharpCode.Decompiler" Version="8.2.0.7535" />
+    <PackageReference Include="Krafs.Publicizer" Version="2.0.1" />
     <PackageReference Include="Lib.Harmony" Version="2.3.3" />
+    
+    <Publicize Include="0Harmony;" />
   </ItemGroup>
 
   <ItemGroup>
@@ -41,5 +51,15 @@
   </ItemGroup>
 
   <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
+
+  <ItemGroup>
+    <EmbeddedResource Include="*.DotSettings" />
+  </ItemGroup>
+  
+  <ItemDefinitionGroup>
+    <EmbeddedResource>
+      <Generator>JetResourceGenerator</Generator>
+    </EmbeddedResource>
+  </ItemDefinitionGroup>
 
 </Project>

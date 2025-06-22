@@ -35,11 +35,11 @@ pluginManagement {
 
     resolutionStrategy {
         eachPlugin {
-            when (requested.id.name) {
-                // This required to correctly rd-gen plugin resolution. May be we should switch our naming to match Gradle plugin naming convention.
-                "rdgen" -> {
-                    useModule("com.jetbrains.rd:rd-gen:${rdVersion}")
-                }
+            // Gradle has to map a plugin dependency to Maven coordinates - '{groupId}:{artifactId}:{version}'. It tries
+            // to do use '{plugin.id}:{plugin.id}.gradle.plugin:version'.
+            // This doesn't work for rdgen, so we provide some help
+            if (requested.id.id == "com.jetbrains.rdgen") {
+                useModule("com.jetbrains.rd:rd-gen:${requested.version}")
             }
         }
     }
@@ -55,3 +55,5 @@ dependencyResolutionManagement {
         maven("https://cache-redirector.jetbrains.com/myget.org.rd-snapshots.maven")
     }
 }
+
+include(":protocol")
