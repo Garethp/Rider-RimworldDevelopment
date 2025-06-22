@@ -1,5 +1,6 @@
 package RimworldDev.Rider.run
 
+import RimworldDev.Rider.helpers.ScopeHelper
 import com.intellij.execution.ExecutionResult
 import com.intellij.execution.Executor
 import com.intellij.execution.configurations.RunProfileState
@@ -107,6 +108,11 @@ class RunState(
 
         currentResources.forEach {
             copyResource("/UnityDoorstop/${OS.CURRENT}/", it)
+        }
+
+        val harmonyDll = ScopeHelper.findInstalledHarmonyDll()
+        if (harmonyDll != null) {
+            File(harmonyDll).copyTo(File("${rimworldDir}/Doorstop/0Harmony.dll"), true)
         }
     }
 
