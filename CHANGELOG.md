@@ -1,5 +1,8 @@
 # Changelog
 
+## 2025.1.1
+ * Fixes an issue with the Rimworld Run Configuration when using multiple parameters
+
 ## 2025.1
  * Adds support for [Parent=""] attributes
  * Makes the New Mod template modular, allowing you to select the components you want included in your mod
