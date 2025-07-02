@@ -126,7 +126,7 @@ class RunConfiguration(project: Project, factory: ConfigurationFactory, name: St
         return object : CommandLineState(environment) {
             override fun startProcess(): ProcessHandler {
                 val commandLine = GeneralCommandLine(getScriptName())
-                    .withParameters(getCommandLineOptions())
+                    .withParameters(getCommandLineOptions().split(' '))
 
                 EnvironmentVariablesData.create(getEnvData(), true).configureCommandLine(commandLine, true)
 
