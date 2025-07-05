@@ -9,20 +9,17 @@ import com.intellij.execution.process.*
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.openapi.options.SettingsEditor
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.rd.util.startOnUiAsync
-import com.intellij.openapi.rd.util.toPromise
-import com.jetbrains.rd.platform.util.lifetime
+import com.intellij.util.system.OS
 import com.jetbrains.rider.debugger.IRiderDebuggable
 import com.jetbrains.rider.plugins.unity.run.configurations.UnityAttachToPlayerFactory
 import com.jetbrains.rider.plugins.unity.run.configurations.UnityPlayerDebugConfigurationOptions
 import com.jetbrains.rider.run.configurations.AsyncRunConfiguration
-import com.jetbrains.rider.run.getProcess
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import org.jetbrains.concurrency.Promise
 import com.jetbrains.rider.plugins.unity.UnityBundle
 import com.jetbrains.rider.plugins.unity.run.configurations.unityExe.UnityExeConfiguration
 import com.jetbrains.rider.run.RiderRunBundle
 import icons.UnityIcons
+import kotlin.io.path.Path
 
 
 internal class UnityPlayerDebugConfigurationTypeInternal : ConfigurationTypeBase(
@@ -111,7 +108,7 @@ class RunConfiguration(project: Project, factory: ConfigurationFactory, name: St
             getScriptName(),
             getSaveFilePath(),
             getModListPath(),
-            getRimworldState(environment),
+            getRimworldState(environment, OS.CURRENT == OS.Linux),
             UnityDebugRemoteConfiguration(),
             environment,
             "CustomPlayer"
@@ -122,11 +119,21 @@ class RunConfiguration(project: Project, factory: ConfigurationFactory, name: St
         return RimworldDev.Rider.run.SettingsEditor(project)
     }
 
-    private fun getRimworldState(environment: ExecutionEnvironment): CommandLineState {
+    private fun getRimworldState(environment: ExecutionEnvironment, debugInLinux: Boolean = false): CommandLineState {
         return object : CommandLineState(environment) {
             override fun startProcess(): ProcessHandler {
-                val commandLine = GeneralCommandLine(getScriptName())
-                    .withParameters(getCommandLineOptions().split(' '))
+                var pathToRun = getScriptName()
+                var arguments = getCommandLineOptions()
+
+                // If we're debugging in Rimworld, instead of /pwd/RimWorldLinux ...args we want to run /bin/sh /pwd/run.sh /pwd/RimWorldLinux ...args
+                if (debugInLinux) {
+                    val bashScriptPath = "${Path(pathToRun).parent}/run.sh"
+                    arguments = "$bashScriptPath $pathToRun $arguments"
+                    pathToRun = "/bin/sh"
+                }
+
+                val commandLine = GeneralCommandLine(pathToRun)
+                    .withParameters(arguments.split(' ').filter { it.isNotEmpty() })
 
                 EnvironmentVariablesData.create(getEnvData(), true).configureCommandLine(commandLine, true)
 
