@@ -1,5 +1,8 @@
 # Changelog
 
+## 2025.1.2
+ * Implement the Debug Run Configuration on Linux
+
 ## 2025.1.1
  * Fixes an issue with the Rimworld Run Configuration when using multiple parameters
 
