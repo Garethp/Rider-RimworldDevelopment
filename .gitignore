@@ -18,6 +18,7 @@ output
 /.idea/*.xml
 /.idea/.idea.*/*.iml
 /.idea/.idea.*/.idea/*.xml
+.idea/shelf
 .vs
 _ReSharper*
 _dotTrace*
