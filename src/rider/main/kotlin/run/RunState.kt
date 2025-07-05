@@ -44,6 +44,20 @@ class RunState(
             "Doorstop/Mono.CompilerServices.SymbolWriter.dll",
             "Doorstop/pdb2mdb.exe",
         ),
+        OS.Linux to listOf(
+            "run.sh",
+            ".doorstop_version",
+
+            "Doorstop/0Harmony.dll",
+            "Doorstop/dnlib.dll",
+            "Doorstop/Doorstop.dll",
+            "Doorstop/Doorstop.pdb",
+            "Doorstop/HotReload.dll",
+            "Doorstop/libdoorstop.so",
+            "Doorstop/Mono.Cecil.dll",
+            "Doorstop/Mono.CompilerServices.SymbolWriter.dll",
+            "Doorstop/pdb2mdb.exe",
+        ),
         OS.macOS to listOf(
             ".doorstop_version",
             ".doorstop_config.ini",
@@ -69,7 +83,7 @@ class RunState(
 
         val rimworldResult = rimworldState.execute(executor, runner)
         workerProcessHandler.debuggerWorkerRealHandler.addProcessListener(createProcessListener(rimworldResult?.processHandler))
-        
+
         return result
     }
 
@@ -79,7 +93,12 @@ class RunState(
                 val processHandler = event.processHandler
                 processHandler.removeProcessListener(this)
 
-                siblingProcessHandler?.getProcess()?.destroy()
+                if (OS.CURRENT == OS.Linux) {
+                    siblingProcessHandler?.getProcess()?.destroyForcibly()
+                } else {
+                    siblingProcessHandler?.getProcess()?.destroy()
+                }
+
                 QuickStartUtils.tearDown(saveFilePath)
                 removeDoorstep()
             }
