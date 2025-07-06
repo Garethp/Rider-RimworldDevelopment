@@ -277,4 +277,4 @@ else
 fi
 
 # shellcheck disable=SC2086
-exec "$executable_path" $rest_args | tee -a debug.log
+exec "$executable_path" $rest_args | tee debug.log
