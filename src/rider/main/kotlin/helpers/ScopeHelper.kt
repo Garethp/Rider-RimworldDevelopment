@@ -15,6 +15,7 @@ class ScopeHelper {
                 "${home}/steam/steam/steamapps/",
                 "${home}/snap/steam/common/.local/share/Steam/steamapps/",
                 "${home}/.local/share/Steam/steamapps/",
+                "${home}/.steam/debian-installation/steamapps/common/",
             )
 
             locations.addAll(File.listRoots().map {
