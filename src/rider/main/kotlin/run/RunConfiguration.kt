@@ -122,18 +122,22 @@ class RunConfiguration(project: Project, factory: ConfigurationFactory, name: St
     private fun getRimworldState(environment: ExecutionEnvironment, debugInLinux: Boolean = false): CommandLineState {
         return object : CommandLineState(environment) {
             override fun startProcess(): ProcessHandler {
-                var pathToRun = getScriptName()
-                var arguments = getCommandLineOptions()
+                val rimworldPath = getScriptName()
+                var pathToRun = rimworldPath
+                // Splitting on space will be a source of future bugs. In the future the arguments should be List as early as possible
+                val arguments = getCommandLineOptions().split(' ').filter { it.isNotEmpty() }.toMutableList()
 
                 // If we're debugging in Rimworld, instead of /pwd/RimWorldLinux ...args we want to run /bin/sh /pwd/run.sh /pwd/RimWorldLinux ...args
                 if (debugInLinux) {
-                    val bashScriptPath = "${Path(pathToRun).parent}/run.sh"
-                    arguments = "$bashScriptPath $pathToRun $arguments"
                     pathToRun = "/bin/sh"
+                    val bashScriptPath = "${Path(rimworldPath).parent}/run.sh"
+                    arguments.add(0, bashScriptPath)
                 }
 
+                println("Calling $pathToRun with arguments ${arguments.joinToString(" ")} with working directory ${Path(rimworldPath).parent}")
                 val commandLine = GeneralCommandLine(pathToRun)
-                    .withParameters(arguments.split(' ').filter { it.isNotEmpty() })
+                    .withParameters(arguments)
+                    .withWorkingDirectory(Path(rimworldPath).parent)
 
                 EnvironmentVariablesData.create(getEnvData(), true).configureCommandLine(commandLine, true)
 

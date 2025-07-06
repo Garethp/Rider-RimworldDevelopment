@@ -23,7 +23,7 @@ enabled="1"
 
 # Path to the assembly to load and execute
 # NOTE: The entrypoint must be of format `static void Doorstop.Entrypoint.Start()`
-target_assembly="Doorstop.dll"
+target_assembly="Doorstop/Doorstop.dll"
 
 # Overrides the default boot.config file path
 boot_config_override=
@@ -277,4 +277,4 @@ else
 fi
 
 # shellcheck disable=SC2086
-exec "$executable_path" $rest_args
+exec "$executable_path" $rest_args | tee -a debug.log
