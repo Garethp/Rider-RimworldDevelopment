@@ -167,6 +167,10 @@ dependencies {
         jetbrainsRuntime()
 
         bundledPlugin("com.intellij.resharper.unity")
+
+        if (ProductVersion.contains("2025.2")) {
+            bundledModule("intellij.spellchecker")
+        }
     }
 }
 
@@ -212,7 +216,7 @@ tasks.prepareSandbox {
         from(file, { into("${rootProject.name}/dotnet") })
     })
 
-    from("${rootDir}/src/dotnet/${DotnetPluginId}/projectTemplates", { into("${rootProject.name}/projectTemplates") })
+    from("${rootDir}/src/dotnet/${DotnetPluginId}/ProjectTemplates", { into("${rootProject.name}/ProjectTemplates") })
 
     doLast {
         dllFiles.forEach({ f ->
