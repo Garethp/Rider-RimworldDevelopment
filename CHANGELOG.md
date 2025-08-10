@@ -1,5 +1,8 @@
 # Changelog
 
+## 2025.1.3
+ * Fix the missing project templates
+
 ## 2025.1.2
  * Implement the Debug Run Configuration on Linux
 
