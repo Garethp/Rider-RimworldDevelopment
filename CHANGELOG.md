@@ -1,5 +1,8 @@
 # Changelog
 
+## 2025.1.4
+ * Fixed Autocomplete in XML
+
 ## 2025.1.3
  * Fix the missing project templates
 
