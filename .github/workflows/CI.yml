@@ -10,6 +10,9 @@ jobs:
   Build:
     runs-on: ubuntu-latest
     steps:
+      - run: df -h
+      - uses: jlumbroso/free-disk-space@main
+      - run: df -h
       - uses: actions/checkout@v4
         with:
           submodules: recursive
