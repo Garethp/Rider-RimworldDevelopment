@@ -10,6 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     environment: Deploy
     steps:
+      - uses: jlumbroso/free-disk-space@main
       - uses: actions/checkout@v4
         with:
           submodules: recursive
@@ -17,7 +18,7 @@ jobs:
         uses: actions/setup-java@v4
         with:
           distribution: 'corretto'
-          java-version: '17'
+          java-version: '21'
           cache: 'gradle'
       - name: Setup .NET
         uses: actions/setup-dotnet@v4

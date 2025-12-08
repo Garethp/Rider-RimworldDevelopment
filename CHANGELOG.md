@@ -1,5 +1,8 @@
 # Changelog
 
+## 2025.1.5
+ * Fix the issue with XML tags getting messed up in Rider
+
 ## 2025.1.4
  * Fixed Autocomplete in XML
 

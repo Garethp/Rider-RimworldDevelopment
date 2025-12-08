@@ -167,10 +167,7 @@ dependencies {
         jetbrainsRuntime()
 
         bundledPlugin("com.intellij.resharper.unity")
-
-        if (ProductVersion.contains("2025.2")) {
-            bundledModule("intellij.spellchecker")
-        }
+        bundledModule("intellij.spellchecker")
     }
 }
 

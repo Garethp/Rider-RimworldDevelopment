@@ -3,7 +3,7 @@
   <name>Rimworld Development Environment</name>
   <version>0.0.0</version>
   <vendor url="https://github.com/Garethp/Rider-RimworldDevelopment">Garethp</vendor>
-  <idea-version since-build="251" />
+  <idea-version since-build="253" />
   <depends>com.intellij.modules.rider</depends>
   <depends>com.intellij.resharper.unity</depends>
 
@@ -30,6 +30,9 @@ in your mods!</p>
 
     <spellchecker.bundledDictionaryProvider implementation="RimworldDev.Rider.spellchecker.DictionaryProvider" />
     <toolWindow factoryClass="RimworldDev.Rider.remodder.RemodderToolWindowFactory" id="Remodder"/>
+
+      <editor.action.execution.policy language="XML" implementationClass="RimworldDev.Rider.XmlEditorActionPolicy" />
+      <typing.policy language="XML" implementationClass="RimworldDev.Rider.XmlTypingPolicy" />
   </extensions>
   
 </idea-plugin>

@@ -132,6 +132,11 @@ class RunConfiguration(project: Project, factory: ConfigurationFactory, name: St
                     pathToRun = "/bin/sh"
                 }
 
+                if (OS.CURRENT == OS.macOS) {
+                    arguments = "$pathToRun $arguments"
+                    pathToRun = "open"
+                }
+
                 val commandLine = GeneralCommandLine(pathToRun)
                     .withParameters(arguments.split(' ').filter { it.isNotEmpty() })
 
