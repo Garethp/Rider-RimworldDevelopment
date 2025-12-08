@@ -13,13 +13,16 @@ jobs:
       - uses: actions/checkout@v4
         with:
           submodules: recursive
+      - run: df -h
       - name: configure_java
         uses: actions/setup-java@v4
         with:
           distribution: 'corretto'
           java-version: '21'
           cache: 'gradle'
+      - run: df -h
       - run: ./gradlew :buildPlugin --no-daemon
+      - run: df -h
       - run: ./gradlew :buildResharperPlugin --no-daemon
       - uses: actions/upload-artifact@v4
         if: always()
@@ -36,6 +39,6 @@ jobs:
         uses: actions/setup-java@v4
         with:
           distribution: 'corretto'
-          java-version: '17'
+          java-version: '21'
           cache: 'gradle'
       - run: ./gradlew :testDotNet --no-daemon
