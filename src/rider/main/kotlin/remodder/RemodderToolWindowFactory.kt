@@ -9,6 +9,7 @@ import com.intellij.openapi.fileEditor.TextEditor
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogBuilder
 import com.intellij.openapi.ui.Messages
+import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowFactory
 import com.intellij.psi.PsiElement
@@ -52,36 +53,39 @@ class RemodderToolWindowFactory : ToolWindowFactory {
         refresh.addActionListener {
             val userAssemblies = project.getService<RemodderStateComponent>(RemodderStateComponent::class.java).state.userAssemblies
             val editor = (FileEditorManager.getInstance(project).selectedEditor as TextEditor).editor
-            val view = PsiManager.getInstance(project).findViewProvider(editor.virtualFile)
-            val el = view?.findElementAt(editor.caretModel.offset) ?: return@addActionListener
+            var virtualFile: VirtualFile? = editor.virtualFile
+            if (virtualFile != null) {
+                val view = PsiManager.getInstance(project).findViewProvider(virtualFile)
+                val el = view?.findElementAt(editor.caretModel.offset) ?: return@addActionListener
 
-            val filePath = editor.virtualFile.path
-            val typeName = namespaceAndClassOfElement(el) ?: "<null>"
+                val filePath = virtualFile.path
+                val typeName = namespaceAndClassOfElement(el) ?: "<null>"
 
-            statusLabel.text = "$typeName..."
-            errorDetails.isVisible = false
-
-            project.solution.remodderProtocolModel.decompile.start(arrayOf(filePath, typeName) + userAssemblies).toPromise().then {
-                if (it.size == 1)
-                {
-                    statusLabel.text = "$typeName: ${it[0]}"
-                    errorDetails.isVisible = false
-                    return@then
-                }
-
-                val content1 = DiffContentFactory.getInstance().create(project, it[0], editor.virtualFile)
-                val content2 = DiffContentFactory.getInstance().create(project, it[1], editor.virtualFile)
-                content2.putUserData(DiffUserDataKeys.FORCE_READ_ONLY, true)
-
-                val request = SimpleDiffRequest("Original/Transpiled", content1, content2, "Original", "Transpiled")
-                diffPanel.setRequest(request)
-
-                statusLabel.text = typeName
+                statusLabel.text = "$typeName..."
                 errorDetails.isVisible = false
-            }.onError {
-                errorMsg = it.toString()
-                statusLabel.text = "$typeName: ERROR"
-                errorDetails.isVisible = true
+
+                project.solution.remodderProtocolModel.decompile.start(arrayOf(filePath, typeName) + userAssemblies)
+                    .toPromise().then {
+                    if (it.size == 1) {
+                        statusLabel.text = "$typeName: ${it[0]}"
+                        errorDetails.isVisible = false
+                        return@then
+                    }
+
+                    val content1 = DiffContentFactory.getInstance().create(project, it[0], virtualFile)
+                    val content2 = DiffContentFactory.getInstance().create(project, it[1], virtualFile)
+                    content2.putUserData(DiffUserDataKeys.FORCE_READ_ONLY, true)
+
+                    val request = SimpleDiffRequest("Original/Transpiled", content1, content2, "Original", "Transpiled")
+                    diffPanel.setRequest(request)
+
+                    statusLabel.text = typeName
+                    errorDetails.isVisible = false
+                }.onError {
+                    errorMsg = it.toString()
+                    statusLabel.text = "$typeName: ERROR"
+                    errorDetails.isVisible = true
+                }
             }
         }
 

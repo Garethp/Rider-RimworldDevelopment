@@ -18,7 +18,7 @@ public class RimworldDLLParameter : DotNetTemplateParameter
     {
         var detectedPath = ScopeHelper.FindRimworldDll(Directory.GetCurrentDirectory())?.FullPath;
         
-        return new RdProjectTemplateTextOption(detectedPath ?? "",  "string", Name, PresentableName, Tooltip);
+        return new RdProjectTemplateTextOption(detectedPath ?? "",  "string", Name, PresentableName, Tooltip, "");
     }
 }
 
