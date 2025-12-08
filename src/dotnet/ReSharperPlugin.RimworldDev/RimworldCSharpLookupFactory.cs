@@ -125,7 +125,7 @@ public class RimworldCSharpLookupFactory
                 new TextRange(replaceRange.TextRange.StartOffset + 1, replaceRange.TextRange.EndOffset - 1));
         }
 
-        var completionRange = new TextLookupRanges(replaceRange, replaceRange, null, false);
+        var completionRange = new TextLookupRanges(replaceRange, replaceRange, false);
 
         return CreateDeclaredElementLookupItem(context, completionRange, name, instance, includeFollowingExpression,
             bind, qualifierKind);
