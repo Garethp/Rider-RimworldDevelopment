@@ -23,6 +23,10 @@ jobs:
           distribution: 'corretto'
           java-version: '21'
           cache: 'gradle'
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
       - run: df -h
       - run: ./gradlew :buildPlugin --no-daemon
       - run: df -h
@@ -35,6 +39,7 @@ jobs:
   Test:
     runs-on: ubuntu-latest
     steps:
+      - uses: jlumbroso/free-disk-space@main
       - uses: actions/checkout@v4
         with:
           submodules: recursive
@@ -44,4 +49,8 @@ jobs:
           distribution: 'corretto'
           java-version: '21'
           cache: 'gradle'
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
       - run: ./gradlew :testDotNet --no-daemon
