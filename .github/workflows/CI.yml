@@ -10,13 +10,10 @@ jobs:
   Build:
     runs-on: ubuntu-latest
     steps:
-      - run: df -h
       - uses: jlumbroso/free-disk-space@main
-      - run: df -h
       - uses: actions/checkout@v4
         with:
           submodules: recursive
-      - run: df -h
       - name: configure_java
         uses: actions/setup-java@v4
         with:
@@ -27,9 +24,7 @@ jobs:
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 8.0.x
-      - run: df -h
       - run: ./gradlew :buildPlugin --no-daemon
-      - run: df -h
       - run: ./gradlew :buildResharperPlugin --no-daemon
       - uses: actions/upload-artifact@v4
         if: always()
