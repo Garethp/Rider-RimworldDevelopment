@@ -19,8 +19,6 @@ import com.jetbrains.rider.plugins.unity.UnityBundle
 import com.jetbrains.rider.plugins.unity.run.configurations.unityExe.UnityExeConfiguration
 import com.jetbrains.rider.run.RiderRunBundle
 import icons.UnityIcons
-import kotlin.io.path.Path
-
 
 internal class UnityPlayerDebugConfigurationTypeInternal : ConfigurationTypeBase(
     ID,
@@ -108,7 +106,7 @@ class RunConfiguration(project: Project, factory: ConfigurationFactory, name: St
             getScriptName(),
             getSaveFilePath(),
             getModListPath(),
-            getRimworldState(environment, OS.CURRENT == OS.Linux),
+            getRimworldState(environment),
             UnityDebugRemoteConfiguration(),
             environment,
             "CustomPlayer"
@@ -119,26 +117,29 @@ class RunConfiguration(project: Project, factory: ConfigurationFactory, name: St
         return RimworldDev.Rider.run.SettingsEditor(project)
     }
 
-    private fun getRimworldState(environment: ExecutionEnvironment, debugInLinux: Boolean = false): CommandLineState {
+    // Previously this function accepted a `debugWithScript: Boolean` parameter that, when true,
+    // constructed a "/bin/sh run.sh <gamePath>" command and was used for the Linux/macOS debug path.
+    // That parameter was removed because RunState.execute() bypasses rimworldState.execute() entirely
+    // on macOS/Linux (it uses ProcessBuilder directly to avoid silent failures in the Rider sandbox's
+    // coroutine context). The CommandLineState returned here is now only ever executed on Windows.
+    // The old approach also had a space-in-path bug: it joined all arguments into one string and then
+    // split on ' ', which broke paths containing spaces (e.g. "Application Support" in the Steam path).
+    private fun getRimworldState(environment: ExecutionEnvironment): CommandLineState {
         return object : CommandLineState(environment) {
             override fun startProcess(): ProcessHandler {
-                var pathToRun = getScriptName()
-                var arguments = getCommandLineOptions()
+                val scriptName = getScriptName()
+                // Split extra CLI options by space — these are game flags, not paths, so this is safe
+                val extraArgs = getCommandLineOptions().split(' ').filter { it.isNotEmpty() }
 
-                // If we're debugging in Rimworld, instead of /pwd/RimWorldLinux ...args we want to run /bin/sh /pwd/run.sh /pwd/RimWorldLinux ...args
-                if (debugInLinux) {
-                    val bashScriptPath = "${Path(pathToRun).parent}/run.sh"
-                    arguments = "$bashScriptPath $pathToRun $arguments"
-                    pathToRun = "/bin/sh"
+                val commandLine = when {
+                    OS.CURRENT == OS.macOS -> {
+                        // .app bundles are directories and cannot be exec'd directly; use 'open' to launch them.
+                        val params = if (extraArgs.isEmpty()) listOf(scriptName)
+                                     else listOf(scriptName, "--args") + extraArgs
+                        GeneralCommandLine("open").withParameters(params)
+                    }
+                    else -> GeneralCommandLine(scriptName).withParameters(extraArgs)
                 }
-
-                if (OS.CURRENT == OS.macOS) {
-                    arguments = "$pathToRun $arguments"
-                    pathToRun = "open"
-                }
-
-                val commandLine = GeneralCommandLine(pathToRun)
-                    .withParameters(arguments.split(' ').filter { it.isNotEmpty() })
 
                 EnvironmentVariablesData.create(getEnvData(), true).configureCommandLine(commandLine, true)
 

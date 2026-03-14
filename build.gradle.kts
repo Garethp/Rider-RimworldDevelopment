@@ -220,6 +220,44 @@ tasks.prepareSandbox {
             val file = file(f)
             if (!file.exists()) throw RuntimeException("File ${file} does not exist")
         })
+
+        // The Rider SDK archive omits certain DLLs that are present in a full Rider installation.
+        // Copy the missing Unity plugin DotFiles DLL from the local Rider installation so the sandbox can load it.
+        if (!isWindows) {
+            val riderInstallCandidates = if (Os.isFamily(Os.FAMILY_MAC)) {
+                listOf(file("/Applications/Rider.app/Contents"))
+            } else {
+                // Linux: check JetBrains Toolbox and common standalone install paths
+                val toolboxBase = file("${System.getProperty("user.home")}/.local/share/JetBrains/Toolbox/apps/Rider")
+                val toolboxInstalls = if (toolboxBase.exists()) {
+                    toolboxBase.walkTopDown()
+                        .filter { it.name == "plugins" && it.parentFile?.name?.startsWith("2") == true }
+                        .map { it.parentFile }
+                        .toList()
+                } else emptyList()
+                toolboxInstalls + listOf(file("/opt/rider"), file("/usr/share/rider"))
+            }
+
+            val missingDotFileDlls = listOf(
+                "JetBrains.ReSharper.Plugins.Unity.Rider.Debugger.PausePoint.Helper.dll",
+                "JetBrains.ReSharper.Plugins.Unity.Rider.Debugger.Presentation.Texture.dll",
+            )
+
+            val destDir = intellijPlatform.platformPath.resolve("plugins/rider-unity/DotFiles").toFile()
+            destDir.mkdirs()
+
+            for (dllName in missingDotFileDlls) {
+                val dllRelPath = "plugins/rider-unity/DotFiles/$dllName"
+                val srcDll = riderInstallCandidates
+                    .map { file("${it}/${dllRelPath}") }
+                    .firstOrNull { it.exists() }
+
+                if (srcDll != null) {
+                    // Copy into the extracted SDK location (platformPath) — that's where Rider loads plugins from at runtime
+                    srcDll.copyTo(file("${destDir}/${srcDll.name}"), overwrite = true)
+                }
+            }
+        }
     }
 }
 
