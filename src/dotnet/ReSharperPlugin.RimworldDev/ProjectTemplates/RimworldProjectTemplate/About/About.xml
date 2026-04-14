@@ -3,7 +3,7 @@
     <name>MyRimWorldMod</name>
     <author>ModAuthor</author>
     <supportedVersions>
-        <li>1.4</li>
+        <li>1.6</li>
     </supportedVersions>
     <packageId>ModAuthor.MyRimWorldMod</packageId>
     <description>My Rimworld Mod</description>
