@@ -155,7 +155,7 @@ class RunConfiguration(project: Project, factory: ConfigurationFactory, name: St
     }
 
     private fun createProcessListener(siblingProcessHandler: ProcessHandler?): ProcessListener {
-        return object : ProcessAdapter() {
+        return object : ProcessListener {
             override fun processTerminated(event: ProcessEvent) {
                 val processHandler = event.processHandler
                 processHandler.removeProcessListener(this)

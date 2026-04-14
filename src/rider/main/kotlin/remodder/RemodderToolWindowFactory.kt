@@ -24,6 +24,7 @@ import com.intellij.ui.ToolbarDecorator
 import com.intellij.ui.components.JBList
 import com.intellij.ui.content.ContentFactory
 import com.jetbrains.rd.platform.util.toPromise
+import com.jetbrains.rdclient.util.idea.LifetimedProjectComponent
 import com.jetbrains.rider.languages.fileTypes.csharp.kotoparser.lexer.CSharpTokenType
 import com.jetbrains.rider.languages.fileTypes.csharp.psi.CSharpNamespaceDeclaration
 import com.jetbrains.rider.languages.fileTypes.csharp.psi.impl.CSharpDeclarationIdentifier
@@ -38,10 +39,11 @@ import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.JTextArea
 
-class RemodderToolWindowFactory : ToolWindowFactory {
+class RemodderToolWindowFactory(project: Project) : ToolWindowFactory, LifetimedProjectComponent(project) {
     private var errorMsg: String = ""
 
     override fun createToolWindowContent(project: Project, toolWindow: ToolWindow) {
+
         val diffPanel = DiffManager.getInstance().createRequestPanel(project, toolWindow.disposable, null)
 
         val refresh = JButton("Refresh")
@@ -64,7 +66,7 @@ class RemodderToolWindowFactory : ToolWindowFactory {
                 statusLabel.text = "$typeName..."
                 errorDetails.isVisible = false
 
-                project.solution.remodderProtocolModel.decompile.start(arrayOf(filePath, typeName) + userAssemblies)
+                project.solution.remodderProtocolModel.decompile.start(componentLifetime, arrayOf(filePath, typeName) + userAssemblies)
                     .toPromise().then {
                     if (it.size == 1) {
                         statusLabel.text = "$typeName: ${it[0]}"

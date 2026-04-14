@@ -1,4 +1,4 @@
-rootProject.name = "rimworlddev"
+rootProject.name = "RimworldDev.Rider"
 
 pluginManagement {
     val rdVersion: String by settings

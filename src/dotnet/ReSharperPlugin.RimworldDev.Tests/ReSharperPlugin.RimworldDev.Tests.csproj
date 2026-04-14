@@ -1,21 +1,70 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
-    <IsPackable>false</IsPackable>
-  </PropertyGroup>
+<!--    <PropertyGroup>-->
+<!--        <TargetFramework>net472</TargetFramework>-->
+<!--        <IsPackable>false</IsPackable>-->
+<!--        <JetTestProject>True</JetTestProject>-->
+<!--        <LangVersion>12</LangVersion>-->
+<!--        <NoWarn>CS8002</NoWarn>-->
+<!--        <Nullable>enable</Nullable>-->
+<!--    </PropertyGroup>-->
 
-  <ItemGroup>
-    <PackageReference Include="Lib.Harmony" Version="2.3.3" />
-  </ItemGroup>
+    <PropertyGroup>
+        <TargetFramework>net472</TargetFramework>
+        <IsPackable>false</IsPackable>
+        <JetTestProject>True</JetTestProject>
+        <LangVersion>12</LangVersion>
+        <NoWarn>CS8002</NoWarn>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+    
+<!--    <PropertyGroup>-->
+<!--        <TargetFramework>net8.0</TargetFramework>-->
+<!--        <ImplicitUsings>enable</ImplicitUsings>-->
+<!--        <Nullable>enable</Nullable>-->
 
-  <ItemGroup>
-    <ProjectReference Include="..\ReSharperPlugin.RimworldDev\ReSharperPlugin.RimworldDev.csproj" />
-  </ItemGroup>
+<!--        <IsPackable>false</IsPackable>-->
+<!--        <IsTestProject>true</IsTestProject>-->
+<!--    </PropertyGroup>-->
+    
+<!--    <ItemGroup>-->
+<!--        <PackageReference Include="JetBrains.ReSharper.SDK.Tests" Version="$(SdkVersion)" />-->
+<!--        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.4.1"/>-->
+<!--&lt;!&ndash;        <PackageReference Include="NUnit" Version="4.2.2" />&ndash;&gt;-->
+<!--        <PackageReference Include="NUnit3TestAdapter" Version="4.3.1" />-->
 
-  <ItemGroup>
-    <Compile Remove="test/**/*" />
-    <None Include="test/**/*" />
-  </ItemGroup>
+<!--    </ItemGroup>-->
+
+<!--    <ItemGroup>-->
+<!--&lt;!&ndash;        <PackageReference Include="GitHubActionsTestLogger" Version="2.0.1" />&ndash;&gt;-->
+<!--        <PackageReference Include="JetBrains.ReSharper.SDK.Tests" Version="$(SdkVersion)" />-->
+<!--        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.4.1" />-->
+<!--        <PackageReference Include="NUnit3TestAdapter" Version="4.3.1" />-->
+<!--        <PackageReference Include="System.Memory" />-->
+<!--    </ItemGroup>-->
+
+
+    <ItemGroup Label="PackageReference">
+        <PackageReference Include="JetBrains.ReSharper.SDK.Tests" Version="$(SdkVersion)" />
+        <PackageReference Include="JetBrains.Lifetimes" Version="2025.3.1" />
+        <PackageReference Include="JetBrains.NuGet.Packaging" Version="7.0.20251126.165" />
+        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.7.1" />
+        <PackageReference Include="NUnit" Version="3.13.2" />
+        <PackageReference Include="NUnit.Console" Version="3.12.0" />
+        <PackageReference Include="System.Collections.Immutable" Version="8.0.0" />
+    </ItemGroup>
+
+    <!--    <ItemGroup>-->
+<!--        <PackageReference Include="Lib.Harmony" Version="2.3.3" />-->
+<!--    </ItemGroup>-->
+
+    <ItemGroup>
+        <ProjectReference Include="..\ReSharperPlugin.RimworldDev\ReSharperPlugin.RimworldDev.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <Compile Remove="test/**/*" />
+        <None Include="test/**/*" />
+    </ItemGroup>
 
 </Project>

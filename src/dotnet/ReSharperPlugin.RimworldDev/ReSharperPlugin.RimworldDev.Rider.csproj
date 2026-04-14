@@ -8,7 +8,7 @@
   <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
 
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>net472</TargetFramework>
     <AssemblyName>ReSharperPlugin.RimworldDev</AssemblyName>
     <RootNamespace>$(AssemblyName)</RootNamespace>
     <IsPackable>false</IsPackable>
@@ -30,6 +30,7 @@
     <PackageReference Include="ICSharpCode.Decompiler" Version="8.2.0.7535" />
     <PackageReference Include="Krafs.Publicizer" Version="2.0.1" />
     <PackageReference Include="Lib.Harmony" Version="2.3.3" />
+    <PackageReference Include="System.Runtime.Loader" Version="4.3.0" />
     
     <Publicize Include="0Harmony;" />
   </ItemGroup>
