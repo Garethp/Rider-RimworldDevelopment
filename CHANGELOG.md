@@ -1,5 +1,8 @@
 # Changelog
 
+## 2025.1.6
+ * Update the Rimworld Mod Template to support 1.6 by default
+
 ## 2025.1.5
  * Fix the issue with XML tags getting messed up in Rider
 
