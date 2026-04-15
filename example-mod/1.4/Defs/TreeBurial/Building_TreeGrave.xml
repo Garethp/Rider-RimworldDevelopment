@@ -1,0 +1,103 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<Defs>
+    <ThingDef ParentName="BuildingBase">
+        <defName>Building_TreeGrave</defName>
+        <label>Natural Grave</label>
+        <description>A natural grave to allow the dead to return to nature</description>
+        <thingClass>AshAndDust.Buildings.Building_TreeGrave</thingClass>
+        <canGenerateDefaultDesignator>false</canGenerateDefaultDesignator>
+        <graphicData>
+            <texPath>Things/Building/TreeGrave/GraveEmpty</texPath>
+            <graphicClass>Graphic_Multi</graphicClass>
+            <drawSize>(3,4)</drawSize>
+        </graphicData>
+        <constructEffect>ConstructDirt</constructEffect>
+        <altitudeLayer>FloorEmplacement</altitudeLayer>
+        <useHitPoints>false</useHitPoints>
+        <size>(1,2)</size>
+        <tickerType>Rare</tickerType>
+        <canOverlapZones>false</canOverlapZones>
+        <statBases>
+            <WorkToBuild>800</WorkToBuild>
+            <MeditationFocusStrength>0.06</MeditationFocusStrength>
+        </statBases>
+        <passability>Standable</passability>
+        <defaultPlacingRot>South</defaultPlacingRot>
+        <building>
+            <ai_chillDestination>false</ai_chillDestination>
+            <expandHomeArea>false</expandHomeArea>
+            <isInert>true</isInert>
+            <preventDeteriorationInside>true</preventDeteriorationInside>
+            <haulToContainerDuration>500</haulToContainerDuration>
+            <artificialForMeditationPurposes>false</artificialForMeditationPurposes>
+            <fullGraveGraphicData>
+                <texPath>Things/Building/TreeGrave/GraveFull</texPath>
+                <graphicClass>Graphic_Multi</graphicClass>
+                <drawSize>(3,4)</drawSize>
+            </fullGraveGraphicData>
+            <fixedStorageSettings>
+                <filter>
+                    <categories>
+                        <li>Corpses</li>
+                    </categories>
+                </filter>
+            </fixedStorageSettings>
+            <defaultStorageSettings>
+                <priority>Important</priority>
+                <filter>
+                    <categories>
+                        <li>CorpsesHumanlike</li>
+                    </categories>
+                </filter>
+            </defaultStorageSettings>
+            <buildingTags>
+                <li>RitualFocus</li>
+            </buildingTags>
+        </building>
+        <inspectorTabs>
+            <li>ITab_Storage</li>
+        </inspectorTabs>
+        <terrainAffordanceNeeded>Diggable</terrainAffordanceNeeded>
+        <designationCategory>Misc</designationCategory>
+        <comps>
+            <li Class="CompProperties_Styleable"></li>
+            <li Class="CompProperties_AssignableToPawn">
+                <drawAssignmentOverlay>false</drawAssignmentOverlay>
+                <compClass>CompAssignableToPawn_Grave</compClass>
+            </li>
+            <li Class="CompProperties_MeditationFocus">
+                <statDef>MeditationFocusStrength</statDef>
+                <focusTypes>
+                    <li>Morbid</li>
+                </focusTypes>
+                <offsets>
+                    <li Class="FocusStrengthOffset_GraveFull">
+                        <offset>0.10</offset>
+                    </li>
+                    <li Class="FocusStrengthOffset_GraveCorpseRelationship">
+                        <offset>0.10</offset>
+                    </li>
+                    <li Class="FocusStrengthOffset_NearbyGraves">
+                        <defs>
+                            <li>Grave</li>
+                            <li>Sarcophagus</li>
+                        </defs>
+                        <offsetPerBuilding>0.01</offsetPerBuilding>
+                        <radius>9.9</radius>
+                        <maxBuildings>4</maxBuildings>
+                        <focusPerFullGrave>0.01</focusPerFullGrave>
+                        <explanationKey>MeditationFocusPerGrave</explanationKey>
+                        <explanationKeyAbstract>MeditationFocusPerGraveAbstract</explanationKeyAbstract>
+                    </li>
+                </offsets>
+            </li>
+        </comps>
+        <placeWorkers>
+            <li>PlaceWorker_MeditationOffsetBuildingsNear</li>
+        </placeWorkers>
+        <ritualFocus>
+            <spectateDistance>1</spectateDistance>
+            <allowedSpectateSides>Vertical</allowedSpectateSides>
+        </ritualFocus>
+    </ThingDef>
+</Defs>

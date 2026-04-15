@@ -1,0 +1,85 @@
+﻿<Defs>
+    <ThingDef ParentName="BuildingBase">
+        <defName>CannibalFeast</defName>
+        <label>cannibal feast</label>
+        <description>An alter upon which the dead are placed to be consumed by their friends and family</description>
+        <ideoBuildingNamerBase>NamerCannibalPlatter</ideoBuildingNamerBase>
+        <thingClass>AshAndDust.Cannibal.Buildings.CannibalFeast</thingClass>
+        <drawerType>MapMeshAndRealTime</drawerType>
+        <graphicData>
+            <graphicClass>Graphic_Multi</graphicClass>
+            <texPath>Things/Building/CannibalAltar/CannibalAltar</texPath>
+            <shaderType>CutoutComplex</shaderType>
+            <drawSize>(2.5,1.665)</drawSize>
+            <shadowData>
+                <volume>(0.8, 1 ,0.8)</volume>
+            </shadowData>
+        </graphicData>
+        <size>(3,2)</size>
+        <costStuffCount>30</costStuffCount>
+        <stuffCategories>
+            <li>Woody</li>
+            <li>Metallic</li>
+            <li>Stony</li>
+        </stuffCategories>
+        <leaveResourcesWhenKilled>false</leaveResourcesWhenKilled>
+        <defaultPlacingRot>South</defaultPlacingRot>
+        <ritualFocus>
+            <spectateDistance>1~2</spectateDistance>
+        </ritualFocus>
+        <statBases>
+            <MaxHitPoints>50</MaxHitPoints>
+            <WorkToBuild>10000</WorkToBuild>
+            <Mass>25</Mass>
+        </statBases>
+        <terrainAffordanceNeeded>Light</terrainAffordanceNeeded>
+        <passability>PassThroughOnly</passability>
+        <placeWorkers Inherit="False" />
+        <building>
+            <ai_chillDestination>false</ai_chillDestination>
+            <preventDeteriorationInside>true</preventDeteriorationInside>
+            <haulToContainerDuration>500</haulToContainerDuration>
+            <fullGraveGraphicData>
+                <texPath>Things/Building/CannibalAltar/CannibalAltar</texPath>
+                <shaderType>CutoutComplex</shaderType>
+                <graphicClass>Graphic_Multi</graphicClass>
+                <drawSize>(2.5,1.665)</drawSize>
+                <shadowData>
+                    <volume>(0.8, 1 ,0.8)</volume>
+                </shadowData>
+            </fullGraveGraphicData>
+            <fixedStorageSettings>
+                <filter>
+                    <categories>
+                        <li>Corpses</li>
+                    </categories>
+                </filter>
+            </fixedStorageSettings>
+            <defaultStorageSettings>
+                <priority>Important</priority>
+                <filter>
+                    <categories>
+                        <li>CorpsesHumanlike</li>
+                    </categories>
+                    <specialFiltersToDisallow>
+                        <li>AllowCorpsesStranger</li>
+                    </specialFiltersToDisallow>
+                </filter>
+            </defaultStorageSettings>
+            <destroySound>BuildingDestroyed_Wood_Small</destroySound>
+        </building>
+        <comps>
+            <li Class="CompProperties_AssignableToPawn">
+                <drawAssignmentOverlay>false</drawAssignmentOverlay>
+                <compClass>CompAssignableToPawn_Grave</compClass>
+            </li>
+            <li Class="AshAndDust.Utils.CompRequiresPrecept_Properties">
+                <OneOf>
+                    <li>CannibalFuneral</li>
+                </OneOf>
+            </li>
+        </comps>
+        <designationCategory>Misc</designationCategory>
+        <designationHotKey>Misc9</designationHotKey>
+    </ThingDef>
+</Defs>

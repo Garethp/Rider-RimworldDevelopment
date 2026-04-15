@@ -1,0 +1,27 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<Patch>
+    <Operation Class="PatchOperationSequence">
+        <success>Always</success>
+        <operations>
+            <li Class="PatchOperationAdd">
+                <xpath>Defs/StyleCategoryDef[defName = "Morbid"]/thingDefStyles</xpath>
+                <value>
+                    <li>
+                        <thingDef>AshAndDust_Plants_AncestorTree</thingDef>
+                        <styleDef>Morbid_AncestorTree</styleDef>
+                    </li>
+                </value>
+            </li>
+
+            <li Class="PatchOperationAdd">
+                <xpath>Defs/StyleCategoryDef[defName = "Techist"]/thingDefStyles</xpath>
+                <value>
+                    <li>
+                        <thingDef>AshAndDust_Plants_AncestorTree</thingDef>
+                        <styleDef>Techist_AncestorTree</styleDef>
+                    </li>
+                </value>
+            </li>
+        </operations>
+    </Operation>
+</Patch>

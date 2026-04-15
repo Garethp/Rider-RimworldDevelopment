@@ -1,0 +1,17 @@
+﻿<Defs>
+    <DutyDef>
+        <defName>EatAtCannibalFuneral</defName>
+        <hook>HighPriority</hook>
+        <thinkNode Class="ThinkNode_Priority">
+            <subNodes>
+                <li Class="AshAndDust.Cannibal.Jobs.EatAtFuneralGiver" />
+            </subNodes>
+        </thinkNode>
+    </DutyDef>
+    
+    <JobDef>
+        <defName>EatAtCannibalFuneral</defName>
+        <driverClass>AshAndDust.Cannibal.Jobs.EatAtFuneralDriver</driverClass>
+        <reportString>eating at TargetA.</reportString>
+    </JobDef>
+</Defs>

@@ -1,0 +1,120 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<Defs>
+    <PreceptDef ParentName="FuneralBase">
+        <defName>TreeFuneral</defName>
+        <description>A gathering that occurs around a natural grave for the body of a dead to return them back to the cycle of life, allowing their spirits to return in the form of trees. No ceremony can be held if the body is destroyed.</description>
+        <label>Natural Burial</label>
+        <extraTextPawnDeathLetter>{PAWN_nameDef} should be returned to the earth so that they can become one with nature.</extraTextPawnDeathLetter>
+        <ritualPatternBase>TreeFuneral</ritualPatternBase>
+        <iconPath>UI/Icons/Rituals/TreeBurial</iconPath>
+        <requiredMemes>
+            <li>TreeConnection</li>
+            <li>NaturePrimacy</li>
+        </requiredMemes>
+    </PreceptDef>
+
+    <RitualPatternDef>
+        <defName>TreeFuneral</defName>
+        <nameMaker>NamerRitualFuneral</nameMaker>
+        <ritualExpectedDesc>Once a {IDEO} member dies, other {MEMBERS} gather around their growing site for
+            {RITUAL_labelDef}.
+        </ritualExpectedDesc>
+        <ritualObligationTriggers>
+            <li Class="AshAndDust.Rituals.RitualObligationTrigger_AncestorTreeProperties">
+                <mustBePlayerIdeo>false</mustBePlayerIdeo>
+            </li>
+        </ritualObligationTriggers>
+        <ritualObligationTargetFilter>TreeGraveWithTargetsCorpse</ritualObligationTargetFilter>
+        <ritualBehavior>TreeBurial</ritualBehavior>
+        <ritualOutcomeEffect>AttendedNaturalFuneral</ritualOutcomeEffect>
+    </RitualPatternDef>
+
+    <RitualBehaviorDef>
+        <defName>TreeBurial</defName>
+        <durationTicks>5000</durationTicks>
+        <roles>
+            <li Class="RitualRoleTag">
+                <label>speaker</label>
+                <id>moralist</id>
+                <precept>IdeoRole_Moralist</precept>
+                <tag>Moralist</tag>
+                <maxCount>1</maxCount>
+                <substitutable>true</substitutable>
+                <countsAsParticipant>False</countsAsParticipant>
+            </li>
+        </roles>
+        <stages>
+            <li>
+                <defaultDuty>Spectate</defaultDuty>
+                <endTriggers>
+                    <li Class="StageEndTrigger_DurationPercentage">
+                        <percentage>1</percentage>
+                    </li>
+                </endTriggers>
+                <roleBehaviors>
+                    <li>
+                        <roleId>moralist</roleId>
+                        <dutyDef>SpeakOnCellFuneral</dutyDef>
+                        <speakerInteraction>Speech_Funeral</speakerInteraction>
+                        <customPositions>
+                            <li Class="RitualPosition_Lectern">
+                                <maxDistanceToFocus>5</maxDistanceToFocus>
+                            </li>
+                            <li Class="RitualPosition_BesideThing" />
+                        </customPositions>
+                    </li>
+                </roleBehaviors>
+                <visualEffectDef>Funeral</visualEffectDef>
+            </li>
+        </stages>
+    </RitualBehaviorDef>
+
+    <RitualObligationTargetFilterDef>
+        <defName>TreeGraveWithTargetsCorpse</defName>
+        <workerClass>AshAndDust.Rituals.TreeGraveWithTargetFilter</workerClass>
+    </RitualObligationTargetFilterDef>
+
+    <RitualOutcomeEffectDef ParentName="AttendedFuneralBase">
+        <defName>AttendedNaturalFuneral</defName>
+        <workerClass>AshAndDust.Rituals.TreeBurialOutcome</workerClass>
+        <comps>
+            <li Class="AshAndDust.Rituals.CompProperties_SpawnFlowers">
+                <plantSpawnRadius>5</plantSpawnRadius>
+                <massBurialRadius>10</massBurialRadius>
+                <plantsToNotOverwrite>
+                    <li>Plant_TreeGauranlen</li>
+                    <li>Plant_PodGauranlen</li>
+                    <li>Plant_MossGauranlen</li>
+                    <li>Plant_TreeAnima</li>
+                    <li>Plant_GrassAnima</li>
+                </plantsToNotOverwrite>
+                <baseDecorativePlants>
+                    <li>Plant_Dandelion</li>
+                    <li>Plant_Astragalus</li>
+                </baseDecorativePlants>
+                <enemyDecorativePlants>
+                    <li>Plant_Clivia</li>
+                    <li>Plant_Berry</li>
+                </enemyDecorativePlants>
+                <rareRewardPlants>
+                    <li>Plant_Ambrosia</li>
+                </rareRewardPlants>
+            </li>
+            <li Class="RitualOutcomeComp_RolePresentNotSubstituted">
+                <roleId>moralist</roleId>
+                <label>moral guide present</label>
+                <qualityOffset>0.3</qualityOffset>
+            </li>
+            <li Class="RitualOutcomeComp_ParticipantCount">
+                <label>participant count</label>
+                <curve>
+                    <points>
+                        <li>(1,  0.0)</li>
+                        <li>(5,  0.5)</li>
+                        <li>(10, 0.7)</li>
+                    </points>
+                </curve>
+            </li>
+        </comps>
+    </RitualOutcomeEffectDef>
+</Defs>

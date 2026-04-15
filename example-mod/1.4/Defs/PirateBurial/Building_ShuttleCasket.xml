@@ -1,0 +1,111 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<Defs>
+    <ThingDef ParentName="BuildingBase" MayRequire="kentington.saveourship2">
+        <defName>ShuttleCasket</defName>
+        <label>Shuttle Casket</label>
+        <description>A place to put the dead and send them into the vastness of the ocean.</description>
+        <thingClass>AshAndDust.Buildings.ShuttleCasket</thingClass>
+        <drawerType>MapMeshAndRealTime</drawerType>
+        <graphicData>
+            <texPath>Things/Shuttle/shuttle_personal</texPath>
+            <graphicClass>Graphic_Single</graphicClass>
+            <drawSize>(2,2)</drawSize>
+        </graphicData>
+        <size>(1,1)</size>
+        <rotatable>false</rotatable>
+        <altitudeLayer>BuildingOnTop</altitudeLayer>
+        <passability>PassThroughOnly</passability>
+        <castEdgeShadows>false</castEdgeShadows>
+        <fillPercent>0.5</fillPercent>
+        <tickerType>Rare</tickerType>
+        <constructionSkillPrerequisite>0</constructionSkillPrerequisite>
+        <building>
+            <hasFuelingPort>true</hasFuelingPort>
+            <haulToContainerDuration>500</haulToContainerDuration>
+            <fixedStorageSettings>
+                <filter>
+                    <categories>
+                        <li>Corpses</li>
+                    </categories>
+                </filter>
+            </fixedStorageSettings>
+            <defaultStorageSettings>
+                <priority>Important</priority>
+                <filter>
+                    <categories>
+                        <li>CorpsesHumanlike</li>
+                    </categories>
+                    <specialFiltersToDisallow>
+                        <li>AllowCorpsesStranger</li>
+                    </specialFiltersToDisallow>
+                </filter>
+            </defaultStorageSettings>
+        </building>
+        <statBases>
+            <WorkToBuild>600</WorkToBuild>
+            <Mass>10</Mass>
+            <MaxHitPoints>100</MaxHitPoints>
+        </statBases>
+        <costList>
+            <Plasteel>10</Plasteel>
+            <Steel>40</Steel>
+            <ComponentIndustrial>2</ComponentIndustrial>
+        </costList>
+        <inspectorTabs>
+            <li>ITab_Storage</li>
+            <li>ITab_Art</li>
+            <li>ITab_ContentsCasket</li>
+        </inspectorTabs>
+        <comps>
+            <li>
+                <compClass>CompQuality</compClass>
+            </li>
+            <li Class="CompProperties_Refuelable">
+                <fuelCapacity>20</fuelCapacity>
+                <targetFuelLevelConfigurable>true</targetFuelLevelConfigurable>
+                <initialConfigurableTargetFuelLevel>20</initialConfigurableTargetFuelLevel>
+                <fuelFilter>
+                    <thingDefs>
+                        <li>Chemfuel</li>
+                    </thingDefs>
+                </fuelFilter>
+                <consumeFuelOnlyWhenUsed>true</consumeFuelOnlyWhenUsed>
+                <autoRefuelPercent>1</autoRefuelPercent>
+                <showFuelGizmo>true</showFuelGizmo>
+                <drawOutOfFuelOverlay>false</drawOutOfFuelOverlay>
+            </li>
+            <li Class="CompProperties_AssignableToPawn">
+                <drawAssignmentOverlay>false</drawAssignmentOverlay>
+                <compClass>CompAssignableToPawn_Grave</compClass>
+            </li>
+        </comps>
+        <researchPrerequisites>
+            <li>ShuttlePersonal</li>
+        </researchPrerequisites>
+        <costStuffCount>30</costStuffCount>
+        <blockWind>true</blockWind>
+        <designationCategory>Misc</designationCategory>
+        <designationHotKey>Misc9</designationHotKey>
+    </ThingDef>
+
+    <ThingDef ParentName="SkyfallerBase" MayRequire="kentington.saveourship2">
+        <defName>ShuttleCasketSkyfaller</defName>
+        <label>shuttle casket (leaving)</label>
+        <thingClass>DropPodIncoming</thingClass>
+        <graphicData>
+            <texPath>Things/ShuttleHover/ShuttlePersonal_south</texPath>
+            <graphicClass>Graphic_Single</graphicClass>
+            <shaderType>CutoutFlying</shaderType>
+            <drawSize>1.9</drawSize>
+        </graphicData>
+        <skyfaller>
+            <movementType>Decelerate</movementType>
+            <reversed>true</reversed>
+            <shadow>Things/Skyfaller/SkyfallerShadowDropPod</shadow>
+            <shadowSize>(2, 2)</shadowSize>
+            <anticipationSound>DropPod_Leaving</anticipationSound>
+            <anticipationSoundTicks>-10</anticipationSoundTicks>
+            <ticksToImpactRange><min>-40</min><max>-15</max></ticksToImpactRange>
+        </skyfaller>
+    </ThingDef>
+</Defs>

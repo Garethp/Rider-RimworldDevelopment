@@ -1,0 +1,104 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<Defs>
+    <ThingDef ParentName="BuildingBase">
+        <defName>WateryGrave</defName>
+        <label>Watery Casket</label>
+        <description>A place to put the dead and sink them into the ocean.</description>
+        <thingClass>Building_Sarcophagus</thingClass>
+        <graphicData>
+            <texPath>Things/Building/WateryCasket/WateryCasket</texPath>
+            <graphicClass>Graphic_Multi</graphicClass>
+            <damageData>
+                <rect>(0.05,0.1,0.9,0.9)</rect>
+            </damageData>
+            <drawSize>(1,2)</drawSize>
+            <shadowData>
+                <volume>(0.75, 0.35, 0.33)</volume>
+            </shadowData>
+        </graphicData>
+        <size>(1,2)</size>
+        <pathCost>42</pathCost>
+        <castEdgeShadows>true</castEdgeShadows>
+        <fillPercent>0.45</fillPercent>
+        <tickerType>Rare</tickerType>
+        <canOverlapZones>false</canOverlapZones>
+        <constructionSkillPrerequisite>0</constructionSkillPrerequisite>
+        <building>
+            <ai_chillDestination>false</ai_chillDestination>
+            <preventDeteriorationInside>true</preventDeteriorationInside>
+            <haulToContainerDuration>500</haulToContainerDuration>
+            <fullGraveGraphicData>
+                <texPath>Things/Building/WateryCasket/WateryCasket</texPath>
+                <graphicClass>Graphic_Multi</graphicClass>
+                <damageData>
+                    <rect>(0.05,0.1,0.9,0.9)</rect>
+                </damageData>
+                <drawSize>(1,2)</drawSize>
+                <shadowData>
+                    <volume>(0.75, 0.35, 0.33)</volume>
+                </shadowData>
+            </fullGraveGraphicData>
+            <fixedStorageSettings>
+                <filter>
+                    <categories>
+                        <li>Corpses</li>
+                    </categories>
+                </filter>
+            </fixedStorageSettings>
+            <defaultStorageSettings>
+                <priority>Important</priority>
+                <filter>
+                    <categories>
+                        <li>CorpsesHumanlike</li>
+                    </categories>
+                    <specialFiltersToDisallow>
+                        <li>AllowCorpsesStranger</li>
+                    </specialFiltersToDisallow>
+                </filter>
+            </defaultStorageSettings>
+            <destroySound>BuildingDestroyed_Wood_Small</destroySound>
+        </building>
+        <statBases>
+            <WorkToBuild>600</WorkToBuild>
+            <Mass>10</Mass>
+            <MaxHitPoints>100</MaxHitPoints>
+            <Flammability>1.0</Flammability>
+        </statBases>
+        <stuffCategories>
+            <li>Woody</li>
+            <li>Metallic</li>
+            <li>Stony</li>
+        </stuffCategories>
+        <inspectorTabs>
+            <li>ITab_Storage</li>
+            <li>ITab_Art</li>
+            <li>ITab_ContentsCasket</li>
+        </inspectorTabs>
+        <comps>
+            <li>
+                <compClass>CompQuality</compClass>
+            </li>
+            <li Class="CompProperties_Art">
+                <nameMaker>NamerArtSarcophagusPlate</nameMaker>
+                <descriptionMaker>ArtDescription_SarcophagusPlate</descriptionMaker>
+                <mustBeFullGrave>true</mustBeFullGrave>
+            </li>
+            <li Class="CompProperties_AssignableToPawn">
+                <drawAssignmentOverlay>false</drawAssignmentOverlay>
+                <compClass>CompAssignableToPawn_Grave</compClass>
+            </li>
+            <li Class="AshAndDust.Utils.CompRequiresPrecept_Properties">
+                <OneOf>
+                    <li>PirateFuneral</li>
+                </OneOf>
+            </li>
+        </comps>
+        <costStuffCount>30</costStuffCount>
+        <altitudeLayer>Building</altitudeLayer>
+        <passability>PassThroughOnly</passability>
+        <blockWind>true</blockWind>
+        <terrainAffordanceNeeded>ShallowWater</terrainAffordanceNeeded>
+        <designationCategory>Misc</designationCategory>
+        <designationHotKey>Misc9</designationHotKey>
+    </ThingDef>
+</Defs>

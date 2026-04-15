@@ -1,0 +1,202 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<Defs>
+    <PreceptDef ParentName="FuneralBase">
+        <defName>HeroFuneral</defName>
+        <description>Hero</description>
+        <label>Hero's Funeral</label>
+        <extraTextPawnDeathLetter>{PAWN_nameDef} should be returned to the earth so that they can become one with nature.</extraTextPawnDeathLetter>
+        <ritualPatternBase>HeroFuneral</ritualPatternBase>
+        <iconPath>UI/Icons/Rituals/HeroicBurial</iconPath>
+        <exclusionTags>
+            <li>NoHeroBurial</li>
+        </exclusionTags>
+        <alsoAdds>HeroFuneralNoCorpse</alsoAdds>
+    </PreceptDef>
+
+    <PreceptDef ParentName="FuneralBase">
+        <defName>HeroFuneralNoCorpse</defName>
+        <canGenerateAsSpecialPrecept>false</canGenerateAsSpecialPrecept>
+        <label>hero funeral (no corpse)</label>
+        <visible>false</visible>
+        <listedForRoles>false</listedForRoles>
+        <ritualPatternBase>HeroFuneralNoCorpse</ritualPatternBase>
+        <takeNameFrom>HeroFuneral</takeNameFrom>
+    </PreceptDef>
+
+    <RitualPatternDef>
+        <defName>HeroFuneral</defName>
+        <nameMaker>NamerRitualFuneral</nameMaker>
+        <ritualExpectedDesc>Once a {IDEO} member dies and the body is lost, other {MEMBERS} gather around an empty grave for {RITUAL_labelDef}.</ritualExpectedDesc>
+        <ritualObligationTriggers>
+            <li Class="RitualObligationTrigger_MemberDiedProperties">
+                <mustBePlayerIdeo>false</mustBePlayerIdeo>
+            </li>
+        </ritualObligationTriggers>
+        <ritualObligationTargetFilter>HeroicGraveWithTargetsCorpse</ritualObligationTargetFilter>
+        <ritualBehavior>Funeral</ritualBehavior>
+        <ritualOutcomeEffect>HeroicFuneralOutcome</ritualOutcomeEffect>
+    </RitualPatternDef>
+
+    <RitualPatternDef>
+        <defName>HeroFuneralNoCorpse</defName>
+        <nameMaker>NamerRitualFuneral</nameMaker>
+        <ritualExpectedDesc>Once a {IDEO} member dies, other {MEMBERS} gather around their grave for {RITUAL_labelDef}.</ritualExpectedDesc>
+        <ritualObligationTriggers>
+            <li Class="RitualObligationTrigger_MemberCorpseDestroyedProperties">
+                <mustBePlayerIdeo>true</mustBePlayerIdeo>
+            </li>
+        </ritualObligationTriggers>
+        <ritualObligationTargetFilter>HeroicGraveWithNoCorpse</ritualObligationTargetFilter>
+        <ritualBehavior>Funeral</ritualBehavior>
+        <ritualOutcomeEffect>AttendedFuneral</ritualOutcomeEffect>
+    </RitualPatternDef>
+
+    <AshAndDust.Heroic.Rituals.RitualTargetFilter_HeroBurialDef>
+        <defName>HeroicGraveWithTargetsCorpse</defName>
+        <workerClass>AshAndDust.Heroic.Rituals.RitualTargetFilter_HeroBurial</workerClass>
+        <tombRequirements>
+            <li>
+                <expectation>VeryLow</expectation>
+                <requirements>
+                    <li Class="RoomRequirement_Area">
+                        <area>10</area>
+                    </li>
+                </requirements>
+            </li>
+            <li>
+                <expectation>Low</expectation>
+                <requirements>
+                    <li Class="RoomRequirement_Area">
+                        <area>20</area>
+                    </li>
+                    <li Class="RoomRequirement_TerrainWithTags">
+                        <labelKey>RoomRequirementAllFloored</labelKey>
+                        <tags>
+                            <li>Floor</li>
+                            <li>FineFloor</li>
+                        </tags>
+                    </li>
+                </requirements>
+            </li>
+            <li>
+                <expectation>Moderate</expectation>
+                <requirements>
+                    <li Class="RoomRequirement_Area">
+                        <area>35</area>
+                    </li>
+                    <li Class="RoomRequirement_TerrainWithTags">
+                        <labelKey>RoomRequirementAllFloored</labelKey>
+                        <tags>
+                            <li>Floor</li>
+                            <li>FineFloor</li>
+                        </tags>
+                    </li>
+                    <li Class="RoomRequirement_ThingCount">
+                        <thingDef>Column</thingDef>
+                        <count>4</count>
+                    </li>
+                    <li Class="RoomRequirement_ThingAnyOfCount">
+                        <things>
+                            <li>Brazier</li>
+                            <li MayRequire="Ludeon.RimWorld.Royalty,Ludeon.RimWorld.Ideology">DarklightBrazier</li>
+                        </things>
+                        <count>2</count>
+                    </li>
+                </requirements>
+            </li>
+            <li>
+                <expectation>High</expectation>
+                <requirements>
+                    <li Class="RoomRequirement_Area">
+                        <area>50</area>
+                    </li>
+                    <li Class="RoomRequirement_TerrainWithTags">
+                        <labelKey>RoomRequirementAllFineFloored</labelKey>
+                        <tags>
+                            <li>FineFloor</li>
+                        </tags>
+                    </li>
+                    <li Class="AshAndDust.RoomRequirements.ThingCountOfValue">
+                        <thingDef>Column</thingDef>
+                        <count>4</count>
+                        <value>30</value>
+                    </li>
+                    <li Class="RoomRequirement_ThingAnyOfCount">
+                        <things>
+                            <li>Brazier</li>
+                            <li MayRequire="Ludeon.RimWorld.Royalty,Ludeon.RimWorld.Ideology">DarklightBrazier</li>
+                        </things>
+                        <count>4</count>
+                    </li>
+                    <li Class="RoomRequirement_AllThingsAnyOfAreGlowing">
+                        <labelKey>RoomRequirementAllBraziersMustBeLit</labelKey>
+                        <things>
+                            <li>Brazier</li>
+                            <li MayRequire="Ludeon.RimWorld.Royalty,Ludeon.RimWorld.Ideology">DarklightBrazier</li>
+                        </things>
+                    </li>
+                </requirements>
+            </li>
+            <li>
+                <expectation>SkyHigh</expectation>
+                <requirements>
+                    <li Class="RoomRequirement_Area">
+                        <area>50</area>
+                    </li>
+                    <li Class="RoomRequirement_TerrainWithTags">
+                        <labelKey>RoomRequirementAllFineFloored</labelKey>
+                        <tags>
+                            <li>FineFloor</li>
+                        </tags>
+                    </li>
+                    <li Class="AshAndDust.RoomRequirements.ThingCountOfValue">
+                        <thingDef>Column</thingDef>
+                        <value>100</value>
+                        <count>4</count>
+                    </li>
+                    <li Class="RoomRequirement_ThingAnyOfCount">
+                        <things>
+                            <li>Brazier</li>
+                            <li MayRequire="Ludeon.RimWorld.Royalty,Ludeon.RimWorld.Ideology">DarklightBrazier</li>
+                        </things>
+                        <count>4</count>
+                    </li>
+                    <li Class="RoomRequirement_AllThingsAnyOfAreGlowing">
+                        <labelKey>RoomRequirementAllBraziersMustBeLit</labelKey>
+                        <things>
+                            <li>Brazier</li>
+                            <li MayRequire="Ludeon.RimWorld.Royalty,Ludeon.RimWorld.Ideology">DarklightBrazier</li>
+                        </things>
+                    </li>
+                </requirements>
+            </li>
+        </tombRequirements>
+    </AshAndDust.Heroic.Rituals.RitualTargetFilter_HeroBurialDef>
+
+    <RitualObligationTargetFilterDef>
+        <defName>HeroicGraveWithNoCorpse</defName>
+        <workerClass>AshAndDust.Heroic.Rituals.RitualTargetFilter_HeroBurialNoCorpse</workerClass>
+    </RitualObligationTargetFilterDef>
+
+    <RitualOutcomeEffectDef ParentName="AttendedFuneralBase">
+        <defName>HeroicFuneralOutcome</defName>
+        <workerClass>AshAndDust.Heroic.Rituals.HeroicBurialOutcome</workerClass>
+        <comps>
+            <li Class="RitualOutcomeComp_RolePresentNotSubstituted">
+                <roleId>moralist</roleId>
+                <label>moral guide present</label>
+                <qualityOffset>0.3</qualityOffset>
+            </li>
+            <li Class="RitualOutcomeComp_ParticipantCount">
+                <label>participant count</label>
+                <curve>
+                    <points>
+                        <li>(1,  0.0)</li>
+                        <li>(5,  0.5)</li>
+                        <li>(10, 0.7)</li>
+                    </points>
+                </curve>
+            </li>
+        </comps>
+    </RitualOutcomeEffectDef>
+</Defs>

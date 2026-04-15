@@ -1,0 +1,48 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<Defs>
+    <IssueDef>
+        <defName>PirateBurial</defName>
+        <label>Pirate Burial</label>
+        <iconPath>UI/Icons/Issues/PirateBurial</iconPath>
+    </IssueDef>
+
+<!--    <PreceptDef>-->
+<!--        <defName>PirateBurial_Required</defName>-->
+<!--        <issue>PirateBurial</issue>-->
+<!--        <impact>High</impact>-->
+<!--        <displayOrderInIssue>3</displayOrderInIssue>-->
+<!--        <displayOrderInImpact>100</displayOrderInImpact>-->
+<!--        <label>For enemies as well</label>-->
+<!--        <description>Our enemies are a tough bunch and they should be honoured by sending them to the depths</description>-->
+<!--        <exclusionTags>-->
+<!--            <li>VanillaBurial</li>-->
+<!--        </exclusionTags>-->
+<!--    </PreceptDef>-->
+
+    <PreceptDef>
+        <defName>PirateBurial_Sometimes</defName>
+        <issue>PirateBurial</issue>
+        <impact>Medium</impact>
+        <displayOrderInIssue>3</displayOrderInIssue>
+        <displayOrderInImpact>100</displayOrderInImpact>
+        <label>For colonists</label>
+        <description>To lose a crew member is to lose family. We should send their remains to the sea and drink to their memories</description>
+        <exclusionTags>
+            <li>VanillaBurial</li>
+        </exclusionTags>
+    </PreceptDef>
+
+    <PreceptDef>
+        <defName>PirateBurial_None</defName>
+        <issue>PirateBurial</issue>
+        <impact>Low</impact>
+        <displayOrderInIssue>0</displayOrderInIssue>
+        <displayOrderInImpact>100</displayOrderInImpact>
+        <defaultSelectionWeight>1</defaultSelectionWeight>
+        <label>None</label>
+        <description>When someone  dies, we don't send their bodies to the bottom of the oceans</description>
+        <exclusionTags>
+            <li>NoPirateBurial</li>
+        </exclusionTags>
+    </PreceptDef>
+</Defs>

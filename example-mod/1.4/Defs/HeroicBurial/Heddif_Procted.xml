@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Defs>
+    <HediffDef ParentName="DiseaseBase">
+        <defName>AshAndDust_ProtectedByHero</defName>
+        <label>Protected by a Hero</label>
+        <description>After praying at the tomb of a Hero, you have recieved their protection for a day</description>
+        <comps>
+            <li Class="HediffCompProperties_Disappears">
+                <disappearsAfterTicks>
+                    <min>60000</min>
+                    <max>60000</max>
+                </disappearsAfterTicks>
+                <showRemainingTime>true</showRemainingTime>
+            </li>
+        </comps>
+        <stages>
+            <li>
+                <statOffsets>
+                    <MeleeDodgeChance>0.2</MeleeDodgeChance>
+                    <ArmorRating_Sharp>0.15</ArmorRating_Sharp>
+                    <ArmorRating_Blunt>0.15</ArmorRating_Blunt>
+                    <ArmorRating_Heat>0.15</ArmorRating_Heat>
+                </statOffsets>
+            </li>
+        </stages>
+    </HediffDef>
+</Defs>

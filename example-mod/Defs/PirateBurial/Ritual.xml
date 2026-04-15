@@ -1,0 +1,137 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<Defs>
+    <PreceptDef ParentName="FuneralBase">
+        <defName>PirateFuneral</defName>
+        <description>A party that occurs around a pirate's watery grave after they die. If the body is destroyed, an empty casket can be used.</description>
+        <label>Pirate's Funeral</label>
+        <extraTextPawnDeathLetter>We should celebrate {PAWN_nameDef}'s life as we send them to the sea.</extraTextPawnDeathLetter>
+        <ritualPatternBase>PirateFuneral</ritualPatternBase>
+        <iconPath>UI/Icons/Rituals/PirateBurial</iconPath>
+        <exclusionTags>
+            <li>NoPirateBurial</li>
+        </exclusionTags>
+        <alsoAdds>PirateFuneralNoCorpse</alsoAdds>
+    </PreceptDef>
+
+    <PreceptDef ParentName="FuneralBase">
+        <defName>PirateFuneralNoCorpse</defName>
+        <canGenerateAsSpecialPrecept>false</canGenerateAsSpecialPrecept>
+        <label>pirate funeral (no corpse)</label>
+        <visible>false</visible>
+        <listedForRoles>false</listedForRoles>
+        <ritualPatternBase>PirateFuneralNoCorpse</ritualPatternBase>
+        <takeNameFrom>PirateFuneral</takeNameFrom>
+    </PreceptDef>
+
+    <RitualPatternDef>
+        <defName>PirateFuneral</defName>
+        <nameMaker>NamerRitualFuneral</nameMaker>
+        <ritualExpectedDesc>Once a {IDEO} member dies, other {MEMBERS} gather around their watery grave for {RITUAL_labelDef}.</ritualExpectedDesc>
+        <ritualObligationTriggers>
+            <li Class="RitualObligationTrigger_MemberDiedProperties">
+                <mustBePlayerIdeo>true</mustBePlayerIdeo>
+            </li>
+        </ritualObligationTriggers>
+        <ritualObligationTargetFilter>WateryGraveWithTargetsCorpse</ritualObligationTargetFilter>
+        <ritualOutcomeEffect>AttendedPirateFuneral</ritualOutcomeEffect>
+        <ritualBehavior>PirateFuneralBehavior</ritualBehavior>
+    </RitualPatternDef>
+
+    <RitualPatternDef>
+        <defName>PirateFuneralNoCorpse</defName>
+        <ritualExpectedDesc>Once a {IDEO} member dies and the body is lost, other {MEMBERS} gather around an empty barrel for {RITUAL_labelDef}.</ritualExpectedDesc>
+        <ritualObligationTriggers>
+            <li Class="RitualObligationTrigger_MemberCorpseDestroyedProperties">
+                <mustBePlayerIdeo>true</mustBePlayerIdeo>
+            </li>
+        </ritualObligationTriggers>
+        <ritualObligationTargetFilter>AnEmptyWateryGrave</ritualObligationTargetFilter>
+        <ritualBehavior>PirateFuneralBehavior</ritualBehavior>
+        <ritualOutcomeEffect>AttendedPirateFuneral</ritualOutcomeEffect>
+    </RitualPatternDef>
+
+    <RitualBehaviorDef>
+        <defName>PirateFuneralBehavior</defName>
+        <durationTicks>5000</durationTicks>
+        <workerClass>RitualBehaviorWorker_Funeral</workerClass>
+        <roles>
+            <li Class="RitualRoleTag">
+                <label>speaker</label>
+                <id>moralist</id>
+                <precept>IdeoRole_Moralist</precept>
+                <tag>Moralist</tag>
+                <maxCount>1</maxCount>
+                <substitutable>true</substitutable>
+                <countsAsParticipant>False</countsAsParticipant>
+            </li>
+        </roles>
+        <stages>
+            <li>
+                <defaultDuty>Spectate</defaultDuty>
+                <essential>True</essential>
+                <endTriggers>
+                    <li Class="StageEndTrigger_DurationPercentage">
+                        <percentage>0.3</percentage>
+                    </li>
+                </endTriggers>
+                <postAction Class="RitualStageAction_Message">
+                    <text>{0}: The speech is over, and the party is beginning.</text>
+                    <messageTypeDef>NeutralEvent</messageTypeDef>
+                </postAction>
+                <roleBehaviors>
+                    <li>
+                        <roleId>moralist</roleId>
+                        <dutyDef>SpeakOnCellFuneral</dutyDef>
+                        <speakerInteraction>Speech_Funeral</speakerInteraction>
+                        <customPositions>
+                            <li Class="RitualPosition_Lectern">
+                                <maxDistanceToFocus>5</maxDistanceToFocus>
+                            </li>
+                            <li Class="RitualPosition_BesideThing" />
+                        </customPositions>
+                    </li>
+                </roleBehaviors>
+            </li>
+            <li>
+                <defaultDuty>Party</defaultDuty>
+                <endTriggers>
+                    <li Class="StageEndTrigger_DurationPercentage">
+                        <percentage>0.7</percentage>
+                    </li>
+                </endTriggers>
+            </li>
+        </stages>
+    </RitualBehaviorDef>
+
+    <RitualObligationTargetFilterDef>
+        <defName>WateryGraveWithTargetsCorpse</defName>
+        <workerClass>AshAndDust.Rituals.RitualTargetFilter_WateryGraveWithCorpse</workerClass>
+    </RitualObligationTargetFilterDef>
+
+    <RitualObligationTargetFilterDef>
+        <defName>AnEmptyWateryGrave</defName>
+        <workerClass>AshAndDust.Rituals.RitualTargetFilter_WateryGraveWithNoCorpse</workerClass>
+    </RitualObligationTargetFilterDef>
+
+    <RitualOutcomeEffectDef ParentName="AttendedFuneralBase">
+        <defName>AttendedPirateFuneral</defName>
+        <workerClass>AshAndDust.Rituals.PirateBurialOutcome</workerClass>
+        <comps>
+            <li Class="RitualOutcomeComp_RolePresentNotSubstituted">
+                <roleId>moralist</roleId>
+                <label>moral guide present</label>
+                <qualityOffset>0.3</qualityOffset>
+            </li>
+            <li Class="RitualOutcomeComp_ParticipantCount">
+                <label>participant count</label>
+                <curve>
+                    <points>
+                        <li>(1,  0.0)</li>
+                        <li>(5,  0.5)</li>
+                        <li>(10, 0.7)</li>
+                    </points>
+                </curve>
+            </li>
+        </comps>
+    </RitualOutcomeEffectDef>
+</Defs>
