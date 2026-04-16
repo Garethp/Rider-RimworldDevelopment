@@ -12,7 +12,7 @@
 
 # LINUX: name of Unity executable
 # MACOS: name of the .app directory
-executable_name="RimWorldLinux"
+executable_name="RimWorldMac.app"
 
 # All of the below can be overriden with command line args
 
@@ -49,7 +49,7 @@ debug_enable="1"
 debug_address="127.0.0.1:56000"
 
 # If 1 and debug_enabled is 1, Mono debugger server will suspend the game execution until a debugger is attached
-debug_suspend="1"
+debug_suspend="0"
 
 # CoreCLR options (IL2CPP)
 
