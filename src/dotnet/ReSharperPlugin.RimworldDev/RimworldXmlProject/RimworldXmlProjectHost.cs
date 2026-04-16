@@ -46,7 +46,7 @@ public class RimworldXmlProjectHost : SolutionFileProjectHostBase
         return projectMark.Guid.ToString() == "f2a71f9b-5d33-465a-a702-920d77279781";
     }
 
-    protected override void Reload(ProjectHostReloadChange change, FileSystemPath logPath)
+    protected override void Reload(ProjectHostReloadChange change, VirtualFileSystemPath logPath)
     {
         if (change.ProjectMark is not RimworldProjectMark projectMark) return;
 

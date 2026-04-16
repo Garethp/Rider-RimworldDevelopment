@@ -12,6 +12,7 @@ output
 *.user
 *.sln.docstates
 *.cache
+.kotlin
 
 # IDEs
 /.idea/*.iml
@@ -22,3 +23,10 @@ output
 .vs
 _ReSharper*
 _dotTrace*
+
+# Nuget
+packages/
+**/NuGetLocks/*
+
+# Example Mod
+example-mod/.idea
