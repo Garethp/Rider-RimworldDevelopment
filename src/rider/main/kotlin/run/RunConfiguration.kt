@@ -19,7 +19,6 @@ import com.jetbrains.rider.plugins.unity.UnityBundle
 import com.jetbrains.rider.plugins.unity.run.configurations.unityExe.UnityExeConfiguration
 import com.jetbrains.rider.run.RiderRunBundle
 import icons.UnityIcons
-import kotlin.io.path.Path
 
 internal class UnityPlayerDebugConfigurationTypeInternal : ConfigurationTypeBase(
     ID,
@@ -107,7 +106,7 @@ class RunConfiguration(project: Project, factory: ConfigurationFactory, name: St
             getScriptName(),
             getSaveFilePath(),
             getModListPath(),
-            getRimworldState(environment, OS.CURRENT == OS.Linux || OS.CURRENT == OS.macOS),
+            getRimworldState(environment),
             UnityDebugRemoteConfiguration(),
             environment,
             "CustomPlayer"
@@ -118,18 +117,13 @@ class RunConfiguration(project: Project, factory: ConfigurationFactory, name: St
         return RimworldDev.Rider.run.SettingsEditor(project)
     }
 
-    private fun getRimworldState(environment: ExecutionEnvironment, debugWithScript: Boolean = false): CommandLineState {
+    private fun getRimworldState(environment: ExecutionEnvironment): CommandLineState {
         return object : CommandLineState(environment) {
             override fun startProcess(): ProcessHandler {
                 val scriptName = getScriptName()
                 val extraArgs = getCommandLineOptions().split(' ').filter { it.isNotEmpty() }
 
                 val commandLine = when {
-                    debugWithScript -> {
-                        val bashScriptPath = "${Path(scriptName).parent}/run.sh"
-                        GeneralCommandLine("/bin/sh")
-                            .withParameters(listOf(bashScriptPath, scriptName) + extraArgs)
-                    }
                     OS.CURRENT == OS.macOS -> {
                         val params = if (extraArgs.isEmpty()) listOf(scriptName)
                                      else listOf(scriptName, "--args") + extraArgs

@@ -1,6 +1,7 @@
 package RimworldDev.Rider.run
 
 import RimworldDev.Rider.helpers.ScopeHelper
+import com.intellij.execution.ExecutionException
 import com.intellij.execution.ExecutionResult
 import com.intellij.execution.Executor
 import com.intellij.execution.configurations.RunProfileState
@@ -13,8 +14,14 @@ import com.jetbrains.rider.debugger.DebuggerWorkerProcessHandler
 import com.jetbrains.rider.plugins.unity.run.configurations.UnityAttachProfileState
 import com.jetbrains.rider.run.configurations.remote.RemoteConfiguration
 import com.jetbrains.rider.run.getProcess
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.FileOutputStream
+import java.net.BindException
+import java.net.InetSocketAddress
+import java.net.ServerSocket
 import java.nio.file.Files
 import kotlin.io.path.Path
 
@@ -57,14 +64,6 @@ class RunState(
             "Doorstop/Mono.CompilerServices.SymbolWriter.dll",
             "Doorstop/pdb2mdb.exe",
         ),
-        // macOS resource list was previously incomplete. Added:
-        //   - "run.sh"              — the launch script that sets DYLD_INSERT_LIBRARIES and resolves the real binary inside the .app bundle
-        //   - "Doorstop/dnlib.dll" — required by Doorstop at load time; omission caused silent injection failure
-        //   - "Doorstop/HotReload.dll" — likewise required but was missing
-        //   - "Doorstop/libdoorstop.dylib" — the native DYLD injection library; without this Doorstop cannot intercept Mono at all
-        // Also fixed: the config file was previously listed as ".doorstop_config.ini" (with a leading dot).
-        // getResourceAsStream() returned null for that name (the actual resource has no leading dot), and the
-        // copyResource() function silently returned on null — so the config file was never copied.
         OS.macOS to listOf(
             "run.sh",
             ".doorstop_version",
@@ -89,32 +88,76 @@ class RunState(
         lifetime: Lifetime
     ): ExecutionResult {
         setupDoorstop()
+        QuickStartUtils.setup(modListPath, saveFilePath)
+
+        // On macOS/Linux we must bypass rimworldState.execute() for two reasons:
+        //  1. CommandLineState.execute() has implicit EDT dependencies (console view creation)
+        //     that fail silently when called from this suspend function's coroutine context.
+        //  2. On macOS, the 'open' command launches apps through launchd, which is SIP-protected
+        //     and strips DYLD_INSERT_LIBRARIES — preventing Doorstop injection entirely.
+        // ProcessBuilder with run.sh avoids both: it fork/exec's directly, preserving DYLD_* vars,
+        // and has no IntelliJ threading requirements. Windows uses DLL hijacking (winhttp.dll)
+        // instead of DYLD injection, so rimworldState.execute() works fine there.
+        val gameProcess: Process? = if (OS.CURRENT == OS.macOS || OS.CURRENT == OS.Linux) {
+            val bashScriptPath = "${Path(rimworldLocation).parent}/run.sh"
+            withContext(Dispatchers.IO) {
+                val logFile = File(System.getProperty("java.io.tmpdir"), "rimworld-doorstop.log")
+                ProcessBuilder("/bin/sh", bashScriptPath, rimworldLocation)
+                    .redirectErrorStream(true)
+                    .redirectOutput(logFile)
+                    .start()
+            }
+        } else {
+            // Windows: rimworldState handles env vars and process lifecycle normally.
+            rimworldState.execute(executor, runner)?.processHandler?.getProcess()
+        }
+
+        // Poll until the Mono debug server is reachable before attaching the debugger.
+        if (!waitForMonoDebugServer()) {
+            throw ExecutionException(
+                "Timed out waiting for Mono debug server on port 56000. " +
+                "The game process may have failed to start, or Doorstop may not have injected. " +
+                "Check that run.sh is executable and that libdoorstop.dylib is present in the game directory."
+            )
+        }
 
         val result = super.execute(executor, runner, workerProcessHandler)
         ProcessTerminatedListener.attach(workerProcessHandler.debuggerWorkerRealHandler)
-
-        val rimworldResult = rimworldState.execute(executor, runner)
-        workerProcessHandler.debuggerWorkerRealHandler.addProcessListener(createProcessListener(rimworldResult?.processHandler))
+        workerProcessHandler.debuggerWorkerRealHandler.addProcessListener(object : ProcessAdapter() {
+            override fun processTerminated(event: ProcessEvent) {
+                event.processHandler.removeProcessListener(this)
+                if (OS.CURRENT == OS.Linux) {
+                    gameProcess?.destroyForcibly()
+                } else {
+                    gameProcess?.destroy()
+                }
+                QuickStartUtils.tearDown(saveFilePath)
+                removeDoorstep()
+            }
+        })
 
         return result
     }
 
-    private fun createProcessListener(siblingProcessHandler: ProcessHandler?): ProcessListener {
-        return object : ProcessAdapter() {
-            override fun processTerminated(event: ProcessEvent) {
-                val processHandler = event.processHandler
-                processHandler.removeProcessListener(this)
-
-                if (OS.CURRENT == OS.Linux) {
-                    siblingProcessHandler?.getProcess()?.destroyForcibly()
-                } else {
-                    siblingProcessHandler?.getProcess()?.destroy()
+    private suspend fun waitForMonoDebugServer(port: Int = 56000, timeoutMs: Long = 60_000): Boolean {
+        val deadline = System.currentTimeMillis() + timeoutMs
+        while (System.currentTimeMillis() < deadline) {
+            // Bind to 127.0.0.1 explicitly — on macOS, 0.0.0.0 and 127.0.0.1 are distinct
+            // bind targets, so ServerSocket(port) alone wouldn't detect Mono listening.
+            val isListening = withContext(Dispatchers.IO) {
+                try {
+                    ServerSocket().use { it.bind(InetSocketAddress("127.0.0.1", port)) }
+                    false
+                } catch (_: BindException) {
+                    true
+                } catch (_: Exception) {
+                    false
                 }
-
-                QuickStartUtils.tearDown(saveFilePath)
-                removeDoorstep()
             }
+            if (isListening) return true
+            delay(500)
         }
+        return false
     }
 
     private fun setupDoorstop() {
