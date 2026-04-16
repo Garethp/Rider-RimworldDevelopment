@@ -1,0 +1,69 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<Defs>
+    <IssueDef>
+        <defName>CannibalFuneral</defName>
+        <label>Cannibalistic Funeral</label>
+        <iconPath>UI/Icons/Issues/CannibalBurial</iconPath>
+    </IssueDef>
+    
+    <PreceptDef>
+        <defName>CannibalFuneral_RequiredCrossIdeo</defName>
+        <issue>CannibalFuneral</issue>
+        <impact>High</impact>
+        <displayOrderInIssue>4</displayOrderInIssue>
+        <displayOrderInImpact>100</displayOrderInImpact>
+        <defaultSelectionWeight>.3</defaultSelectionWeight>
+        <label>Eat the dead, even if their beliefs differ from ours</label>
+        <description>When our families and friends die we conume their bodies so that their spirits can live inside ours, allowing them to be with us even after  death. Even if they weren't apart of our ideoligion in life, in death they can still join us</description>
+        <exclusionTags>
+            <li>NoVanillaCannibal</li>
+            <li>VanillaBurial</li>
+        </exclusionTags>
+        <associatedMemes>
+            <li>Cannibal</li>
+        </associatedMemes>
+        <comps>
+            <li Class="AshAndDust.Comps.CrossIdeoBurial"/>
+            <li Class="AshAndDust.Comps.ThoughtOnMemberCorpseDestroyed">
+                <thoughtDef>CannibalBurial_ColonistCorpseDestroyed</thoughtDef>
+            </li>
+        </comps>
+    </PreceptDef>
+
+    <PreceptDef>
+        <defName>CannibalFuneral_Required</defName>
+        <issue>CannibalFuneral</issue>
+        <impact>High</impact>
+        <displayOrderInIssue>3</displayOrderInIssue>
+        <displayOrderInImpact>100</displayOrderInImpact>
+        <defaultSelectionWeight>.5</defaultSelectionWeight>
+        <label>Eat the dead</label>
+        <description>When our families and friends die we conume their bodies so that their spirits can live inside ours, allowing them to be with us even after  death.</description>
+        <exclusionTags>
+            <li>NoVanillaCannibal</li>
+            <li>VanillaBurial</li>
+        </exclusionTags>
+        <associatedMemes>
+            <li>Cannibal</li>
+        </associatedMemes>
+        <comps>
+            <li Class="AshAndDust.Comps.ThoughtOnMemberCorpseDestroyed">
+                <thoughtDef>CannibalBurial_ColonistCorpseDestroyed</thoughtDef>
+            </li>
+        </comps>
+    </PreceptDef>
+
+    <PreceptDef>
+        <defName>CannibalFuneral_None</defName>
+        <issue>CannibalFuneral</issue>
+        <impact>Low</impact>
+        <displayOrderInIssue>0</displayOrderInIssue>
+        <displayOrderInImpact>100</displayOrderInImpact>
+        <defaultSelectionWeight>.5</defaultSelectionWeight>
+        <label>None</label>
+        <description>We don't expect to eat the bodies of our fallen comrades.</description>
+        <exclusionTags>
+            <li>NoCannibalFuneral</li>
+        </exclusionTags>
+    </PreceptDef>
+</Defs>

@@ -1,0 +1,48 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<Defs>
+    <IssueDef>
+        <defName>HeroBurial</defName>
+        <label>Hero Burial</label>
+        <iconPath>UI/Icons/Issues/HeroicBurial</iconPath>
+    </IssueDef>
+
+    <PreceptDef>
+        <defName>HeroBurial_Required</defName>
+        <issue>HeroBurial</issue>
+        <impact>High</impact>
+        <displayOrderInIssue>3</displayOrderInIssue>
+        <displayOrderInImpact>100</displayOrderInImpact>
+        <label>Hero Burial</label>
+        <description>Every fallen colonist member is a hero and deserves to be burried in a tomb worthy of their sacrifice.</description>
+        <exclusionTags>
+            <li>VanillaBurial</li>
+        </exclusionTags>
+    </PreceptDef>
+
+<!--    <PreceptDef>-->
+<!--        <defName>HeroBurial_Sometimes</defName>-->
+<!--        <issue>HeroBurial</issue>-->
+<!--        <impact>Medium</impact>-->
+<!--        <displayOrderInIssue>3</displayOrderInIssue>-->
+<!--        <displayOrderInImpact>100</displayOrderInImpact>-->
+<!--        <label>Hero Someitmes</label>-->
+<!--        <description>Hero Sometimes</description>-->
+<!--        <exclusionTags>-->
+<!--            <li>VanillaBurial</li>-->
+<!--        </exclusionTags>-->
+<!--    </PreceptDef>-->
+
+    <PreceptDef>
+        <defName>HeroBurial_None</defName>
+        <issue>HeroBurial</issue>
+        <impact>Low</impact>
+        <displayOrderInIssue>0</displayOrderInIssue>
+        <displayOrderInImpact>100</displayOrderInImpact>
+        <defaultSelectionWeight>1</defaultSelectionWeight>
+        <label>None</label>
+        <description>We respect our fallen colonists, but we have no expectations for how we want to be buried when we die.</description>
+        <exclusionTags>
+            <li>NoHeroBurial</li>
+        </exclusionTags>
+    </PreceptDef>
+</Defs>

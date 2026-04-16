@@ -1,0 +1,15 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<Defs>
+    <ThoughtDef>
+        <defName>CannibalBurial_ColonistCorpseDestroyed</defName>
+        <durationDays>15</durationDays>
+        <stackLimit>3</stackLimit>
+        <stages>
+            <li>
+                <label>Colonist corpse destroyed</label>
+                <description>We were unable to consume our own dead and bring share in their souls</description>
+                <baseMoodEffect>-6</baseMoodEffect>
+            </li>
+        </stages>
+    </ThoughtDef>
+</Defs>

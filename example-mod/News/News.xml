@@ -1,0 +1,68 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<Defs>
+    <HugsLib.UpdateFeatureDef Abstract="true" Name="UpdateFeatureBase">
+        <modNameReadable>From Ashes to Ashes, Dust to Dust</modNameReadable>
+        <modIdentifier>AshAndDust</modIdentifier>
+    </HugsLib.UpdateFeatureDef>
+    
+    <HugsLib.UpdateFeatureDef ParentName="UpdateFeatureBase">
+        <defName>Ashes_To_Ashes_1_1_0</defName>
+        <assemblyVersion>1.1.0</assemblyVersion>
+        <content>
+- Update Watery Casket texture to actually fit bodies in without having to break bones
+- Pirates will now be drunk at the end of the funeral - no more sober Pirate Parties
+- If you have the Pirate Meme from Vanilla Faction Expanded Pirates, the Pirate Funeral precept will now be required
+        </content>
+    </HugsLib.UpdateFeatureDef>
+
+    <HugsLib.UpdateFeatureDef ParentName="UpdateFeatureBase">
+        <defName>Ashes_To_Ashes_1_2_0</defName>
+        <assemblyVersion>1.2.0</assemblyVersion>
+        <content>
+- If you have SoS2 enabled, added a Shuttle Casket (a cheaper personal casket) that you can use for Pirate Burials, since there's no water in space
+- Fixed a rare tick exception when pirates drink too much at a funeral
+        </content>
+    </HugsLib.UpdateFeatureDef>
+
+    <HugsLib.UpdateFeatureDef ParentName="UpdateFeatureBase">
+        <defName>Ashes_To_Ashes_1_3_0</defName>
+        <assemblyVersion>1.3.0</assemblyVersion>
+        <content>
+- Implemented Cannibal Funeral
+- Implemented Heroic Funeral
+- Tied grave buildings to memes so that you don't have irrelevant graves clogging up your build list
+        </content>
+    </HugsLib.UpdateFeatureDef>
+    
+    <HugsLib.UpdateFeatureDef ParentName="UpdateFeatureBase">
+        <defName>Ashes_To_Ashes_1_3_1</defName>
+        <assemblyVersion>1.3.1</assemblyVersion>
+        <content>
+- Fix bug where Heroic Burial was always set to Sky High Expectations
+        </content>
+    </HugsLib.UpdateFeatureDef>
+
+    <HugsLib.UpdateFeatureDef ParentName="UpdateFeatureBase">
+        <defName>Ashes_To_Ashes_1_3_2</defName>
+        <assemblyVersion>1.3.2</assemblyVersion>
+        <content>
+            - Fixing bugs caused by the latest Rimworld update
+        </content>
+    </HugsLib.UpdateFeatureDef>
+
+    <HugsLib.UpdateFeatureDef ParentName="UpdateFeatureBase">
+        <defName>Ashes_To_Ashes_1_3_3</defName>
+        <assemblyVersion>1.3.3</assemblyVersion>
+        <content>
+            - Update for Rimworld 1.4
+        </content>
+    </HugsLib.UpdateFeatureDef>
+    
+    <HugsLib.UpdateFeatureDef ParentName="UpdateFeatureBase">
+        <defName>Ashes_To_Ashes_1_4_0</defName>
+        <assemblyVersion>1.4.0</assemblyVersion>
+        <content>
+            - Allow Cannibals to have Cannibal Funerals for colonists who followed a different Ideoligion
+        </content>
+    </HugsLib.UpdateFeatureDef>
+</Defs>

@@ -1,0 +1,118 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Defs>
+    <ThingDef ParentName="TreeBase" Name="AshAndDust_Plants_AncestorTree">
+        <defName>AshAndDust_Plants_AncestorTree</defName>
+        <label>ancestor tree</label>
+        <thingClass>AshAndDust.Plants.Plants_AncestorTree</thingClass>
+        <description>A tree filled with the spirit of your ancestors</description>
+        <graphicData>
+            <texPath>Things/Plant/AncestorTree/Normal</texPath>
+            <graphicClass>Graphic_Random</graphicClass>
+            <shadowData>
+                <volume>(0.12, 0.08, 0.1)</volume>
+                <offset>(0,0,-0.25)</offset>
+            </shadowData>
+        </graphicData>
+        <drawGUIOverlay>True</drawGUIOverlay>
+        <minifiedDef IsNull="True" />
+        <statBases>
+            <Beauty>5</Beauty>
+            <BeautyOutdoors>5</BeautyOutdoors>
+            <MeditationFocusStrength>0.28</MeditationFocusStrength>
+            <Flammability>0</Flammability>
+            <MaxHitPoints>400</MaxHitPoints>
+            <MeditationPlantGrowthOffset>0</MeditationPlantGrowthOffset>
+        </statBases>
+        <ingestible />
+        <preventSkyfallersLandingOn>true</preventSkyfallersLandingOn>
+        <plant>
+            <growDays>30</growDays>
+            <visualSizeRange>2.5~3.2</visualSizeRange>
+            <sowMinSkill>0</sowMinSkill>
+            <sowTags Inherit="False"/>
+            <dieIfNoSunlight>False</dieIfNoSunlight>
+            <dieFromToxicFallout>False</dieFromToxicFallout>
+            <lifespanDaysPerGrowDays>0</lifespanDaysPerGrowDays>
+            <fertilityMin>0.02</fertilityMin>
+            <fertilitySensitivity>0</fertilitySensitivity>
+            <sowResearchPrerequisites Inherit="False" />
+            <allowAutoCut>false</allowAutoCut>
+            <warnIfMarkedForCut>true</warnIfMarkedForCut>
+        </plant>
+        <comps>
+            <li Class="CompProperties_Styleable"></li>
+            <li Class="CompProperties_MeditationFocus">
+                <statDef>MeditationFocusStrength</statDef>
+                <focusTypes>
+                </focusTypes>
+                <offsets>
+                    <li Class="FocusStrengthOffset_ArtificialBuildings">
+                        <radius>34.9</radius>
+                        <curve>
+                            <points>
+                                <li>(0,   0.0)</li>
+                                <li>(5,  -0.08)</li>
+                                <li>(10, -0.15)</li>
+                                <li>(50, -0.3)</li>
+                            </points>
+                        </curve>
+                    </li>
+                    <li Class="FocusStrengthOffset_BuildingDefs">
+                        <defs>
+                            <AnimusStone>0.02</AnimusStone>
+                            <NatureShrine_Small>0.01</NatureShrine_Small>
+                            <NatureShrine_Large>0.01</NatureShrine_Large>
+                        </defs>
+                        <radius>9.9</radius>
+                        <maxBuildings>4</maxBuildings>
+                        <explanationKey>MeditationFocusPerAnimusStoneAndShrine</explanationKey>
+                        <explanationKeyAbstract>MeditationFocusPerAnimusStoneAndShrineAbstract</explanationKeyAbstract>
+                    </li>
+                </offsets>
+            </li>
+            <li Class="AshAndDust.Plants.CompProperties_GiveThoughtToRelationsOnDestroy">
+                <closeFamilyThought>TreeBurial_FamilyMemberTreeDestroyed</closeFamilyThought>
+                <spouseThought>TreeBurial_SpouseTreeDestroyed</spouseThought>
+                <loverThought>TreeBurial_LoverTreeDestroyed</loverThought>
+                <bestFriendThought>TreeBurial_BestFriendTreeDestroyed</bestFriendThought>
+                <friendThought>TreeBurial_FriendTreeDestroyed</friendThought>
+                <colonistThought>TreeBurial_ColonistTreeDestroyed</colonistThought>
+                <message>The tree of an ancestor was cut down, upsetting those related to them.</message>
+            </li>
+            <li Class="CompProperties_PlaySoundOnDestroy">
+                <sound>AnimaTreeScream</sound>
+            </li>
+            <li Class="CompProperties_SelfhealHitpoints">
+                <ticksPerHeal>2000</ticksPerHeal> <!-- 30 hp per day, must be a multiple of 2000, since plants have Long ticker -->
+            </li>
+            <li Class="CompProperties_ToggleDrawAffectedMeditationFoci" />
+        </comps>
+    </ThingDef>
+
+    <ThingStyleDef>
+        <defName>Morbid_AncestorTree</defName>
+        <graphicData>
+            <texPath>Things/Plant/AncestorTree/Morbid</texPath>
+            <graphicClass>Graphic_Random</graphicClass>
+            <shadowData>
+                <volume>(0.12, 0.08, 0.1)</volume>
+                <offset>(0,0,-0.25)</offset>
+            </shadowData>
+            <shaderType>CutoutPlant</shaderType>
+        </graphicData>
+    </ThingStyleDef>
+
+    <ThingStyleDef>
+        <defName>Techist_AncestorTree</defName>
+        <graphicData>
+            <texPath>Things/Plant/AncestorTree/Archotech</texPath>
+            <graphicClass>Graphic_Random</graphicClass>
+            <shadowData>
+                <volume>(0.12, 0.08, 0.1)</volume>
+                <offset>(0,0,-0.25)</offset>
+            </shadowData>
+            <shaderType>CutoutPlant</shaderType>
+        </graphicData>
+    </ThingStyleDef>
+    
+</Defs>

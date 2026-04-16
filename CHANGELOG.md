@@ -1,5 +1,8 @@
 # Changelog
 
+## 2025.1.7
+ * Adds support for Rider 2026.1
+
 ## 2025.1.6
  * Update the Rimworld Mod Template to support 1.6 by default
 

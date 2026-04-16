@@ -1,0 +1,109 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<Defs>
+    <IssueDef>
+        <defName>TreeBurial</defName>
+        <label>Tree Burial</label>
+        <iconPath>UI/Icons/Issues/TreeBurial</iconPath>
+    </IssueDef>
+
+    <PreceptDef>
+        <defName>TreeBurial_Required</defName>
+        <issue>TreeBurial</issue>
+        <impact>High</impact>
+        <displayOrderInIssue>3</displayOrderInIssue>
+        <displayOrderInImpact>100</displayOrderInImpact>
+        <label>Always required for people of any faction</label>
+        <description>Everyone should be returned to the cycle of life. Any destroyed body is a great loss, even that of our enemies.</description>
+        <associatedMemes>
+            <li>TreeConnection</li>
+            <li>NaturePrimacy</li>
+        </associatedMemes>
+        <requiredMemes>
+            <li>TreeConnection</li>
+            <li>NaturePrimacy</li>
+        </requiredMemes>
+        <comps>
+            <li Class="AshAndDust.Comps.BurialForNonMembers">
+            </li>
+            <li Class="AshAndDust.Comps.ThoughtOnMemberCorpseDestroyed">
+                <thoughtDef>CannibalBurial_ColonistCorpseDestroyed</thoughtDef>
+            </li>
+            <li Class="AshAndDust.Comps.ThoughtOnNonMemberCorpseDestroyed">
+                <thoughtDef>TreeBurial_EnemyCorpseDestroyed</thoughtDef>
+            </li>
+        </comps>
+        <exclusionTags>
+            <li>VanillaBurial</li>
+        </exclusionTags>
+    </PreceptDef>
+
+    <PreceptDef>
+        <defName>TreeBurial_WhenPossible</defName>
+        <issue>TreeBurial</issue>
+        <impact>High</impact>
+        <displayOrderInIssue>2</displayOrderInIssue>
+        <displayOrderInImpact>100</displayOrderInImpact>
+        <label>For outsiders aswell, when possible</label>
+        <description>People from our colony should always be returned to the cycle of life. If the body of outsiders remain, so should they.</description>
+        <associatedMemes>
+            <li>TreeConnection</li>
+            <li>NaturePrimacy</li>
+        </associatedMemes>
+        <requiredMemes>
+            <li>TreeConnection</li>
+            <li>NaturePrimacy</li>
+        </requiredMemes>
+        <comps>
+            <li Class="AshAndDust.Comps.BurialForNonMembers">
+            </li>
+            <li Class="AshAndDust.Comps.ThoughtOnMemberCorpseDestroyed">
+                <thoughtDef>CannibalBurial_ColonistCorpseDestroyed</thoughtDef>
+            </li>
+        </comps>
+        <exclusionTags>
+            <li>VanillaBurial</li>
+        </exclusionTags>
+    </PreceptDef>
+
+    <PreceptDef>
+        <defName>TreeBurial_Colonists</defName>
+        <issue>TreeBurial</issue>
+        <impact>Medium</impact>
+        <displayOrderInIssue>1</displayOrderInIssue>
+        <displayOrderInImpact>100</displayOrderInImpact>
+        <label>For colonists only</label>
+        <description>It's important that people from our colony are returned to the cycle of life.</description>
+        <defaultSelectionWeight>1</defaultSelectionWeight>
+        <associatedMemes>
+            <li>TreeConnection</li>
+            <li>NaturePrimacy</li>
+        </associatedMemes>
+        <requiredMemes>
+            <li>TreeConnection</li>
+            <li>NaturePrimacy</li>
+        </requiredMemes>
+        <comps>
+            <li Class="AshAndDust.Comps.ThoughtOnMemberCorpseDestroyed">
+                <thoughtDef>CannibalBurial_ColonistCorpseDestroyed</thoughtDef>
+            </li>
+        </comps>
+        <exclusionTags>
+            <li>VanillaBurial</li>
+        </exclusionTags>
+    </PreceptDef>
+
+    <PreceptDef>
+        <defName>TreeBurial_None</defName>
+        <issue>TreeBurial</issue>
+        <impact>Low</impact>
+        <displayOrderInIssue>0</displayOrderInIssue>
+        <displayOrderInImpact>100</displayOrderInImpact>
+        <defaultSelectionWeight>1</defaultSelectionWeight>
+        <label>None</label>
+        <description>We're not able to return people to the cycle of life.</description>
+        <conflictingMemes>
+            <li>TreeConnection</li>
+            <li>NaturePrimacy</li>
+        </conflictingMemes>
+    </PreceptDef>
+</Defs>

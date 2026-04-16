@@ -1,15 +1,13 @@
 import com.jetbrains.plugin.structure.base.utils.isFile
-import groovy.ant.FileNameFinder
 import org.apache.tools.ant.taskdefs.condition.Os
 import org.jetbrains.intellij.platform.gradle.Constants
-import org.jetbrains.intellij.platform.gradle.IntelliJPlatformType
-import java.io.ByteArrayOutputStream
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     id("java")
     alias(libs.plugins.kotlinJvm)
-    id("org.jetbrains.intellij.platform") version "2.5.0"     // https://github.com/JetBrains/gradle-intellij-plugin/releases
-    id("me.filippov.gradle.jvm.wrapper") version "0.14.0"
+    id("org.jetbrains.intellij.platform") version "2.14.0"     // https://github.com/JetBrains/gradle-intellij-plugin/releases
+    id("me.filippov.gradle.jvm.wrapper") version "0.16.0"
 }
 
 
@@ -57,7 +55,7 @@ apply {
 }
 
 tasks.wrapper {
-    gradleVersion = "8.8"
+    gradleVersion = "9.4.1"
     distributionType = Wrapper.DistributionType.ALL
     distributionUrl =
         "https://cache-redirector.jetbrains.com/services.gradle.org/distributions/gradle-${gradleVersion}-all.zip"
@@ -82,74 +80,28 @@ tasks.instrumentTestCode {
 }
 
 tasks.compileKotlin {
-    kotlinOptions { jvmTarget = "21" }
+    compilerOptions { jvmTarget.set(JvmTarget.JVM_21) }
 }
 
-val setBuildTool by tasks.registering {
-    doLast {
-        extra["executable"] = "dotnet"
-        var args = mutableListOf("msbuild")
-
-        if (isWindows) {
-            val stdout = ByteArrayOutputStream()
-            exec {
-                executable("${rootDir}\\tools\\vswhere.exe")
-                args("-latest", "-property", "installationPath", "-products", "*")
-                standardOutput = stdout
-                workingDir(rootDir)
-            }
-
-            val vsWhereDirectory = stdout.toString().trim()
-            if (vsWhereDirectory.isNotEmpty()) {
-                val files = FileNameFinder().getFileNames("${vsWhereDirectory}\\MSBuild", "**/MSBuild.exe")
-                extra["executable"] = files.get(0)
-                args = mutableListOf("/v:minimal")
-            } else {
-                val directory = "${System.getProperty("user.home")}\\AppData\\Local\\Programs\\Rider\\tools\\MSBuild"
-                if (directory.isNotEmpty()) {
-                    val files = FileNameFinder().getFileNames(directory, "Current/Bin/MSBuild.exe")
-                    extra["executable"] = files.get(0)
-                    args = mutableListOf("/v:minimal")
-                }
-            }
-        }
-
-        args.add(DotnetSolution)
-        args.add("/p:Configuration=${BuildConfiguration}")
-        args.add("/p:HostFullIdentifier=")
-        extra["args"] = args
-    }
+val compileDotNet by tasks.registering(Exec::class) {
+    executable("dotnet")
+    workingDir(rootDir)
+    args("build", "--consoleLoggerParameters:ErrorsOnly", "--configuration", "Release")
 }
 
-val compileDotNet by tasks.registering {
-    dependsOn(setBuildTool)
-    doLast {
-        val executable: String by setBuildTool.get().extra
-        val arguments = (setBuildTool.get().extra["args"] as List<String>).toMutableList()
-        arguments.add("/t:Restore;Rebuild")
-        exec {
-            executable(executable)
-            args(arguments)
-            workingDir(rootDir)
-        }
-    }
-}
+val buildResharperPlugin by tasks.registering(Exec::class) {
+    val arguments = mutableListOf<String>()
+    arguments.add("msbuild")
+    arguments.add(DotnetSolution)
 
-val buildResharperPlugin by tasks.registering {
-    dependsOn(setBuildTool)
-    doLast {
-        val executable: String by setBuildTool.get().extra
-        val arguments = (setBuildTool.get().extra["args"] as List<String>).toMutableList()
-        arguments.add("/t:Restore;Rebuild;Pack")
-        arguments.add("/v:minimal")
-        arguments.add("/p:PackageOutputPath=\"$rootDir/output\"")
-        arguments.add("/p:PackageVersion=$PluginVersion")
-        exec {
-            executable(executable)
-            args(arguments)
-            workingDir(rootDir)
-        }
-    }
+    arguments.add("/t:Restore;Rebuild;Pack")
+    arguments.add("/v:minimal")
+    arguments.add("/p:PackageOutputPath=\"$rootDir/output\"")
+    arguments.add("/p:PackageVersion=$PluginVersion")
+
+    executable("dotnet")
+    args(arguments)
+    workingDir(rootDir)
 }
 
 tasks.buildPlugin {
@@ -163,7 +115,11 @@ tasks.buildPlugin {
 
 dependencies {
     intellijPlatform {
-        rider(ProductVersion, useInstaller = false)
+        rider(ProductVersion)
+        {
+            useInstaller = false
+        }
+
         jetbrainsRuntime()
 
         bundledPlugin("com.intellij.resharper.unity")
@@ -176,19 +132,25 @@ intellijPlatform {
         freeArgs = listOf("-mute", "TemplateWordInPluginId")
 
         ides {
-            ide(IntelliJPlatformType.Rider, ProductVersion)
+//            ide(IntelliJPlatformType.Rider, ProductVersion)
             recommended()
         }
     }
 }
 
 tasks.runIde {
+    dependsOn(compileDotNet)
+
     // Match Rider's default heap size of 1.5Gb (default for runIde is 512Mb)
     maxHeapSize = "1500m"
 
     // Rider's backend doesn't support dynamic plugins. It might be possible to work with auto-reload of the frontend
     // part of a plugin, but there are dangers about keeping plugins in sync
     autoReload = false
+
+    argumentProviders += CommandLineArgumentProvider {
+        listOf("${rootDir}/example-mod/AshAndDust.sln")
+    }
 }
 
 tasks.prepareSandbox {
@@ -223,14 +185,10 @@ tasks.prepareSandbox {
     }
 }
 
-val testDotNet by tasks.registering {
-    doLast {
-        exec {
-            executable("dotnet")
-            args("test", DotnetSolution, "--logger", "GitHubActions")
-            workingDir(rootDir)
-        }
-    }
+val testDotNet by tasks.registering(Exec::class) {
+    executable("dotnet")
+    args("test", DotnetSolution, "--logger", "GitHubActions")
+    workingDir(rootDir)
 }
 
 tasks.publishPlugin {

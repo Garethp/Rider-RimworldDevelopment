@@ -1,0 +1,103 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<Defs>
+    <PreceptDef ParentName="FuneralBase">
+        <defName>CannibalFuneral</defName>
+        <description>Cannibal Funeral</description>
+        <label>Cannibal's Funeral</label>
+        <extraTextPawnDeathLetter>We remember the life of {PAWN_nameDef} by eating their flesh and absorbing their spirit.</extraTextPawnDeathLetter>
+        <ritualPatternBase>CannibalFuneral</ritualPatternBase>
+        <iconPath>UI/Icons/Rituals/CannibalBurial</iconPath>
+        <exclusionTags>
+            <li>NoCannibalFuneral</li>
+        </exclusionTags>
+    </PreceptDef>
+
+    <RitualPatternDef>
+        <defName>CannibalFuneral</defName>
+        <nameMaker>NamerRitualFuneral</nameMaker>
+        <ritualExpectedDesc>Once a {IDEO} member dies, other {MEMBERS} gather around a cannibal feast for {RITUAL_labelDef}.</ritualExpectedDesc>
+        <ritualObligationTriggers>
+            <li Class="AshAndDust.Cannibal.Rituals.RitualObligationTrigger_CannibalFeastProperties">
+                <mustBePlayerIdeo>true</mustBePlayerIdeo>
+            </li>
+        </ritualObligationTriggers>
+        <ritualObligationTargetFilter>CannibalFeastWithTargetsCorpse</ritualObligationTargetFilter>
+        <ritualOutcomeEffect>AttendedCannibalFuneral</ritualOutcomeEffect>
+        <ritualBehavior>CannibalFuneral</ritualBehavior>
+    </RitualPatternDef>
+
+    <RitualBehaviorDef>
+        <defName>CannibalFuneral</defName>
+        <durationTicks>5000</durationTicks>
+        <roles>
+            <li Class="RitualRoleTag">
+                <label>speaker</label>
+                <id>moralist</id>
+                <precept>IdeoRole_Moralist</precept>
+                <tag>Moralist</tag>
+                <maxCount>1</maxCount>
+                <substitutable>true</substitutable>
+                <countsAsParticipant>False</countsAsParticipant>
+            </li>
+        </roles>
+        <stages>
+            <li>
+                <defaultDuty>Spectate</defaultDuty>
+                <endTriggers>
+                    <li Class="StageEndTrigger_DurationPercentage">
+                        <percentage>0.3</percentage>
+                    </li>
+                </endTriggers>
+                <roleBehaviors>
+                    <li>
+                        <roleId>moralist</roleId>
+                        <dutyDef>SpeakOnCellFuneral</dutyDef>
+                        <speakerInteraction>Speech_Funeral</speakerInteraction>
+                        <customPositions>
+                            <li Class="RitualPosition_Lectern">
+                                <maxDistanceToFocus>5</maxDistanceToFocus>
+                            </li>
+                            <li Class="RitualPosition_BesideThing" />
+                        </customPositions>
+                    </li>
+                </roleBehaviors>
+                <visualEffectDef>Funeral</visualEffectDef>
+            </li>
+            <li>
+                <defaultDuty>EatAtCannibalFuneral</defaultDuty>
+                <endTriggers>
+                    <li Class="StageEndTrigger_DurationPercentage">
+                        <percentage>1.0</percentage>
+                    </li>
+                </endTriggers>
+            </li>
+        </stages>
+    </RitualBehaviorDef>
+    
+    <RitualObligationTargetFilterDef>
+        <defName>CannibalFeastWithTargetsCorpse</defName>
+        <workerClass>AshAndDust.Cannibal.Rituals.RitualTargetFilter_CannibalFeast</workerClass>
+    </RitualObligationTargetFilterDef>
+
+    <RitualOutcomeEffectDef ParentName="AttendedFuneralBase">
+        <defName>AttendedCannibalFuneral</defName>
+        <workerClass>AshAndDust.Cannibal.Rituals.CannibalBurialOutcome</workerClass>
+        <comps>
+            <li Class="RitualOutcomeComp_RolePresentNotSubstituted">
+                <roleId>moralist</roleId>
+                <label>moral guide present</label>
+                <qualityOffset>0.3</qualityOffset>
+            </li>
+            <li Class="RitualOutcomeComp_ParticipantCount">
+                <label>participant count</label>
+                <curve>
+                    <points>
+                        <li>(1,  0.0)</li>
+                        <li>(5,  0.5)</li>
+                        <li>(10, 0.7)</li>
+                    </points>
+                </curve>
+            </li>
+        </comps>
+    </RitualOutcomeEffectDef>
+</Defs>
