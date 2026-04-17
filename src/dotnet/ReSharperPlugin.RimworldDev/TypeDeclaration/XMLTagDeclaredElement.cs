@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
 using System.Xml;
 using JetBrains.ReSharper.Psi;
 using JetBrains.ReSharper.Psi.Tree;
@@ -18,6 +17,15 @@ public class XMLTagDeclaredElement : IDeclaredElement
         this.owner = owner;
         myPsiServices = owner.GetPsiServices();
         ShortName = $"{defType}/{defName}";
+        CaseSensitiveName = caseSensitiveName;
+        PresentationLanguage = owner.Language;
+    }
+
+    public XMLTagDeclaredElement(ITreeNode owner, string keyName, bool caseSensitiveName)
+    {
+        this.owner = owner;
+        myPsiServices = owner.GetPsiServices();
+        ShortName = $"{keyName}";
         CaseSensitiveName = caseSensitiveName;
         PresentationLanguage = owner.Language;
     }

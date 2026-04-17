@@ -4,7 +4,6 @@ using System.IO;
 using System.Linq;
 using System.Xml;
 using JetBrains.Annotations;
-using JetBrains.Application.Threading.Tasks;
 using JetBrains.Metadata.Reader.API;
 using JetBrains.ProjectModel;
 using JetBrains.ProjectModel.model2.Assemblies.Interfaces;
@@ -12,8 +11,8 @@ using JetBrains.ReSharper.Psi;
 using JetBrains.ReSharper.Psi.Caches;
 using JetBrains.ReSharper.Psi.Modules;
 using JetBrains.ReSharper.Psi.Util;
+using JetBrains.ReSharper.Resources.Shell;
 using JetBrains.Util;
-using JetBrains.Util.Threading.Tasks;
 using ReSharperPlugin.RimworldDev.Settings;
 
 namespace ReSharperPlugin.RimworldDev;
@@ -48,11 +47,14 @@ public class ScopeHelper
 
                 if (rimworldScope == null)
                 {
-                    AddRef(solution);
+                    using (WriteLockCookie.Create())
+                    {
+                        AddRef(solution);
+                    }
 
                     return false;
                 }
-
+                
                 rimworldModule = solution.PsiModules().GetModules()
                     .First(module =>
                         module.GetPsiServices().Symbols.GetSymbolScope(module, true, true)
@@ -90,8 +92,9 @@ public class ScopeHelper
         var moduleReferenceResolveContext =
             (IModuleReferenceResolveContext)UniversalModuleReferenceContext.Instance;
 
-        await solution.Locks.Tasks.YieldTo(solution.GetSolutionLifetimes().MaximumLifetime, Scheduling.MainDispatcher,
-            TaskPriority.Low);
+        // await solution.Locks.Tasks.YieldTo(solution.GetSolutionLifetimes().MaximumLifetime,
+        //     Scheduling.MainDispatcher,
+        //     TaskPriority.Low);
 
         solution.GetComponent<IAssemblyFactory>().AddRef(path.ToAssemblyLocation(), "ScopeHelper::AddRef",
             moduleReferenceResolveContext);
