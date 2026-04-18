@@ -18,30 +18,72 @@ using ReSharperPlugin.RimworldDev.TypeDeclaration;
 
 namespace ReSharperPlugin.RimworldDev.SymbolScope;
 
+public struct TranslationKey
+{
+    public TranslationKey(string language, string keyName, IXmlTag tag)
+    {
+        Language = language;
+        KeyName = keyName;
+        Tag = tag;
+    }
+    
+    public string Language { get; }
+    public string KeyName { get; }
+    
+    public IXmlTag Tag { get; }
+}
+
 [PsiComponent(Instantiation.ContainerAsyncPrimaryThread)]
 public class RimworldKeyedTranslationSymbolScope: SimpleICache<List<RimworldKeyedTranslationSymbol>>
 {
-    private Dictionary<string, Dictionary<string, IXmlTag>> KeyedTranslations = new();
-    private Dictionary<string, XMLTagDeclaredElement> _declaredElements = new();
-    private SymbolTable _symbolTable;
+    private Dictionary<string, Dictionary<string, TranslationKey>> keyedTranslations;
+    private Dictionary<string, XMLTagDeclaredElement> declaredElements = new();
+    private SymbolTable symbolTable;
 
+    private string defaultLanguage = "English";
+    private string ideLanguage = "English";
+    
     public List<string> GetKeys()
     {
-        if (!KeyedTranslations.ContainsKey("English"))
-            KeyedTranslations["English"] = new Dictionary<string, IXmlTag>();
-
-        return KeyedTranslations["English"].Keys.ToList();
+        var keys = new List<string>();
+        foreach (var language in keyedTranslations.Values)
+        {
+            keys.AddRange(language.Keys);
+        }
+        
+        return keys.Distinct().ToList();
     }
 
-    public IXmlTag GetKeyTag(string key)
+    public TranslationKey? GetTranslationKey(string key)
     {
-        if (!KeyedTranslations.ContainsKey("English"))
-            KeyedTranslations["English"] = new Dictionary<string, IXmlTag>();
+        if (!keyedTranslations.ContainsKey(ideLanguage))
+            keyedTranslations[ideLanguage] = new ();
 
-        if (!KeyedTranslations["English"].ContainsKey(key))
+        if (!keyedTranslations[ideLanguage].ContainsKey(key))
             return null;
 
-        return KeyedTranslations["English"][key];
+        return keyedTranslations[ideLanguage][key];
+    }
+
+    public List<TranslationKey> GetAllTagsForKey(string key)
+    {
+        var tags = new List<TranslationKey>();
+        
+        foreach (var language in keyedTranslations.Values)
+        {
+            if (!language.ContainsKey(key)) continue;
+            tags.Add(language[key]);
+        }
+
+        return tags;
+    }
+
+    public bool HasTranslationKey(string key)
+    {
+        if (keyedTranslations[ideLanguage].ContainsKey(key)) return true;
+        if (ideLanguage != defaultLanguage && keyedTranslations[defaultLanguage].ContainsKey(key)) return true;
+
+        return keyedTranslations.Any(language => language.Value.ContainsKey(key));
     }
     
     public RimworldKeyedTranslationSymbolScope(
@@ -51,6 +93,15 @@ public class RimworldKeyedTranslationSymbolScope: SimpleICache<List<RimworldKeye
         long? version = null
     ) : base(lifetime, locks, persistentIndexManager, RimworldKeyedTranslationSymbol.Marshaller, version)
     {
+        keyedTranslations = new()
+        {
+            { defaultLanguage, new() },
+        };
+
+        if (defaultLanguage != ideLanguage)
+        {
+            keyedTranslations.Add(ideLanguage, new());
+        }
     }
 
     public override object Build(IPsiSourceFile sourceFile, bool isStartup)
@@ -101,8 +152,8 @@ public class RimworldKeyedTranslationSymbolScope: SimpleICache<List<RimworldKeye
 
         items?.ForEach(item =>
         {
-            if (KeyedTranslations.ContainsKey(item.Langauge) && KeyedTranslations[item.Langauge].ContainsKey(item.KeyName))
-                KeyedTranslations[item.Langauge].Remove(item.KeyName);
+            if (keyedTranslations.ContainsKey(item.Langauge) && keyedTranslations[item.Langauge].ContainsKey(item.KeyName))
+                keyedTranslations[item.Langauge].Remove(item.KeyName);
         });
     }
 
@@ -128,13 +179,15 @@ public class RimworldKeyedTranslationSymbolScope: SimpleICache<List<RimworldKeye
 
     private void AddKeyToList(RimworldKeyedTranslationSymbol item, IXmlTag xmlTag)
     {
-        if (!KeyedTranslations.ContainsKey(item.Langauge))
-            KeyedTranslations[item.Langauge] = new Dictionary<string, IXmlTag>();
+        if (!keyedTranslations.ContainsKey(item.Langauge))
+            keyedTranslations[item.Langauge] = new ();
+
+        var translationKey = new TranslationKey(item.Langauge, item.KeyName, xmlTag);
         
-        if (!KeyedTranslations[item.Langauge].ContainsKey(item.KeyName))
-            KeyedTranslations[item.Langauge].Add(item.KeyName, xmlTag);
+        if (!keyedTranslations[item.Langauge].ContainsKey(item.KeyName))
+            keyedTranslations[item.Langauge].Add(item.KeyName, translationKey);
         else
-            KeyedTranslations[item.Langauge][item.KeyName] = xmlTag;
+            keyedTranslations[item.Langauge][item.KeyName] = translationKey;
     }
 
     protected override bool IsApplicable(IPsiSourceFile sourceFile)
@@ -149,11 +202,11 @@ public class RimworldKeyedTranslationSymbolScope: SimpleICache<List<RimworldKeye
         string keyName,
         bool caseSensitiveName)
     {
-        if (_symbolTable == null) _symbolTable = new SymbolTable(solution.GetPsiServices());
+        if (symbolTable == null) symbolTable = new SymbolTable(solution.GetPsiServices());
 
-        if (_declaredElements.ContainsKey($"{language}/{keyName}"))
+        if (declaredElements.ContainsKey($"{language}/{keyName}"))
         {
-            _declaredElements[$"{language}/{keyName}"].Update(owner);
+            declaredElements[$"{language}/{keyName}"].Update(owner);
             return;
         }
 
@@ -164,14 +217,14 @@ public class RimworldKeyedTranslationSymbolScope: SimpleICache<List<RimworldKeye
         );
 
         // @TODO: We seem to get "Key Already Exists" errors. Race condition?
-        _declaredElements.Add($"{language}/{keyName}", declaredElement);
-        _symbolTable.AddSymbol(declaredElement);
+        declaredElements.Add($"{language}/{keyName}", declaredElement);
+        symbolTable.AddSymbol(declaredElement);
     }
 
     public ISymbolTable GetSymbolTable(ISolution solution)
     {
-        if (_symbolTable == null) _symbolTable = new SymbolTable(solution.GetPsiServices());
+        if (symbolTable == null) symbolTable = new SymbolTable(solution.GetPsiServices());
 
-        return _symbolTable;
+        return symbolTable;
     }
 }
