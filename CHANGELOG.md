@@ -1,5 +1,8 @@
 # Changelog
 
+## 2025.1.9
+ * Fix declarations and navigations for Rider 2026.1
+
 ## 2025.1.8
  * Fixes debugging on MacOS
 

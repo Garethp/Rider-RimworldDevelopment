@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Xml;
@@ -6,9 +5,7 @@ using JetBrains.DocumentModel;
 using JetBrains.ReSharper.Psi;
 using JetBrains.ReSharper.Psi.ExtensionsAPI.Tree;
 using JetBrains.ReSharper.Psi.Modules;
-using JetBrains.ReSharper.Psi.Parsing;
 using JetBrains.ReSharper.Psi.Tree;
-using JetBrains.ReSharper.Psi.Xml.Tree;
 using JetBrains.Text;
 
 namespace ReSharperPlugin.RimworldDev.TypeDeclaration;
@@ -17,7 +14,7 @@ namespace ReSharperPlugin.RimworldDev.TypeDeclaration;
  * In order to have an IDeclaredElement for XMLTags, we need a IDeclaration implementation for it. For the most part this
  * is just a wrapper around the original ITreeNode
  */
-public class XmlTagDeclaration: IDeclaration
+public class XmlTagDeclaration: TreeElement, IDeclaration
 {
     private readonly ITreeNode owner;
 
@@ -54,34 +51,38 @@ public class XmlTagDeclaration: IDeclaration
 
     public TreeOffset GetTreeStartOffset() => owner.GetTreeStartOffset();
 
-    public int GetTextLength() => owner.GetTextLength();
+    public override int GetTextLength() => owner.GetTextLength();
 
-    public StringBuilder GetText(StringBuilder to) => owner.GetText(to);
+    public override StringBuilder GetText(StringBuilder to) => owner.GetText(to);
 
-    public IBuffer GetTextAsBuffer() => owner.GetTextAsBuffer();
+    public override IBuffer GetTextAsBuffer() => owner.GetTextAsBuffer();
 
-    public string GetText() => owner.GetText();
+    public override string GetText() => owner.GetText();
 
-    public ITreeNode FindNodeAt(TreeTextRange treeRange) => owner.FindNodeAt(treeRange);
+    public override ITreeNode FindNodeAt(TreeTextRange treeRange) => owner.FindNodeAt(treeRange);
 
-    public IReadOnlyCollection<ITreeNode> FindNodesAt(TreeOffset treeOffset) =>
-        owner.FindNodesAt(treeOffset);
+    public IReadOnlyCollection<ITreeNode> FindNodesAt(TreeOffset treeOffset) => owner.FindNodesAt(treeOffset);
+    
+    public override void FindNodesAtInternal(TreeTextRange relativeRange, List<ITreeNode> result, bool includeContainingNodes)
+    {
+        result.AddRange(owner.FindNodesAt(relativeRange.StartOffset));
+    }
 
     public ITreeNode FindTokenAt(TreeOffset treeTextOffset) => owner.FindTokenAt(treeTextOffset);
 
     public ITreeNode Parent => owner.Parent;
 
-    public ITreeNode FirstChild => owner.FirstChild;
+    public override ITreeNode FirstChild => owner.FirstChild;
 
-    public ITreeNode LastChild => owner.LastChild;
+    public override ITreeNode LastChild => owner.LastChild;
 
     public ITreeNode NextSibling => owner.NextSibling;
 
     public ITreeNode PrevSibling => owner.PrevSibling;
 
-    public NodeType NodeType => owner.NodeType;
+    public override NodeType NodeType => owner.NodeType;
 
-    public PsiLanguageType Language => owner.Language;
+    public override PsiLanguageType Language => owner.Language;
 
     public NodeUserData UserData => owner.UserData;
 
