@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 using JetBrains;
 using JetBrains.Annotations;
 using JetBrains.Application.Parts;
@@ -56,13 +57,19 @@ public class RimworldKeyedTranslationSymbolScope: SimpleICache<List<RimworldKeye
     {
         if (!IsApplicable(sourceFile)) return null;
         if (sourceFile.GetPrimaryPsiFile() is not IXmlFile xmlFile) return null;
+        if (!sourceFile.DisplayName.Contains("Languages")) return null;
 
+        var languageMatch = Regex.Match(sourceFile.DisplayName, @"Languages\\(.*?)\\Keyed");
+        if (!languageMatch.Success) return null;
+
+        var language = languageMatch.Groups[1].Value;
+        
         var tags = xmlFile.GetNestedTags<IXmlTag>("LanguageData/*").Where(tag => true);
 
         var symbols = tags.Select(tag => new RimworldKeyedTranslationSymbol(
             tag,
             tag.GetName().XmlName,
-            "English"
+            language
         )).ToList();
 
         if (symbols.Count == 0) return null;
