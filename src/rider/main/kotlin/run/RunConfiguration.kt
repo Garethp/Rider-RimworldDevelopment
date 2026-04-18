@@ -19,8 +19,6 @@ import com.jetbrains.rider.plugins.unity.UnityBundle
 import com.jetbrains.rider.plugins.unity.run.configurations.unityExe.UnityExeConfiguration
 import com.jetbrains.rider.run.RiderRunBundle
 import icons.UnityIcons
-import kotlin.io.path.Path
-
 
 internal class UnityPlayerDebugConfigurationTypeInternal : ConfigurationTypeBase(
     ID,
@@ -108,7 +106,7 @@ class RunConfiguration(project: Project, factory: ConfigurationFactory, name: St
             getScriptName(),
             getSaveFilePath(),
             getModListPath(),
-            getRimworldState(environment, OS.CURRENT == OS.Linux),
+            getRimworldState(environment),
             UnityDebugRemoteConfiguration(),
             environment,
             "CustomPlayer"
@@ -119,30 +117,24 @@ class RunConfiguration(project: Project, factory: ConfigurationFactory, name: St
         return RimworldDev.Rider.run.SettingsEditor(project)
     }
 
-    private fun getRimworldState(environment: ExecutionEnvironment, debugInLinux: Boolean = false): CommandLineState {
+    private fun getRimworldState(environment: ExecutionEnvironment): CommandLineState {
         return object : CommandLineState(environment) {
             override fun startProcess(): ProcessHandler {
-                var pathToRun = getScriptName()
-                var arguments = getCommandLineOptions()
+                val scriptName = getScriptName()
+                val extraArgs = getCommandLineOptions().split(' ').filter { it.isNotEmpty() }
 
-                // If we're debugging in Rimworld, instead of /pwd/RimWorldLinux ...args we want to run /bin/sh /pwd/run.sh /pwd/RimWorldLinux ...args
-                if (debugInLinux) {
-                    val bashScriptPath = "${Path(pathToRun).parent}/run.sh"
-                    arguments = "$bashScriptPath $pathToRun $arguments"
-                    pathToRun = "/bin/sh"
+                val commandLine = when {
+                    OS.CURRENT == OS.macOS -> {
+                        val params = if (extraArgs.isEmpty()) listOf(scriptName)
+                                     else listOf(scriptName, "--args") + extraArgs
+                        GeneralCommandLine("open").withParameters(params)
+                    }
+                    else -> GeneralCommandLine(scriptName).withParameters(extraArgs)
                 }
-
-                if (OS.CURRENT == OS.macOS) {
-                    arguments = "$pathToRun $arguments"
-                    pathToRun = "open"
-                }
-
-                val commandLine = GeneralCommandLine(pathToRun)
-                    .withParameters(arguments.split(' ').filter { it.isNotEmpty() })
 
                 EnvironmentVariablesData.create(getEnvData(), true).configureCommandLine(commandLine, true)
 
-                QuickStartUtils.setup(getModListPath(), getSaveFilePath());
+                QuickStartUtils.setup(getModListPath(), getSaveFilePath())
 
                 val processHandler = ProcessHandlerFactory.getInstance()
                     .createColoredProcessHandler(commandLine)
