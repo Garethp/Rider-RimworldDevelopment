@@ -1,5 +1,8 @@
 # Changelog
 
+## 2025.1.8
+ * Fixes debugging on MacOS
+
 ## 2025.1.7
  * Adds support for Rider 2026.1
 
