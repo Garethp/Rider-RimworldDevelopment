@@ -1,7 +1,6 @@
 package RimworldDev.Rider.run
 
 import RimworldDev.Rider.helpers.ScopeHelper
-import com.intellij.execution.ExecutionException
 import com.intellij.execution.ExecutionResult
 import com.intellij.execution.Executor
 import com.intellij.execution.configurations.RunProfileState
@@ -15,13 +14,9 @@ import com.jetbrains.rider.plugins.unity.run.configurations.UnityAttachProfileSt
 import com.jetbrains.rider.run.configurations.remote.RemoteConfiguration
 import com.jetbrains.rider.run.getProcess
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.FileOutputStream
-import java.net.BindException
-import java.net.InetSocketAddress
-import java.net.ServerSocket
 import java.nio.file.Files
 import kotlin.io.path.Path
 
@@ -112,15 +107,6 @@ class RunState(
             rimworldState.execute(executor, runner)?.processHandler?.getProcess()
         }
 
-        // Poll until the Mono debug server is reachable before attaching the debugger.
-        if (!waitForMonoDebugServer()) {
-            throw ExecutionException(
-                "Timed out waiting for Mono debug server on port 56000. " +
-                "The game process may have failed to start, or Doorstop may not have injected. " +
-                "Check that run.sh is executable and that libdoorstop.dylib is present in the game directory."
-            )
-        }
-
         val result = super.execute(executor, runner, workerProcessHandler)
         ProcessTerminatedListener.attach(workerProcessHandler.debuggerWorkerRealHandler)
         workerProcessHandler.debuggerWorkerRealHandler.addProcessListener(object : ProcessAdapter() {
@@ -137,27 +123,6 @@ class RunState(
         })
 
         return result
-    }
-
-    private suspend fun waitForMonoDebugServer(port: Int = 56000, timeoutMs: Long = 60_000): Boolean {
-        val deadline = System.currentTimeMillis() + timeoutMs
-        while (System.currentTimeMillis() < deadline) {
-            // Bind to 127.0.0.1 explicitly — on macOS, 0.0.0.0 and 127.0.0.1 are distinct
-            // bind targets, so ServerSocket(port) alone wouldn't detect Mono listening.
-            val isListening = withContext(Dispatchers.IO) {
-                try {
-                    ServerSocket().use { it.bind(InetSocketAddress("127.0.0.1", port)) }
-                    false
-                } catch (_: BindException) {
-                    true
-                } catch (_: Exception) {
-                    false
-                }
-            }
-            if (isListening) return true
-            delay(500)
-        }
-        return false
     }
 
     private fun setupDoorstop() {
