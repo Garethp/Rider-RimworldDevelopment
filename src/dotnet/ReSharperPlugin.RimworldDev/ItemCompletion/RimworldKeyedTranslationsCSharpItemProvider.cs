@@ -40,13 +40,14 @@ public class RimworldKeyedTranslationsCSharpItemProvider: ItemsProviderOfSpecifi
         
         foreach (var key in xmlSymbolTable.GetKeys())
         {
-            var keyTag = xmlSymbolTable.GetKeyTag(key);
-            if (keyTag == null) continue;
+            var nullableKeyTag = xmlSymbolTable.GetTranslationKey(key);
+            if (!nullableKeyTag.HasValue) continue;
+            var keyTag = nullableKeyTag.Value;
             
             var lookup = LookupFactory.CreateDeclaredElementLookupItem(
                 context,
                 key,
-                new DeclaredElementInstance(new XMLTagDeclaredElement(keyTag, $"English/{key}", false))
+                new DeclaredElementInstance(new XMLTagDeclaredElement(keyTag.Tag, $"{keyTag.Language}/{keyTag.KeyName}", false))
             );
             
             collector.Add(lookup);
