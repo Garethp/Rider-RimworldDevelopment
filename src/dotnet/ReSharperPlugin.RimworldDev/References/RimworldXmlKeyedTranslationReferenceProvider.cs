@@ -49,11 +49,13 @@ public class RimworldXmlKeyedTranslationReferenceProvider : IReferenceFactory
         var keyName = identifier.GetText();
         var xmlSymbolTable = element.GetSolution().GetComponent<RimworldKeyedTranslationSymbolScope>();
         
-        var tag = xmlSymbolTable.GetKeyTag(keyName);
-        if (tag is null)
+        var nullableTag = xmlSymbolTable.GetTranslationKey(keyName);
+        if (nullableTag is null)
             return new ReferenceCollection();
 
-        return new ReferenceCollection(new RimworldKeyedTranslationReference(element, tag, "English", keyName)); 
+        var tag = nullableTag.Value;
+        
+        return new ReferenceCollection(new RimworldKeyedTranslationReference(element, tag.Tag, tag.Language, tag.KeyName)); 
     }
 
     public bool HasReference(ITreeNode element, IReferenceNameContainer names)

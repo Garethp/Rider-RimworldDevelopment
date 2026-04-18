@@ -1,3 +1,4 @@
+using System.Linq;
 using JetBrains.DataFlow;
 using JetBrains.Lifetimes;
 using JetBrains.ProjectModel;
@@ -40,11 +41,15 @@ public class RimworldCSharpKeyedTranslationReferenceFactory : IReferenceFactory
         var key = element.GetUnquotedText();
         var xmlSymbolTable = element.GetSolution().GetComponent<RimworldKeyedTranslationSymbolScope>();
 
-        var tag = xmlSymbolTable.GetKeyTag(key);
-        if (tag is null)
+        if (!xmlSymbolTable.HasTranslationKey(key))
             return new ReferenceCollection();
-        
-        return new ReferenceCollection(new RimworldKeyedTranslationReference(element, tag, "English", key)); 
+
+        var tags = xmlSymbolTable.GetAllTagsForKey(key);
+        return new ReferenceCollection(
+            tags.Select(tag => 
+                new RimworldKeyedTranslationReference(element, tag.Tag, tag.Language, tag.KeyName
+            )).ToList()
+        );
     }
 
     public bool HasReference(ITreeNode element, IReferenceNameContainer names)
