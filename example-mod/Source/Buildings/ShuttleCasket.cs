@@ -7,6 +7,8 @@ namespace AshAndDust.Buildings
     {
         private void Launch()
         {
+            var test = DefDatabase<ThingDef>.GetNamed("AshAndDust_Plants_AncestorTree");
+            
             var newThing = SkyfallerMaker.MakeSkyfaller(DefDatabase<ThingDef>.GetNamed("ShuttleCasketSkyfaller"));
             GenSpawn.Spawn(newThing, Position, Map);
 

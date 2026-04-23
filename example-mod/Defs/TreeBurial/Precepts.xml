@@ -8,7 +8,7 @@
 
     <PreceptDef>
         <defName>TreeBurial_Required</defName>
-        <issue>AgeReversal</issue>
+        <issue>TreeBurial</issue>
         <impact>High</impact>
         <displayOrderInIssue>3</displayOrderInIssue>
         <displayOrderInImpact>100</displayOrderInImpact>

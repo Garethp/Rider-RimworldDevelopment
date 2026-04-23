@@ -9,10 +9,11 @@
       <env name="JAVA_HOME" value="C:\Users\Gareth\.jdks\corretto-17.0.7" />
       <env name="RUNNING_FROM_RIDER" value="1" />
     </envs>
-    <option name="USE_EXTERNAL_CONSOLE" value="0" />
+    <option name="ENV_FILE_PATHS" value="" />
+    <option name="REDIRECT_INPUT_PATH" value="" />
+    <option name="MIXED_MODE_DEBUG" value="0" />
     <method v="2">
       <option name="Build Solution" enabled="true" />
-      <option name="RunConfigurationTask" enabled="true" run_configuration_name="Rider – Frontend (Windows)" run_configuration_type="RunNativeExe" />
     </method>
   </configuration>
 </component>

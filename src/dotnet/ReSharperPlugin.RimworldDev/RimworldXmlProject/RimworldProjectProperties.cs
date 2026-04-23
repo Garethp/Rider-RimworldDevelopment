@@ -88,7 +88,6 @@ public class RimworldProjectPropertiesFactory : IProjectPropertiesFactory
         var presentableName = ProjectLanguage.ParsePresentableName(reader.ReadString());
         var projectProperties =
             new RimworldProjectProperties<CSharpProjectConfiguration>(this.FactoryGuid, presentableName);
-        projectProperties.ReadProjectProperties(reader, stringIntern);
         return projectProperties;    
     }
 
