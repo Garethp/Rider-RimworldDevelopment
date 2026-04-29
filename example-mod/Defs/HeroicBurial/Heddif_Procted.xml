@@ -3,7 +3,7 @@
     <HediffDef ParentName="DiseaseBase">
         <defName>AshAndDust_ProtectedByHero</defName>
         <label>Protected by a Hero</label>
-        <description>After praying at the tomb of a Hero, you have recieved their protection for a day</description>
+        <description>After praying at the tomb of a Hero, you have received their protection for a day</description>
         <comps>
             <li Class="HediffCompProperties_Disappears">
                 <disappearsAfterTicks>
