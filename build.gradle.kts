@@ -155,43 +155,9 @@ tasks.runIde {
     }
 }
 
-tasks.prepareSandbox {
-    dependsOn(compileDotNet)
-
-    val outputFolder = layout.projectDirectory.dir("/src/dotnet/${DotnetPluginId}/bin/${DotnetPluginId}.Rider/${BuildConfiguration}")
-
-    val dllFiles = listOf(
-        "$outputFolder/${DotnetPluginId}.dll",
-        "$outputFolder/${DotnetPluginId}.pdb",
-
-        // Not 100% sure why, but we manually need to include these dependencies for Remodder to work
-        "$outputFolder/0Harmony.dll",
-        "$outputFolder/AsmResolver.dll",
-        "$outputFolder/AsmResolver.DotNet.dll",
-        "$outputFolder/AsmResolver.PE.dll",
-        "$outputFolder/AsmResolver.PE.File.dll",
-        "$outputFolder/ICSharpCode.Decompiler.dll"
-    ).map { outputFolder.file(it) }
-
-    dllFiles.forEach { provider ->
-        from(provider) {
-            into("${rootProject.name}/dotnet")
-        }
-    }
-
-    from(
-        layout.projectDirectory.dir("src/dotnet/$DotnetPluginId/ProjectTemplates")
-    ) {
-        into("${rootProject.name}/ProjectTemplates")
-    }
-
-    doLast {
-        dllFiles.forEach { f ->
-            val file = f.asFile
-            if (!file.exists()) {
-                throw RuntimeException("File $file does not exist")
-            }
-        }
+if (!isWindows) {
+    tasks.register("copyRiderDlls") {
+        notCompatibleWithConfigurationCache("Uses local Rider install")
 
         // The Rider SDK archive omits certain DLLs that are present in a full Rider installation.
         // Copy the missing Unity plugin DotFiles DLL from the local Rider installation so the sandbox can load it.
@@ -228,6 +194,50 @@ tasks.prepareSandbox {
                     // Copy into the extracted SDK location (platformPath) — that's where Rider loads plugins from at runtime
                     srcDll.copyTo(file("${destDir}/${srcDll.name}"), overwrite = true)
                 }
+            }
+        }
+    }
+
+    tasks.named("prepareSandbox") {
+        dependsOn("copyRiderDlls")
+    }
+}
+
+tasks.prepareSandbox {
+    dependsOn(compileDotNet)
+
+    val outputFolder = layout.projectDirectory.dir("/src/dotnet/${DotnetPluginId}/bin/${DotnetPluginId}.Rider/${BuildConfiguration}")
+
+    val dllFiles = listOf(
+        "$outputFolder/${DotnetPluginId}.dll",
+        "$outputFolder/${DotnetPluginId}.pdb",
+
+        // Not 100% sure why, but we manually need to include these dependencies for Remodder to work
+        "$outputFolder/0Harmony.dll",
+        "$outputFolder/AsmResolver.dll",
+        "$outputFolder/AsmResolver.DotNet.dll",
+        "$outputFolder/AsmResolver.PE.dll",
+        "$outputFolder/AsmResolver.PE.File.dll",
+        "$outputFolder/ICSharpCode.Decompiler.dll"
+    ).map { outputFolder.file(it) }
+
+    dllFiles.forEach { provider ->
+        from(provider) {
+            into("${rootProject.name}/dotnet")
+        }
+    }
+
+    from(
+        layout.projectDirectory.dir("src/dotnet/$DotnetPluginId/ProjectTemplates")
+    ) {
+        into("${rootProject.name}/ProjectTemplates")
+    }
+
+    doLast {
+        dllFiles.forEach { f ->
+            val file = f.asFile
+            if (!file.exists()) {
+                throw RuntimeException("File $file does not exist")
             }
         }
     }
