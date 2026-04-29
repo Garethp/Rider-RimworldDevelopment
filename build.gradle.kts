@@ -105,11 +105,15 @@ val buildResharperPlugin by tasks.registering(Exec::class) {
 }
 
 tasks.buildPlugin {
+    // Capture providers/files at configuration time so the doLast doesn't touch Project APIs
+    // (project.copy(), project.buildDir, project.rootDir) — required for the configuration cache.
+    val pluginZip = layout.buildDirectory.file("distributions/${rootProject.name}-${version}.zip")
+    val outputDir = layout.projectDirectory.dir("output").asFile
+
     doLast {
-        copy {
-            from("${buildDir}/distributions/${rootProject.name}-${version}.zip")
-            into("${rootDir}/output")
-        }
+        val zipFile = pluginZip.get().asFile
+        outputDir.mkdirs()
+        zipFile.copyTo(outputDir.resolve(zipFile.name), overwrite = true)
     }
 }
 
@@ -157,9 +161,14 @@ tasks.runIde {
 
 // The Rider SDK archive omits certain DLLs that are present in a full Rider installation.
 // Copy the missing Unity plugin DotFiles DLLs from the local Rider installation so the sandbox can load them.
-// Configured as a real Copy task (rather than a `doLast` on prepareSandbox) so it works with the configuration cache:
-// every value the task action needs is captured into locals at configuration time, and no Project APIs are referenced
-// at execution time.
+//
+// This is a side-effect on the extracted SDK (intellijPlatform.platformPath) — *not* a declared task output — because
+// other tasks (patchPluginXml, buildPlugin, etc.) read from that same directory. Declaring it as an OutputDirectory
+// would make Gradle complain about implicit dependencies. Hooking it as a `doLast` on prepareSandbox keeps it as a
+// transparent mutation of the SDK that runs before any consumer.
+//
+// All Project-API access (file(), intellijPlatform.platformPath, system properties) is hoisted to configuration time
+// and captured into locals so the action stays compatible with the configuration cache.
 if (!isWindows) {
     val riderInstallCandidates: List<File> = if (Os.isFamily(Os.FAMILY_MAC)) {
         listOf(File("/Applications/Rider.app/Contents"))
@@ -181,21 +190,20 @@ if (!isWindows) {
         "JetBrains.ReSharper.Plugins.Unity.Rider.Debugger.Presentation.Texture.dll",
     )
 
-    val copyRiderDlls = tasks.register<Copy>("copyRiderDlls") {
-        missingDotFileDlls.forEach { dllName ->
-            val rel = "plugins/rider-unity/DotFiles/$dllName"
-            riderInstallCandidates
-                .map { File(it, rel) }
-                .firstOrNull { it.exists() }
-                ?.let { from(it) }
-        }
-
-        // platformPath is a Path resolved at configuration time — captured here so the task action doesn't touch the extension.
-        into(intellijPlatform.platformPath.resolve("plugins/rider-unity/DotFiles").toFile())
+    val resolvedRiderDllSources: List<File> = missingDotFileDlls.mapNotNull { dllName ->
+        val rel = "plugins/rider-unity/DotFiles/$dllName"
+        riderInstallCandidates.map { File(it, rel) }.firstOrNull { it.exists() }
     }
 
+    val riderDllDestDir = intellijPlatform.platformPath.resolve("plugins/rider-unity/DotFiles").toFile()
+
     tasks.prepareSandbox {
-        dependsOn(copyRiderDlls)
+        doLast {
+            riderDllDestDir.mkdirs()
+            resolvedRiderDllSources.forEach { src ->
+                src.copyTo(File(riderDllDestDir, src.name), overwrite = true)
+            }
+        }
     }
 }
 
