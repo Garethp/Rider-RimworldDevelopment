@@ -6,7 +6,7 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 plugins {
     id("java")
     alias(libs.plugins.kotlinJvm)
-    id("org.jetbrains.intellij.platform") version "2.14.0"     // https://github.com/JetBrains/gradle-intellij-plugin/releases
+    id("org.jetbrains.intellij.platform") version "2.15.0"     // https://github.com/JetBrains/gradle-intellij-plugin/releases
     id("me.filippov.gradle.jvm.wrapper") version "0.16.0"
 }
 
@@ -148,15 +148,18 @@ tasks.runIde {
     // part of a plugin, but there are dangers about keeping plugins in sync
     autoReload = false
 
+    val exampleModSolution = layout.projectDirectory.file("example-mod/AshAndDust.sln").asFile.absolutePath
+
     argumentProviders += CommandLineArgumentProvider {
-        listOf("${rootDir}/example-mod/AshAndDust.sln")
+        listOf(exampleModSolution)
     }
 }
 
 tasks.prepareSandbox {
     dependsOn(compileDotNet)
 
-    val outputFolder = "${rootDir}/src/dotnet/${DotnetPluginId}/bin/${DotnetPluginId}.Rider/${BuildConfiguration}"
+    val outputFolder = layout.projectDirectory.dir("/src/dotnet/${DotnetPluginId}/bin/${DotnetPluginId}.Rider/${BuildConfiguration}")
+
     val dllFiles = listOf(
         "$outputFolder/${DotnetPluginId}.dll",
         "$outputFolder/${DotnetPluginId}.pdb",
@@ -168,20 +171,27 @@ tasks.prepareSandbox {
         "$outputFolder/AsmResolver.PE.dll",
         "$outputFolder/AsmResolver.PE.File.dll",
         "$outputFolder/ICSharpCode.Decompiler.dll"
-    )
+    ).map { outputFolder.file(it) }
 
-    dllFiles.forEach({ f ->
-        val file = file(f)
-        from(file, { into("${rootProject.name}/dotnet") })
-    })
+    dllFiles.forEach { provider ->
+        from(provider) {
+            into("${rootProject.name}/dotnet")
+        }
+    }
 
-    from("${rootDir}/src/dotnet/${DotnetPluginId}/ProjectTemplates", { into("${rootProject.name}/ProjectTemplates") })
+    from(
+        layout.projectDirectory.dir("src/dotnet/$DotnetPluginId/ProjectTemplates")
+    ) {
+        into("${rootProject.name}/ProjectTemplates")
+    }
 
     doLast {
-        dllFiles.forEach({ f ->
-            val file = file(f)
-            if (!file.exists()) throw RuntimeException("File ${file} does not exist")
-        })
+        dllFiles.forEach { f ->
+            val file = f.asFile
+            if (!file.exists()) {
+                throw RuntimeException("File $file does not exist")
+            }
+        }
 
         // The Rider SDK archive omits certain DLLs that are present in a full Rider installation.
         // Copy the missing Unity plugin DotFiles DLL from the local Rider installation so the sandbox can load it.
