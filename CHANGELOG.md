@@ -1,5 +1,8 @@
 # Changelog
 
+## 2025.1.10
+ * Update the Rimworld Template to have the new DLCs in `<loadAfter>`, thanks to @Flia/@royallyTipsy
+
 ## 2025.1.9
  * Fix declarations and navigations for Rider 2026.1
 
