@@ -6,7 +6,7 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 plugins {
     id("java")
     alias(libs.plugins.kotlinJvm)
-    id("org.jetbrains.intellij.platform") version "2.14.0"     // https://github.com/JetBrains/gradle-intellij-plugin/releases
+    id("org.jetbrains.intellij.platform") version "2.15.0"     // https://github.com/JetBrains/gradle-intellij-plugin/releases
     id("me.filippov.gradle.jvm.wrapper") version "0.16.0"
 }
 
@@ -148,40 +148,16 @@ tasks.runIde {
     // part of a plugin, but there are dangers about keeping plugins in sync
     autoReload = false
 
+    val exampleModSolution = layout.projectDirectory.file("example-mod/AshAndDust.sln").asFile.absolutePath
+
     argumentProviders += CommandLineArgumentProvider {
-        listOf("${rootDir}/example-mod/AshAndDust.sln")
+        listOf(exampleModSolution)
     }
 }
 
-tasks.prepareSandbox {
-    dependsOn(compileDotNet)
-
-    val outputFolder = "${rootDir}/src/dotnet/${DotnetPluginId}/bin/${DotnetPluginId}.Rider/${BuildConfiguration}"
-    val dllFiles = listOf(
-        "$outputFolder/${DotnetPluginId}.dll",
-        "$outputFolder/${DotnetPluginId}.pdb",
-
-        // Not 100% sure why, but we manually need to include these dependencies for Remodder to work
-        "$outputFolder/0Harmony.dll",
-        "$outputFolder/AsmResolver.dll",
-        "$outputFolder/AsmResolver.DotNet.dll",
-        "$outputFolder/AsmResolver.PE.dll",
-        "$outputFolder/AsmResolver.PE.File.dll",
-        "$outputFolder/ICSharpCode.Decompiler.dll"
-    )
-
-    dllFiles.forEach({ f ->
-        val file = file(f)
-        from(file, { into("${rootProject.name}/dotnet") })
-    })
-
-    from("${rootDir}/src/dotnet/${DotnetPluginId}/ProjectTemplates", { into("${rootProject.name}/ProjectTemplates") })
-
-    doLast {
-        dllFiles.forEach({ f ->
-            val file = file(f)
-            if (!file.exists()) throw RuntimeException("File ${file} does not exist")
-        })
+if (!isWindows) {
+    tasks.register("copyRiderDlls") {
+        notCompatibleWithConfigurationCache("Uses local Rider install")
 
         // The Rider SDK archive omits certain DLLs that are present in a full Rider installation.
         // Copy the missing Unity plugin DotFiles DLL from the local Rider installation so the sandbox can load it.
@@ -218,6 +194,50 @@ tasks.prepareSandbox {
                     // Copy into the extracted SDK location (platformPath) — that's where Rider loads plugins from at runtime
                     srcDll.copyTo(file("${destDir}/${srcDll.name}"), overwrite = true)
                 }
+            }
+        }
+    }
+
+    tasks.named("prepareSandbox") {
+        dependsOn("copyRiderDlls")
+    }
+}
+
+tasks.prepareSandbox {
+    dependsOn(compileDotNet)
+
+    val outputFolder = layout.projectDirectory.dir("/src/dotnet/${DotnetPluginId}/bin/${DotnetPluginId}.Rider/${BuildConfiguration}")
+
+    val dllFiles = listOf(
+        "$outputFolder/${DotnetPluginId}.dll",
+        "$outputFolder/${DotnetPluginId}.pdb",
+
+        // Not 100% sure why, but we manually need to include these dependencies for Remodder to work
+        "$outputFolder/0Harmony.dll",
+        "$outputFolder/AsmResolver.dll",
+        "$outputFolder/AsmResolver.DotNet.dll",
+        "$outputFolder/AsmResolver.PE.dll",
+        "$outputFolder/AsmResolver.PE.File.dll",
+        "$outputFolder/ICSharpCode.Decompiler.dll"
+    ).map { outputFolder.file(it) }
+
+    dllFiles.forEach { provider ->
+        from(provider) {
+            into("${rootProject.name}/dotnet")
+        }
+    }
+
+    from(
+        layout.projectDirectory.dir("src/dotnet/$DotnetPluginId/ProjectTemplates")
+    ) {
+        into("${rootProject.name}/ProjectTemplates")
+    }
+
+    doLast {
+        dllFiles.forEach { f ->
+            val file = f.asFile
+            if (!file.exists()) {
+                throw RuntimeException("File $file does not exist")
             }
         }
     }
