@@ -6,7 +6,7 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 plugins {
     id("java")
     alias(libs.plugins.kotlinJvm)
-    id("org.jetbrains.intellij.platform") version "2.14.0"     // https://github.com/JetBrains/gradle-intellij-plugin/releases
+    id("org.jetbrains.intellij.platform") version "2.15.0"     // https://github.com/JetBrains/gradle-intellij-plugin/releases
     id("me.filippov.gradle.jvm.wrapper") version "0.16.0"
 }
 
@@ -105,11 +105,15 @@ val buildResharperPlugin by tasks.registering(Exec::class) {
 }
 
 tasks.buildPlugin {
+    // Capture providers/files at configuration time so the doLast doesn't touch Project APIs
+    // (project.copy(), project.buildDir, project.rootDir) — required for the configuration cache.
+    val pluginZip = layout.buildDirectory.file("distributions/${rootProject.name}-${version}.zip")
+    val outputDir = layout.projectDirectory.dir("output").asFile
+
     doLast {
-        copy {
-            from("${buildDir}/distributions/${rootProject.name}-${version}.zip")
-            into("${rootDir}/output")
-        }
+        val zipFile = pluginZip.get().asFile
+        outputDir.mkdirs()
+        zipFile.copyTo(outputDir.resolve(zipFile.name), overwrite = true)
     }
 }
 
@@ -148,15 +152,66 @@ tasks.runIde {
     // part of a plugin, but there are dangers about keeping plugins in sync
     autoReload = false
 
+    val exampleModSolution = layout.projectDirectory.file("example-mod/AshAndDust.sln").asFile.absolutePath
+
     argumentProviders += CommandLineArgumentProvider {
-        listOf("${rootDir}/example-mod/AshAndDust.sln")
+        listOf(exampleModSolution)
+    }
+}
+
+// The Rider SDK archive omits certain DLLs that are present in a full Rider installation.
+// Copy the missing Unity plugin DotFiles DLLs from the local Rider installation so the sandbox can load them.
+//
+// This is a side-effect on the extracted SDK (intellijPlatform.platformPath) — *not* a declared task output — because
+// other tasks (patchPluginXml, buildPlugin, etc.) read from that same directory. Declaring it as an OutputDirectory
+// would make Gradle complain about implicit dependencies. Hooking it as a `doLast` on prepareSandbox keeps it as a
+// transparent mutation of the SDK that runs before any consumer.
+//
+// All Project-API access (file(), intellijPlatform.platformPath, system properties) is hoisted to configuration time
+// and captured into locals so the action stays compatible with the configuration cache.
+if (!isWindows) {
+    val riderInstallCandidates: List<File> = if (Os.isFamily(Os.FAMILY_MAC)) {
+        listOf(File("/Applications/Rider.app/Contents"))
+    } else {
+        // Linux: check JetBrains Toolbox and common standalone install paths
+        val userHome = providers.systemProperty("user.home").get()
+        val toolboxBase = File("$userHome/.local/share/JetBrains/Toolbox/apps/Rider")
+        val toolboxInstalls = if (toolboxBase.exists()) {
+            toolboxBase.walkTopDown()
+                .filter { it.name == "plugins" && it.parentFile?.name?.startsWith("2") == true }
+                .map { it.parentFile }
+                .toList()
+        } else emptyList()
+        toolboxInstalls + listOf(File("/opt/rider"), File("/usr/share/rider"))
+    }
+
+    val missingDotFileDlls = listOf(
+        "JetBrains.ReSharper.Plugins.Unity.Rider.Debugger.PausePoint.Helper.dll",
+        "JetBrains.ReSharper.Plugins.Unity.Rider.Debugger.Presentation.Texture.dll",
+    )
+
+    val resolvedRiderDllSources: List<File> = missingDotFileDlls.mapNotNull { dllName ->
+        val rel = "plugins/rider-unity/DotFiles/$dllName"
+        riderInstallCandidates.map { File(it, rel) }.firstOrNull { it.exists() }
+    }
+
+    val riderDllDestDir = intellijPlatform.platformPath.resolve("plugins/rider-unity/DotFiles").toFile()
+
+    tasks.prepareSandbox {
+        doLast {
+            riderDllDestDir.mkdirs()
+            resolvedRiderDllSources.forEach { src ->
+                src.copyTo(File(riderDllDestDir, src.name), overwrite = true)
+            }
+        }
     }
 }
 
 tasks.prepareSandbox {
     dependsOn(compileDotNet)
 
-    val outputFolder = "${rootDir}/src/dotnet/${DotnetPluginId}/bin/${DotnetPluginId}.Rider/${BuildConfiguration}"
+    val outputFolder = layout.projectDirectory.dir("src/dotnet/${DotnetPluginId}/bin/${DotnetPluginId}.Rider/${BuildConfiguration}")
+
     val dllFiles = listOf(
         "$outputFolder/${DotnetPluginId}.dll",
         "$outputFolder/${DotnetPluginId}.pdb",
@@ -168,56 +223,25 @@ tasks.prepareSandbox {
         "$outputFolder/AsmResolver.PE.dll",
         "$outputFolder/AsmResolver.PE.File.dll",
         "$outputFolder/ICSharpCode.Decompiler.dll"
-    )
+    ).map { outputFolder.file(it) }
 
-    dllFiles.forEach({ f ->
-        val file = file(f)
-        from(file, { into("${rootProject.name}/dotnet") })
-    })
+    dllFiles.forEach { provider ->
+        from(provider) {
+            into("${rootProject.name}/dotnet")
+        }
+    }
 
-    from("${rootDir}/src/dotnet/${DotnetPluginId}/ProjectTemplates", { into("${rootProject.name}/ProjectTemplates") })
+    from(
+        layout.projectDirectory.dir("src/dotnet/$DotnetPluginId/ProjectTemplates")
+    ) {
+        into("${rootProject.name}/ProjectTemplates")
+    }
 
     doLast {
-        dllFiles.forEach({ f ->
-            val file = file(f)
-            if (!file.exists()) throw RuntimeException("File ${file} does not exist")
-        })
-
-        // The Rider SDK archive omits certain DLLs that are present in a full Rider installation.
-        // Copy the missing Unity plugin DotFiles DLL from the local Rider installation so the sandbox can load it.
-        if (!isWindows) {
-            val riderInstallCandidates = if (Os.isFamily(Os.FAMILY_MAC)) {
-                listOf(file("/Applications/Rider.app/Contents"))
-            } else {
-                // Linux: check JetBrains Toolbox and common standalone install paths
-                val toolboxBase = file("${System.getProperty("user.home")}/.local/share/JetBrains/Toolbox/apps/Rider")
-                val toolboxInstalls = if (toolboxBase.exists()) {
-                    toolboxBase.walkTopDown()
-                        .filter { it.name == "plugins" && it.parentFile?.name?.startsWith("2") == true }
-                        .map { it.parentFile }
-                        .toList()
-                } else emptyList()
-                toolboxInstalls + listOf(file("/opt/rider"), file("/usr/share/rider"))
-            }
-
-            val missingDotFileDlls = listOf(
-                "JetBrains.ReSharper.Plugins.Unity.Rider.Debugger.PausePoint.Helper.dll",
-                "JetBrains.ReSharper.Plugins.Unity.Rider.Debugger.Presentation.Texture.dll",
-            )
-
-            val destDir = intellijPlatform.platformPath.resolve("plugins/rider-unity/DotFiles").toFile()
-            destDir.mkdirs()
-
-            for (dllName in missingDotFileDlls) {
-                val dllRelPath = "plugins/rider-unity/DotFiles/$dllName"
-                val srcDll = riderInstallCandidates
-                    .map { file("${it}/${dllRelPath}") }
-                    .firstOrNull { it.exists() }
-
-                if (srcDll != null) {
-                    // Copy into the extracted SDK location (platformPath) — that's where Rider loads plugins from at runtime
-                    srcDll.copyTo(file("${destDir}/${srcDll.name}"), overwrite = true)
-                }
+        dllFiles.forEach { f ->
+            val file = f.asFile
+            if (!file.exists()) {
+                throw RuntimeException("File $file does not exist")
             }
         }
     }
