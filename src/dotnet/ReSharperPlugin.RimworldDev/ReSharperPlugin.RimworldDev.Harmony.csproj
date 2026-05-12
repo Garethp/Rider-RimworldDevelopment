@@ -1,0 +1,44 @@
+<Project>
+
+    <PropertyGroup>
+        <LanguageTargets>$(MSBuildToolsPath)\Microsoft.CSharp.targets</LanguageTargets>
+        <LangVersion>latest</LangVersion>
+    </PropertyGroup>
+
+    <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
+
+    <PropertyGroup>
+        <TargetFramework>net6.0</TargetFramework>
+    </PropertyGroup>
+    
+    <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
+
+    <ItemGroup>
+        <Compile Remove="**" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Lib.Harmony"
+                          Version="2.*"
+                          GeneratePathProperty="true" />
+    </ItemGroup>
+
+    <Target Name="CopyHarmony" AfterTargets="Build">
+
+        <ItemGroup>
+            <HarmonyDll Include="$(PkgLib_Harmony)\lib\**\0Harmony.dll" />
+        </ItemGroup>
+
+        <Copy
+            SourceFiles="@(HarmonyDll)"
+            DestinationFolder="../../rider/main/resources/UnityDoorstop/Linux/Doorstop" />
+
+        <Copy
+            SourceFiles="@(HarmonyDll)"
+            DestinationFolder="../../rider/main/resources/UnityDoorstop/macOS/Doorstop" />
+
+        <Copy
+            SourceFiles="@(HarmonyDll)"
+            DestinationFolder="../../rider/main/resources/UnityDoorstop/Windows/Doorstop" />
+    </Target>
+</Project>

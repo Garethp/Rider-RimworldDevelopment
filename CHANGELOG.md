@@ -1,5 +1,10 @@
 # Changelog
 
+## 2025.1.11
+ * Fixed the language folder in the Rimworld template, thanks to @Halicade
+ * Updated the Rimworld Dictionary for Biotech, Anomaly and Odyssey
+ * Update Harmony and make sure all future builds come with the correct version of Harmony
+
 ## 2025.1.10
  * Update the Rimworld Template to have the new DLCs in `<loadAfter>`, thanks to @Flia/@royallyTipsy
 
