@@ -13,7 +13,7 @@
         <displayOrderInIssue>3</displayOrderInIssue>
         <displayOrderInImpact>100</displayOrderInImpact>
         <label>Hero Burial</label>
-        <description>Every fallen colonist member is a hero and deserves to be burried in a tomb worthy of their sacrifice.</description>
+        <description>Every fallen colonist member is a hero and deserves to be buried in a tomb worthy of their sacrifice.</description>
         <exclusionTags>
             <li>VanillaBurial</li>
         </exclusionTags>
@@ -25,7 +25,7 @@
 <!--        <impact>Medium</impact>-->
 <!--        <displayOrderInIssue>3</displayOrderInIssue>-->
 <!--        <displayOrderInImpact>100</displayOrderInImpact>-->
-<!--        <label>Hero Someitmes</label>-->
+<!--        <label>Hero Sometimes</label>-->
 <!--        <description>Hero Sometimes</description>-->
 <!--        <exclusionTags>-->
 <!--            <li>VanillaBurial</li>-->
