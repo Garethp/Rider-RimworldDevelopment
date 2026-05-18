@@ -14,7 +14,7 @@
         <displayOrderInImpact>100</displayOrderInImpact>
         <defaultSelectionWeight>.3</defaultSelectionWeight>
         <label>Eat the dead, even if their beliefs differ from ours</label>
-        <description>When our families and friends die we conume their bodies so that their spirits can live inside ours, allowing them to be with us even after  death. Even if they weren't apart of our ideoligion in life, in death they can still join us</description>
+        <description>When our families and friends die we consume their bodies so that their spirits can live inside ours, allowing them to be with us even after  death. Even if they weren't apart of our ideoligion in life, in death they can still join us</description>
         <exclusionTags>
             <li>NoVanillaCannibal</li>
             <li>VanillaBurial</li>
@@ -38,7 +38,7 @@
         <displayOrderInImpact>100</displayOrderInImpact>
         <defaultSelectionWeight>.5</defaultSelectionWeight>
         <label>Eat the dead</label>
-        <description>When our families and friends die we conume their bodies so that their spirits can live inside ours, allowing them to be with us even after  death.</description>
+        <description>When our families and friends die we consume their bodies so that their spirits can live inside ours, allowing them to be with us even after  death.</description>
         <exclusionTags>
             <li>NoVanillaCannibal</li>
             <li>VanillaBurial</li>
