@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Xml;
 using JetBrains.ReSharper.Psi;
 using JetBrains.ReSharper.Psi.Tree;
+using JetBrains.ReSharper.Psi.Xml.Impl.Tree;
 using JetBrains.Util;
 using JetBrains.Util.DataStructures;
 
@@ -81,4 +82,6 @@ public class XMLTagDeclaredElement : IDeclaredElement
     public XmlNode GetXMLDoc(bool inherit) => (XmlNode)null;
 
     public XmlNode GetXMLDescriptionSummary(bool inherit) => (XmlNode)null;
+
+    public string GetInnerText() => owner is XmlTag ownerTag ? ownerTag.InnerText : owner.GetText();
 }
