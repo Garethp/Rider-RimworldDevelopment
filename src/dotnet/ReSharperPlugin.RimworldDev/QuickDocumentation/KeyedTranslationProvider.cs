@@ -88,7 +88,7 @@ public class KeyedTranslationDescriptionProvider : IDeclaredElementDescriptionPr
     {
         if (element is not XMLTagDeclaredElement declaredElement) return new RichTextBlock();
 
-        var block = new RichTextBlock { declaredElement.GetInnerText() };
+        var block = new RichTextBlock { declaredElement.GetText() };
 
         return block;
     }

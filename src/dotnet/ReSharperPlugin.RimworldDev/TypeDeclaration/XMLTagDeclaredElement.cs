@@ -79,9 +79,11 @@ public class XMLTagDeclaredElement : IDeclaredElement
 
     public IPsiServices GetPsiServices() => myPsiServices;
 
-    public XmlNode GetXMLDoc(bool inherit) => (XmlNode)null;
+    public XmlNode GetXMLDoc(bool inherit) => null;
 
-    public XmlNode GetXMLDescriptionSummary(bool inherit) => (XmlNode)null;
+    public XmlNode GetXMLDescriptionSummary(bool inherit) => null;
 
+    public string GetText() => owner.GetText();
+    
     public string GetInnerText() => owner is XmlTag ownerTag ? ownerTag.InnerText : owner.GetText();
 }

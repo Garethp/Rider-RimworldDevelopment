@@ -35,7 +35,7 @@ public class RimworldKeyedTranslationSymbol
         var langauge = reader.ReadString();
         var documentOffset = reader.ReadInt();
         
-        return new RimworldKeyedTranslationSymbol(documentOffset, langauge, keyName);
+        return new RimworldKeyedTranslationSymbol(documentOffset, keyName, langauge);
     }
 
     private static void Write(UnsafeWriter writer, RimworldKeyedTranslationSymbol value)
