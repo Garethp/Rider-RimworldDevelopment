@@ -25,12 +25,21 @@ public class ScopeHelper
     private static IPsiModule rimworldModule;
     private static List<ISymbolScope> usedScopes;
     private static bool adding = false;
+    private static bool? isRimworldProject = false;
+
+    public static bool IsRimworldProject() => isRimworldProject ?? false;
 
     public static bool UpdateScopes(ISolution solution)
     {
         if (solution == null) return false;
         using (CompilationContextCookie.GetOrCreate(UniversalModuleReferenceContext.Instance))
         {
+            if (isRimworldProject == null)
+            {
+                isRimworldProject = solution.GetTopLevelProjects()
+                    .Any(project => project.ProjectFileLocation.EndsWith("About.xml"));
+            }
+            
             allScopes = solution.PsiModules().GetModules().Select(module =>
                 module.GetPsiServices().Symbols.GetSymbolScope(module, true, true)).ToList();
 
@@ -61,6 +70,7 @@ public class ScopeHelper
                             .GetTypeElementByCLRName("Verse.ThingDef") != null);
             }
 
+            isRimworldProject = true;
             return true;
         }
     }

@@ -56,6 +56,9 @@ public class StringToKeyedTranslationAction(ICSharpContextActionDataProvider pro
 
     public override bool IsAvailable(IUserDataHolder cache)
     {
+        if (!ScopeHelper.IsRimworldProject())
+            return false;
+        
         var selectedElement = provider.GetSelectedElement<IStringLiteralOwner>();
 
         if (selectedElement is null) return false;
@@ -86,6 +89,9 @@ public class StringToKeyedTranslationWorkflow([NotNull] ISolution solution, [Can
 
     public override bool IsAvailable(IDataContext context)
     {
+        if (!ScopeHelper.IsRimworldProject())
+            return false;
+        
         return true;
     }
 

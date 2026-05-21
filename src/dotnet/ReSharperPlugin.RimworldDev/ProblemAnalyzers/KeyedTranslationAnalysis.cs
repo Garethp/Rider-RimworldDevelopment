@@ -57,6 +57,8 @@ public class KeyedTranslationAnalysisStage : CSharpDaemonStageBase
 
         public override void Execute(Action<DaemonStageResult> committer)
         {
+            if (!ScopeHelper.IsRimworldProject()) return;
+            
             File.ProcessDescendants(this);
             committer(new DaemonStageResult(myConsumer.CollectHighlightings()));
         }
