@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Text.RegularExpressions;
 using JetBrains.Annotations;
 using JetBrains.Application.Parts;
@@ -87,7 +88,11 @@ public class KeyedTranslationAnalysisStage : CSharpDaemonStageBase
 
             var translation = symbolScope.GetTranslationKey(translationKey).Value!.Tag.InnerText;
 
-            var matches = Regex.Matches(translation, @"(\{\d+\})");
+            var matches = Regex
+                .Matches(translation, @"(\{\d+\})")
+                .Select(match => match.Value)
+                .Distinct()
+                .ToList();
 
             if (matches.Count != argumentCount)
             {
