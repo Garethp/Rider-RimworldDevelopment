@@ -151,6 +151,7 @@ public class StringToKeyedTranslationRefactoringPage : SingleBeRefactoringPage
 
 // TODO: If the file isn't referencing Verse yet, we need to insert that reference
 // TODO: Allow the user to select the file they want to add the key to
+// TODO: Add an option to insert the XML into all languages defined, not just the default language
 public class StringToKeyedTranslationRefactoring(
     [NotNull] StringToKeyedTranslationWorkflow workflow,
     [NotNull] ISolution solution,
