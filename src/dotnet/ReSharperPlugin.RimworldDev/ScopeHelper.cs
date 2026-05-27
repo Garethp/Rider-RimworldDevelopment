@@ -25,7 +25,7 @@ public class ScopeHelper
     private static IPsiModule rimworldModule;
     private static List<ISymbolScope> usedScopes;
     private static bool adding = false;
-    private static bool? isRimworldProject = false;
+    private static bool? isRimworldProject;
 
     public static bool IsRimworldProject() => isRimworldProject ?? false;
 
