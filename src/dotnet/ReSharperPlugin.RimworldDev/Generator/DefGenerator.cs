@@ -43,6 +43,8 @@ public class GenerateDefPropertiesWorkflowXml : GenerateCodeWorkflowBase
 
     public override bool IsAvailable(IDataContext dataContext)
     {
+        if (!ScopeHelper.IsRimworldProject()) return false;
+        
         var solution = dataContext.GetData(ProjectModelDataConstants.SOLUTION);
         if (solution == null)
             return false;
@@ -57,7 +59,7 @@ public class GenerateDefPropertiesWorkflowXml : GenerateCodeWorkflowBase
     }
     public override bool IsEnabled(ITreeNode context)
     {
-        return true;
+        return ScopeHelper.IsRimworldProject();
     }
 
     public override bool IsEmptyInputAllowed(IGeneratorContext context)
@@ -71,6 +73,8 @@ public class DefPropertiesGeneratorBuilderXml : GeneratorBuilderBase<GeneratorCo
 {
     protected override bool IsAvailable(GeneratorContextBase context)
     {
+        if (!ScopeHelper.IsRimworldProject()) return false;
+        
         var anchor = context.Anchor;
 
         if (anchor is not XmlWhitespaceToken) return false;

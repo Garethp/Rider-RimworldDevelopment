@@ -26,7 +26,7 @@ public class RimworldXmlProjectHost : SolutionFileProjectHostBase
     private readonly FileSystemWildcardService myWildcardService;
     private readonly ProjectFilePropertiesFactory myProjectFilePropertiesFactory;
     private bool hasReloaded = false;
-    
+
     public RimworldXmlProjectHost(
         IPlatformManager platformManager,
         ProjectFilePropertiesFactory projectFilePropertiesFactory,
@@ -40,13 +40,18 @@ public class RimworldXmlProjectHost : SolutionFileProjectHostBase
         myStructureBuilder = new RimworldProjectStructureBuilder(myProjectFilePropertiesFactory);
         myWildcardService = wildcardService;
     }
-    
+
     public override bool IsApplicable(IProjectMark projectMark)
     {
         return projectMark.Guid.ToString() == "f2a71f9b-5d33-465a-a702-920d77279781";
     }
 
-    protected override void Reload(ProjectHostReloadChange change, VirtualFileSystemPath logPath)
+    // To swap between Rider 2025.3 and Rider 2026.1, swap the `override` between these two methods
+    protected void Reload(ProjectHostReloadChange change, FileSystemPath logPath) => Reload(change);
+
+    protected override void Reload(ProjectHostReloadChange change, VirtualFileSystemPath logPath) => Reload(change);
+
+    protected  void Reload(ProjectHostReloadChange change)
     {
         if (change.ProjectMark is not RimworldProjectMark projectMark) return;
 
@@ -70,26 +75,31 @@ public class RimworldXmlProjectHost : SolutionFileProjectHostBase
             {
                 targetFramework
             }, defaultLanguage, EmptyList<Guid>.InstanceList);
-        
+
         // This is a quick fix suggested by Jetbrains to fix where Files/Folders get created when adding them to our project
-        var config = projectProperties.TryGetConfiguration<IManagedProjectConfiguration>(projectProperties.ActiveConfigurations.TargetFrameworkIds.FirstNotNull());
+        var config =
+            projectProperties.TryGetConfiguration<IManagedProjectConfiguration>(projectProperties.ActiveConfigurations
+                .TargetFrameworkIds.FirstNotNull());
         config?.UpdatePropertyCollection(x =>
             x[MSBuildProjectUtil.BaseDirectoryProperty] = projectMark.Location.Parent.Parent.FullPath);
-        
-        var customDescriptor = new RimworldProjectDescriptor(projectMark.Guid, projectProperties, null, projectMark.Name,
+
+        var customDescriptor = new RimworldProjectDescriptor(projectMark.Guid, projectProperties, null,
+            projectMark.Name,
             siteProjectLocation, projectMark.Location);
 
         var byProjectLocation = ProjectDescriptor.CreateWithoutItemsByProjectDescriptor(customDescriptor);
-        
-        myStructureBuilder.Build(byProjectLocation, ProjectFolderFilter.Instance, GetLoadFolders(projectMark.Location.Parent.Parent));
-        myWildcardService.RegisterDirectory(projectMark, siteProjectLocation, targetFramework, ProjectFolderFilter.Instance);
-        
+
+        myStructureBuilder.Build(byProjectLocation, ProjectFolderFilter.Instance,
+            GetLoadFolders(projectMark.Location.Parent.Parent));
+        myWildcardService.RegisterDirectory(projectMark, siteProjectLocation, targetFramework,
+            ProjectFolderFilter.Instance);
+
         change.Descriptors = new ProjectHostChangeDescriptors(byProjectLocation)
         {
             ProjectReferencesDescriptor = BuildReferences(targetFramework, projectMark)
         };
     }
-
+    
     private List<string> GetLoadFolders(VirtualFileSystemPath basePath)
     {
         var loadFolders = new List<string>();
@@ -109,7 +119,7 @@ public class RimworldXmlProjectHost : SolutionFileProjectHostBase
             }
 
             versionList.Sort();
-            
+
             var folderTags = document.GetElementsByTagName(versionList.Last())[0].ChildNodes;
             for (var i = 0; i < folderTags.Count; i++)
             {
@@ -133,16 +143,22 @@ public class RimworldXmlProjectHost : SolutionFileProjectHostBase
         return location;
     }
 
-    private static ProjectReferencesDescriptor BuildReferences([NotNull] TargetFrameworkId targetFrameworkId, [NotNull] IProjectMark projectMark)
+    private static ProjectReferencesDescriptor BuildReferences([NotNull] TargetFrameworkId targetFrameworkId,
+        [NotNull] IProjectMark projectMark)
     {
-        if (projectMark is not RimworldProjectMark rimworldProjectMark || rimworldProjectMark.Dependencies.Count == 0) return null;
+        if (projectMark is not RimworldProjectMark rimworldProjectMark ||
+            rimworldProjectMark.Dependencies.Count == 0) return null;
 
         var pairList = new List<Pair<IProjectReferenceDescriptor, IProjectReferenceProperties>>();
 
         rimworldProjectMark.Dependencies.ForEach(dependency =>
         {
-            var reference = new ProjectToProjectReferenceBySearchDescriptor(targetFrameworkId, dependency.ToProjectSearchDescriptor());
-            pairList.Add(new Pair<IProjectReferenceDescriptor, IProjectReferenceProperties>(reference, ProjectReferenceProperties.Instance) );
+            var reference =
+                new ProjectToProjectReferenceBySearchDescriptor(targetFrameworkId,
+                    dependency.ToProjectSearchDescriptor());
+            pairList.Add(
+                new Pair<IProjectReferenceDescriptor, IProjectReferenceProperties>(reference,
+                    ProjectReferenceProperties.Instance));
         });
 
         return new ProjectReferencesDescriptor(pairList);
@@ -161,6 +177,7 @@ public class RimworldXmlProjectHost : SolutionFileProjectHostBase
             path.Name.Equals("bin", StringComparison.OrdinalIgnoreCase) ||
             path.Name.EndsWith(".DotSettings.user", StringComparison.OrdinalIgnoreCase) ||
             path.Name.Equals("node_modules", StringComparison.OrdinalIgnoreCase) ||
-            !new List<string> {"About", "Defs", "Patches", "Languages", "Sounds", "Textures", "News"}.Any(it => path.FullPath.Contains(it));
+            !new List<string> { "About", "Defs", "Patches", "Languages", "Sounds", "Textures", "News" }.Any(it =>
+                path.FullPath.Contains(it));
     }
 }
