@@ -106,6 +106,7 @@ class RunConfiguration(project: Project, factory: ConfigurationFactory, name: St
             getScriptName(),
             getSaveFilePath(),
             getModListPath(),
+            getCommandLineOptions(),
             getRimworldState(environment),
             UnityDebugRemoteConfiguration(),
             environment,
