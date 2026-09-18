@@ -51,7 +51,7 @@ val DotnetPluginId: String by project
 
 // ./gradlew runVisualStudio [--plan] [--clean] [--reinstall] [--usage]: the ReSharper build in an experimental Visual
 // Studio instance. Generic task in buildSrc/src/main/kotlin/rimworlddev/gradle/RunVisualStudioTask.kt; everything
-// specific to this plugin is set here. Same locations as runVisualStudio.ps1, so the two can be compared.
+// specific to this plugin is set here.
 val runVisualStudio by tasks.registering(RunVisualStudioTask::class) {
     group = "run"
     description = "Runs the ReSharper build of the plugin in an experimental Visual Studio instance (Windows).\n\n" +

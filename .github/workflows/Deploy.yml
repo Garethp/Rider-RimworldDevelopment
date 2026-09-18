@@ -23,7 +23,8 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: 10.0.x
+          # The SDK version is pinned in global.json (one place for local builds and CI)
+          global-json-file: global.json
       - name: Publish Rider Package
         run: ./gradlew :publishPlugin -PBuildConfiguration="Release" -PPluginVersion="${{ github.ref_name }}" -PPublishToken="${{ secrets.PUBLISH_TOKEN }}"
         env:
