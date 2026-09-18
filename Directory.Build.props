@@ -1,7 +1,10 @@
 <Project>
 
   <PropertyGroup>
-    <SdkVersion>2026.1.*</SdkVersion>
+    <!-- THE Rider/ReSharper version. Everything else is derived from it: WaveVersion below, and Gradle's ProductVersion
+         (build.gradle.kts reads this line). Exact NuGet form, e.g. 2026.1.5.2 / 2026.2.0-rc01 / 2026.3.0-eap02.
+         See docs/rider-version.md. -->
+    <SdkVersion>2026.1.5.2</SdkVersion>
 
     <Title>Rimworld Development Environment</Title>
     <Description>Bring the intelligence of your IDE to Rimworld XML files. Use information backed by Rimworlds DLL file to autocomplete your XML, Ctrl+Click into the C# that your XML gets translated into and see what options you have when adding items in your mods!</Description>
@@ -22,6 +25,7 @@
 
     <BaseIntermediateOutputPath>obj\$(MSBuildProjectName)\</BaseIntermediateOutputPath>
     <DefaultItemExcludes>$(DefaultItemExcludes);obj\**</DefaultItemExcludes>
+    <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
     <OutputPath>bin\$(MSBuildProjectName)\$(Configuration)\</OutputPath>
   </PropertyGroup>
 
@@ -30,19 +34,20 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <WaveVersionBase>$(SdkVersion.Substring(2,2))$(SdkVersion.Substring(5,1))</WaveVersionBase>
-    <WaveVersion>$(WaveVersionBase).0.0$(SdkVersion.Substring(8))</WaveVersion>
-    <UpperWaveVersion>$(WaveVersionBase).9999.0</UpperWaveVersion>
+    <!-- 2026.1.5.2 / 2026.3.0-eap02 -> 261 / 263. The Wave package only publishes <wave>.0.0 (no EAP builds). -->
+    <WaveVersionBase>$([System.Text.RegularExpressions.Regex]::Replace($(SdkVersion), '^\d\d(\d\d)\.(\d+)\..*$', '$1$2'))</WaveVersionBase>
+    <WaveVersion>$(WaveVersionBase).0.0</WaveVersion>
   </PropertyGroup>
 
   <!--
     The Harmony project compiles nothing and only exists to fetch 0Harmony.dll, so it doesn't need the SDK.
 
-    The SDK's IncludeAssets deliberately omits `compile`, so Annotations/Lifetimes/RdFramework have to be referenced
-    directly to be usable in code. The SDK pins exact versions of them that don't track SdkVersion (e.g. the 2026.1.5
-    SDK wants Lifetimes [2026.1.2] and Annotations [2025.2.0]), so these references trip NU1608. Pinning them to match
-    instead would turn into a hard NU1605 downgrade error whenever a newer SDK is picked up by the floating SdkVersion,
-    so the warning is suppressed. Rider supplies its own copies at runtime either way.
+    The SDK's IncludeAssets deliberately omits `compile`, and that flows to its dependencies, so Annotations/Lifetimes/
+    RdFramework aren't compile references by default. ReferenceSdkCoreLibraries (below) adds the versions the SDK's own
+    graph resolved, instead of us pinning them: ~150 SDK packages require one exact version of each, which changes with
+    every SDK line and used to have to be matched by hand.
+
+    NU1608: our System.Diagnostics.TraceSource 4.3.0 (net8.0 build) is newer than the exact 4.0.0 one SDK package pins.
 
     NU1701/NU1603 come from JetBrains' own packages inside the SDK graph (.NET Framework-only packages, missing native
     package versions) and aren't actionable from here. Package-level NoWarn doesn't reach transitive packages, hence
@@ -60,9 +65,6 @@
   </PropertyGroup>
 
   <ItemGroup Condition="'$(MSBuildProjectName)' != 'ReSharperPlugin.RimworldDev.Harmony'">
-    <PackageReference Include="JetBrains.Annotations" Version="2025.2.4" />
-    <PackageReference Include="JetBrains.Lifetimes" Version="$(SdkVersion)" />
-    <PackageReference Include="JetBrains.RdFramework" Version="$(SdkVersion)" />
     <!-- Resolves an NU1107 version conflict between SDK packages. On net10.0 it's part of the framework and gets pruned
          (NU1510 if referenced), so it's only needed for the net8.0 ReSharper build. -->
     <PackageReference Include="System.Diagnostics.TraceSource" Version="4.3.0" Condition="'$(TargetFramework)' != 'net10.0'" />
@@ -79,5 +81,21 @@
   <ItemGroup Condition="'$(MSBuildProjectName)' != 'ReSharperPlugin.RimworldDev.Harmony'">
     <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.0" PrivateAssets="All" />
   </ItemGroup>
+
+  <!--
+    Compile against exactly the JetBrains.Lifetimes/RdFramework/Annotations the SDK resolved (their runtime assets, which
+    IncludeAssets keeps). They are the rd/annotations the SDK was built against, so the versions follow SdkVersion
+    automatically. Private=false: Rider/ReSharper supply these at runtime; this is only for the compiler.
+  -->
+  <Target Name="ReferenceSdkCoreLibraries" AfterTargets="ResolvePackageAssets"
+          Condition="'$(MSBuildProjectName)' != 'ReSharperPlugin.RimworldDev.Harmony'">
+    <ItemGroup>
+      <_SdkCoreLibrary Include="@(RuntimeCopyLocalItems)"
+                       Condition="'%(RuntimeCopyLocalItems.Extension)' == '.dll' And ('%(RuntimeCopyLocalItems.NuGetPackageId)' == 'JetBrains.Lifetimes' Or '%(RuntimeCopyLocalItems.NuGetPackageId)' == 'JetBrains.RdFramework' Or '%(RuntimeCopyLocalItems.NuGetPackageId)' == 'JetBrains.Annotations')" />
+      <Reference Include="@(_SdkCoreLibrary->'%(Filename)')" HintPath="%(_SdkCoreLibrary.FullPath)" Private="false" />
+    </ItemGroup>
+    <Error Condition="'@(_SdkCoreLibrary->Count())' != '3'"
+           Text="Expected JetBrains.Lifetimes, JetBrains.RdFramework and JetBrains.Annotations in the SDK's resolved packages, found: @(_SdkCoreLibrary->'%(NuGetPackageId) %(NuGetPackageVersion)')" />
+  </Target>
 
 </Project>

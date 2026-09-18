@@ -2,12 +2,15 @@ import com.jetbrains.plugin.structure.base.utils.isFile
 import org.apache.tools.ant.taskdefs.condition.Os
 import org.jetbrains.intellij.platform.gradle.Constants
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import rimworlddev.gradle.RiderVersion
+import rimworlddev.gradle.RiderVersionsTask
+import rimworlddev.gradle.RunVisualStudioTask
 
 plugins {
     id("java")
     alias(libs.plugins.kotlinJvm)
-    id("org.jetbrains.intellij.platform") version "2.15.0"     // https://github.com/JetBrains/gradle-intellij-plugin/releases
-    id("me.filippov.gradle.jvm.wrapper") version "0.16.0"
+    alias(libs.plugins.intellijPlatform)
+    alias(libs.plugins.gradleJvmWrapper)
 }
 
 
@@ -24,8 +27,43 @@ extra["isWindows"] = isWindows
 
 val DotnetSolution: String by project
 val BuildConfiguration: String by project
-val ProductVersion: String by project
+
+// The Rider version comes from one place: <SdkVersion> in Directory.Build.props (NuGet form). Read through a provider so
+// the configuration cache is invalidated when that file changes. -PProductVersion=... still overrides it.
+val SdkVersion: String = providers.fileContents(layout.projectDirectory.file("Directory.Build.props")).asText
+    .map { props ->
+        RiderVersion.sdkVersionPattern.find(props)?.groupValues?.get(1)
+            ?: throw GradleException("No <SdkVersion> found in Directory.Build.props")
+    }
+    .get()
+
+val ProductVersion: String = providers.gradleProperty("ProductVersion").orNull ?: RiderVersion.mavenVersion(SdkVersion)
+
+// ./gradlew versions [--to <target>] [--usage]: buildSrc/src/main/kotlin/rimworlddev/gradle/RiderVersionsTask.kt
+val versions by tasks.registering(RiderVersionsTask::class) {
+    group = "help"
+    description = "Lists Rider versions (every build of the current EAP, last three stable lines) or switches with --to.\n\n" +
+        RiderVersionsTask.USAGE
+    propsFile.set(layout.projectDirectory.file("Directory.Build.props"))
+}
+
 val DotnetPluginId: String by project
+
+// ./gradlew runVisualStudio [--plan] [--clean] [--reinstall] [--usage]: the ReSharper build in an experimental Visual
+// Studio instance. Generic task in buildSrc/src/main/kotlin/rimworlddev/gradle/RunVisualStudioTask.kt; everything
+// specific to this plugin is set here.
+val runVisualStudio by tasks.registering(RunVisualStudioTask::class) {
+    group = "run"
+    description = "Runs the ReSharper build of the plugin in an experimental Visual Studio instance (Windows).\n\n" +
+        RunVisualStudioTask.USAGE
+    pluginId.set(DotnetPluginId)
+    projectFile.set(layout.projectDirectory.file("src/dotnet/$DotnetPluginId/$DotnetPluginId.csproj"))
+    sdkVersion.set(SdkVersion)
+    rootSuffix.set("RimworldDev")
+    installerDirectory.set(layout.buildDirectory.dir("installer"))
+    packageOutputDirectory.set(layout.projectDirectory.dir("output"))
+    logFile.set(layout.projectDirectory.file("ReSharper.log"))
+}
 val RiderPluginId: String by project
 val PublishToken: String by project
 val PluginVersion: String by project
