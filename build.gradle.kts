@@ -2,6 +2,8 @@ import com.jetbrains.plugin.structure.base.utils.isFile
 import org.apache.tools.ant.taskdefs.condition.Os
 import org.jetbrains.intellij.platform.gradle.Constants
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import rimworlddev.gradle.RiderVersion
+import rimworlddev.gradle.RiderVersionsTask
 
 plugins {
     id("java")
@@ -29,33 +31,19 @@ val BuildConfiguration: String by project
 // the configuration cache is invalidated when that file changes. -PProductVersion=... still overrides it.
 val SdkVersion: String = providers.fileContents(layout.projectDirectory.file("Directory.Build.props")).asText
     .map { props ->
-        Regex("""<SdkVersion>\s*([^<\s]+)\s*</SdkVersion>""").find(props)?.groupValues?.get(1)
+        RiderVersion.sdkVersionPattern.find(props)?.groupValues?.get(1)
             ?: throw GradleException("No <SdkVersion> found in Directory.Build.props")
     }
     .get()
 
-// Rider's Maven artifacts name the same builds differently from NuGet:
-//   2026.3.0-eap02 -> 2026.3-EAP2-SNAPSHOT, 2026.2.0-rc01 -> 2026.2-RC1-SNAPSHOT, 2026.2.0 -> 2026.2, 2026.1.5.2 -> 2026.1.5.2
-fun riderMavenVersion(sdkVersion: String): String {
-    Regex("""^(\d+\.\d+)\.0-(eap|rc)0*(\d+)$""").matchEntire(sdkVersion)?.let { m ->
-        return "${m.groupValues[1]}-${m.groupValues[2].uppercase()}${m.groupValues[3]}-SNAPSHOT"
-    }
-    Regex("""^(\d+\.\d+)\.0$""").matchEntire(sdkVersion)?.let { return it.groupValues[1] }
-    return sdkVersion
-}
+val ProductVersion: String = providers.gradleProperty("ProductVersion").orNull ?: RiderVersion.mavenVersion(SdkVersion)
 
-val ProductVersion: String = providers.gradleProperty("ProductVersion").orNull ?: riderMavenVersion(SdkVersion)
-
-// ./gradlew riderVersions -q: what this checkout targets, in both formats.
-val riderVersions by tasks.registering {
+// ./gradlew versions [--to <target>] [--usage]: buildSrc/src/main/kotlin/rimworlddev/gradle/RiderVersionsTask.kt
+val versions by tasks.registering(RiderVersionsTask::class) {
     group = "help"
-    description = "Prints the Rider version this build targets (NuGet SdkVersion and IntelliJ Platform ProductVersion)."
-    val sdk = SdkVersion
-    val product = ProductVersion
-    doLast {
-        println("SdkVersion (NuGet, Directory.Build.props): $sdk")
-        println("ProductVersion (IntelliJ Platform/Maven):   $product")
-    }
+    description = "Lists Rider versions (every build of the current EAP, last three stable lines) or switches with --to.\n\n" +
+        RiderVersionsTask.USAGE
+    propsFile.set(layout.projectDirectory.file("Directory.Build.props"))
 }
 
 val DotnetPluginId: String by project

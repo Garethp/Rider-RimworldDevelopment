@@ -9,7 +9,36 @@
 | `WaveVersion` (ReSharper `.nupkg` dependency) | Regex over `SdkVersion`: `2026.3.0-eap02` → `263.0.0` (the Wave package only publishes `<wave>.0.0`) |
 | Gradle `ProductVersion` (the Rider the frontend compiles against and `runIde` launches) | `build.gradle.kts` reads `<SdkVersion>` through `providers.fileContents` (so the configuration cache notices edits) and maps it to the Maven form: `2026.3.0-eap02` → `2026.3-EAP2-SNAPSHOT`, `2026.2.0-rc01` → `2026.2-RC1-SNAPSHOT`, `2026.2.0` → `2026.2`, otherwise unchanged. `-PProductVersion=…` overrides it |
 
-`./gradlew riderVersions -q` prints both forms. Rider re-evaluates the solution by itself when `Directory.Build.props`
+`./gradlew versions` (the `RiderVersionsTask` in `buildSrc/src/main/kotlin/rimworlddev/gradle/`, next to the
+`RiderVersion` model that also holds the NuGet → Maven/Wave mappings the root build uses) lists every build of the current EAP cycle and the latest release of the last three stable lines,
+marking what you're on; `./gradlew versions --to <target>` switches (it just rewrites `<SdkVersion>`), and
+`./gradlew versions --usage` prints what `--to` accepts (Gradle intercepts `--help` itself; `./gradlew help --task
+versions` shows the same text).
+
+```
+$ ./gradlew versions -q
+Rider versions (NuGet JetBrains.Rider.SDK / IntelliJ Platform):
+  EAP     2026.3.0-eap02    2026.3-EAP2-SNAPSHOT
+  EAP     2026.3.0-eap01    2026.3-EAP1-SNAPSHOT
+  Stable  2026.2.2          2026.2.2
+  Stable  2026.1.5.2        2026.1.5.2             <- current
+  Stable  2025.3.5.2        2025.3.5.2
+```
+
+| `--to` | Switches to |
+|---|---|
+| `eap` | newest build of the current EAP cycle (the newest line with no stable release yet); fails if there isn't one |
+| `eap3`, `eap03`, `rc1` | that build of the current EAP cycle — step through them to find which EAP broke something |
+| `2026.2-eap5` | that build of another line's EAP cycle |
+| `latest` | the newest stable release |
+| `2026.1` | that line's newest stable release, or its newest prerelease if it has none yet |
+| `2026.2.0-rc01` | exactly that version (must be published) |
+
+The list comes from NuGet's `JetBrains.Rider.SDK` index. Each row is also checked against the JetBrains Maven repository
+the Gradle side downloads Rider from and against the `Wave` package; both can lag NuGet (and Maven drops old EAP snapshots), and the row
+says so ("not on JetBrains Maven") rather than letting a later Gradle resolve fail. Network access happens when the task runs, so the
+configuration cache is unaffected; after a switch Gradle reports that `Directory.Build.props` changed and re-derives
+`ProductVersion`. Run `versions --to` on its own, not in the same invocation as a build. Rider re-evaluates the solution by itself when `Directory.Build.props`
 changes; Gradle picks the change up on its next invocation (the IDE's Gradle model needs a sync, as for any platform
 change).
 
