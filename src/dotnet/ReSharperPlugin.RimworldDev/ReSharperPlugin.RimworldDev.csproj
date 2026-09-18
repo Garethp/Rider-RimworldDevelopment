@@ -8,7 +8,9 @@
   <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
 
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
+    <!-- ReSharper-in-VS build: kept on net8.0 (what the 2026.1 SDK is compiled against) rather than the Rider build's
+         net10.0, as it isn't confirmed that ReSharper's host in Visual Studio runs on .NET 10. -->
+    <TargetFramework>net8.0</TargetFramework>
     <IsPackable>True</IsPackable>
     <DefineConstants>$(DefineConstants);RESHARPER</DefineConstants>
     <IncludeBuildOutput>false</IncludeBuildOutput>
