@@ -253,11 +253,20 @@ test data. Keep input/gold case consistent.
 JetBrains' last official word (RIDER-23218, 2019): "we don't support plugin unit tests on Linux"; every surveyed
 repo runs backend tests on `windows-latest`. **Tested here (2026-09-18, WSL Ubuntu 22.04, .NET 10 SDK): confirmed.**
 
-**CI:** `CI.yml`'s Test job and a new `Test` job in `Deploy.yml` (which `Publish` now `needs`) run
-`dotnet test ReSharperPlugin.RimworldDev.sln --logger GitHubActions` on `windows-latest`. Deploy publishes with
-`:publishPlugin -x testDotNet`, because the Gradle dependency would run the tests on the Linux runner. The test csproj
-sets `EnableWindowsTargeting=true` so the *solution still builds* on Linux/macOS (CI Build job, Deploy, contributors);
-running the tests there fails loudly ("framework Microsoft.WindowsDesktop.App not found", exit 1), not silently.
+**Off Windows** the test project targets plain `net10.0` (no WinForms/WPF), so it builds and `dotnet test` succeeds with
+every test **reported as skipped**, each with the reason: `WindowsOnlyGuard` is a `[SetUpFixture]` outside any
+namespace, so it runs before the one that boots the shell and `Assert.Ignore`s everything on non-Windows. Two
+approaches that look right but aren't: an assembly-level `[Platform(Include = "Win")]` makes the adapter print only "No
+test is available" (exit 0, nothing reported — reads as a pass), and so does leaving `[Apartment(STA)]` in on Linux,
+hence it's under `#if WINDOWS` (defined for the `net10.0-windows` build only).
+
+**CI:** runner cost rules out Windows by default. `Tests.yml` runs `dotnet test ReSharperPlugin.RimworldDev.sln --logger
+GitHubActions` on `ubuntu-latest` (29 skipped), and on `windows-latest` (the real suite) when the PR has the
+`feature-testing` label or the manual run's "windows" box is ticked. PR runs trigger on `labeled`/`unlabeled` too, so
+adding the label re-runs just the tests on Windows; it lives apart from `CI.yml` so label changes don't touch the Build
+check. Deploy's `Publish` job runs on `windows-latest` (releases are rare enough for the cost), so `:publishPlugin` ->
+`:testDotNet` runs the real suite and a failing test stops the release; its steps use `shell: bash` for `./gradlew`
+and the `output/*` globs.
 `.gitattributes` forces `test/data/** eol=lf`, which is **required**: Windows runners check out CRLF, and the
 navigation/Find Usages golds contain document offsets (`RANGE: (78,88)`) that shift with CRLF (4 tests fail; the
 framework normalises gold line endings but not offsets). Longest repo path on a runner is ~200 chars, under MAX_PATH;

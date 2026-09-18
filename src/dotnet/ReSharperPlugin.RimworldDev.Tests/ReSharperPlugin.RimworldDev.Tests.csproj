@@ -4,13 +4,21 @@
     <!-- The plugin compiles for net6.0, but Rider 2026.1's backend runs it on .NET 10 and some SDK assemblies
          are built for net8+. The test host must match the runtime, not the plugin's compile target. -->
     <TargetFramework>net10.0-windows</TargetFramework>
-    <!-- Lets the solution build on Linux/macOS (CI's Build job, Deploy, non-Windows contributors). The tests themselves
-         only *run* on Windows: see docs/testing-research.md, "Platform". -->
-    <EnableWindowsTargeting>true</EnableWindowsTargeting>
     <!-- The ReSharper shell's ShellLocks/GroupingEventHost use WinForms timers and WPF dispatchers; without the
          Windows Desktop framework reference the test host dies in JetEnvironment.CreateDontRunAsync. -->
     <UseWindowsForms>true</UseWindowsForms>
     <UseWPF>true</UseWPF>
+  </PropertyGroup>
+
+  <!-- Elsewhere the shell can't run at all (docs/testing-research.md, "Platform"), so build for plain net10.0: the
+       project still compiles, and every test that needs the shell reports as skipped (see WindowsOnlyGuard.cs). `dotnet test` on Linux/macOS therefore succeeds instead of failing. -->
+  <PropertyGroup Condition="!$([MSBuild]::IsOSPlatform('Windows'))">
+    <TargetFramework>net10.0</TargetFramework>
+    <UseWindowsForms>false</UseWindowsForms>
+    <UseWPF>false</UseWPF>
+  </PropertyGroup>
+
+  <PropertyGroup>
     <!-- The SDK packages only ship build props under build/net472 (and build/net4.0.30319). NuGet's default
          fallback list starts at net461 and stops at the first framework a package has *any* asset for, so packages
          like JetBrains.Platform.Lib.LibLevelDb (lib/net/_._ + build/net472/) never get their props imported and
@@ -67,10 +75,16 @@
        the runtime loads fine, so use those. -->
   <Target Name="UseNetFrameworkJetBrainsLibs" AfterTargets="Build">
     <ItemGroup>
-      <_JetNetFxLib Include="$([MSBuild]::EnsureTrailingSlash('$(NuGetPackageRoot)'))jetbrains.lifetimes/2026.1.2/lib/net472/JetBrains.Lifetimes.dll" />
-      <_JetNetFxLib Include="$([MSBuild]::EnsureTrailingSlash('$(NuGetPackageRoot)'))jetbrains.rdframework/2026.1.2/lib/net472/JetBrains.RdFramework.dll" />
+      <!-- Whatever version NuGet resolved, so this follows SdkVersion with no hard-coded package path; the net472 build
+           sits next to the one NuGet picked, in the same package folder. -->
+      <_JetPinnedLib Include="@(RuntimeCopyLocalItems)"
+                     Condition="'%(RuntimeCopyLocalItems.Extension)' == '.dll' And ('%(RuntimeCopyLocalItems.NuGetPackageId)' == 'JetBrains.Lifetimes' Or '%(RuntimeCopyLocalItems.NuGetPackageId)' == 'JetBrains.RdFramework')" />
+      <_JetNetFxLib Include="@(_JetPinnedLib->'%(RootDir)%(Directory)..\net472\%(Filename)%(Extension)')" />
     </ItemGroup>
-    <Copy SourceFiles="@(_JetNetFxLib)" DestinationFolder="$(OutDir)" Condition="Exists('%(FullPath)')" />
+    <Error Condition="'@(_JetNetFxLib->Count())' != '2'"
+           Text="Expected JetBrains.Lifetimes and JetBrains.RdFramework among the resolved packages, found: @(_JetPinnedLib->'%(NuGetPackageId) %(NuGetPackageVersion)')" />
+    <Error Condition="!Exists('%(_JetNetFxLib.FullPath)')" Text="No net472 build at %(_JetNetFxLib.FullPath)" />
+    <Copy SourceFiles="@(_JetNetFxLib)" DestinationFolder="$(OutDir)" />
   </Target>
 
 </Project>
