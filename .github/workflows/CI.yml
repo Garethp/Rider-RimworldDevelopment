@@ -23,7 +23,6 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
-          # The SDK version is pinned in global.json (one place for local builds and CI)
           global-json-file: global.json
       - run: ./gradlew :buildPlugin --no-daemon
       - run: ./gradlew :buildResharperPlugin --no-daemon
@@ -48,6 +47,5 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
-          # The SDK version is pinned in global.json (one place for local builds and CI)
           global-json-file: global.json
       - run: ./gradlew :testDotNet --no-daemon
