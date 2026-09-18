@@ -5,6 +5,7 @@ on:
     branches:
       - main
   pull_request:
+  workflow_dispatch:
 
 jobs:
   Build:
@@ -32,20 +33,23 @@ jobs:
           name: ${{ github.event.repository.name }}.CI.${{ github.head_ref || github.ref_name }}
           path: output
   Test:
-    runs-on: ubuntu-latest
+    # The ReSharper test shell needs the Windows Desktop runtime (WPF/WinForms). It does not run on Linux, and the
+    # reasons are recorded in docs/testing-research.md, "Platform".
+    runs-on: windows-latest
+    timeout-minutes: 30
     steps:
-      - uses: jlumbroso/free-disk-space@main
       - uses: actions/checkout@v4
         with:
           submodules: recursive
-      - name: configure_java
-        uses: actions/setup-java@v4
-        with:
-          distribution: 'corretto'
-          java-version: '21'
-          cache: 'gradle'
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
           global-json-file: global.json
-      - run: ./gradlew :testDotNet --no-daemon
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: nuget-${{ runner.os }}-${{ hashFiles('Directory.Build.props', 'src/dotnet/**/*.csproj', 'src/dotnet/**/*.props') }}
+          restore-keys: nuget-${{ runner.os }}-
+      # Same command as Gradle's :testDotNet, without needing Java/Gradle on this runner.
+      - run: dotnet test ReSharperPlugin.RimworldDev.sln --logger GitHubActions

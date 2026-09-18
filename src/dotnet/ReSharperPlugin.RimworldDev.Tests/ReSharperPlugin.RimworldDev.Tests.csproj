@@ -4,6 +4,9 @@
     <!-- The plugin compiles for net6.0, but Rider 2026.1's backend runs it on .NET 10 and some SDK assemblies
          are built for net8+. The test host must match the runtime, not the plugin's compile target. -->
     <TargetFramework>net10.0-windows</TargetFramework>
+    <!-- Lets the solution build on Linux/macOS (CI's Build job, Deploy, non-Windows contributors). The tests themselves
+         only *run* on Windows: see docs/testing-research.md, "Platform". -->
+    <EnableWindowsTargeting>true</EnableWindowsTargeting>
     <!-- The ReSharper shell's ShellLocks/GroupingEventHost use WinForms timers and WPF dispatchers; without the
          Windows Desktop framework reference the test host dies in JetEnvironment.CreateDontRunAsync. -->
     <UseWindowsForms>true</UseWindowsForms>

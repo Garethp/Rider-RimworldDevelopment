@@ -251,7 +251,31 @@ test data. Keep input/gold case consistent.
 ## Platform
 
 JetBrains' last official word (RIDER-23218, 2019): "we don't support plugin unit tests on Linux"; every surveyed
-repo runs backend tests on `windows-latest`. Our CI Test job is `ubuntu-latest` and will need to move.
+repo runs backend tests on `windows-latest`. **Tested here (2026-09-18, WSL Ubuntu 22.04, .NET 10 SDK): confirmed.**
+
+**CI:** `CI.yml`'s Test job and a new `Test` job in `Deploy.yml` (which `Publish` now `needs`) run
+`dotnet test ReSharperPlugin.RimworldDev.sln --logger GitHubActions` on `windows-latest`. Deploy publishes with
+`:publishPlugin -x testDotNet`, because the Gradle dependency would run the tests on the Linux runner. The test csproj
+sets `EnableWindowsTargeting=true` so the *solution still builds* on Linux/macOS (CI Build job, Deploy, contributors);
+running the tests there fails loudly ("framework Microsoft.WindowsDesktop.App not found", exit 1), not silently.
+`.gitattributes` forces `test/data/** eol=lf`, which is **required**: Windows runners check out CRLF, and the
+navigation/Find Usages golds contain document offsets (`RANGE: (78,88)`) that shift with CRLF (4 tests fail; the
+framework normalises gold line endings but not offsets). Longest repo path on a runner is ~200 chars, under MAX_PATH;
+a checkout under a long local path (e.g. the Claude scratchpad) does hit it.
+
+What it takes to get the shell up on Linux, layer by layer (each fix got one layer further; stopped at 5):
+
+| # | Symptom on Linux | Cause | Workaround that got past it |
+|---|---|---|---|
+| 1 | `NETSDK1100` at build | `net10.0-windows` TFM | `net10.0` + no `UseWindowsForms`/`UseWPF` on non-Windows |
+| 2 | NUnit "discovered 29 of 29", then **runs 0, reports nothing** | `[assembly: Apartment(STA)]` is unsupported off Windows | drop the attribute on non-Windows. Note the silent-pass hazard |
+| 3 | `JetDispatcher`: "this thread is MTA rather than STA" | JetBrains emulate STA on Unix (`JetBrains.Util.Concurrency.JetThreadApartment`) but the test bootstrap never opts in | call `JetThreadApartment.STAThread()` from a `[STAThread]` method in the `SetUpFixture` constructor |
+| 4 | `TypeLoadException: System.Windows.Freezable` from `ThemedIconManagerLiveImages` | the stock .NET `WindowsBase` facade wins over JetBrains' Unix mock (`JetBrains.WindowsDesktop.Mock.Runtime`, `runtimes/unix/lib/.../WindowsBase.dll`): same assembly version, higher file version, so the build's conflict resolution drops the mock | copy the mock in and declare it in `deps.json` `runtimeTargets` (rid `unix`) with a huge `fileVersion` — the host resolves conflicts from `deps.json` versions. (JetBrains do the same trick: `JetBrains.Private.Winforms` declares `fileVersion` 42.42.42.42424) |
+| 5 | `System.Windows.Forms.Primitives` 9.0 missing, from `StdApplicationUI.StatusBars.JetStatusBarIndicator` | the test environment activates the WinForms status bar; `JetBrains.Private.Winforms` ships only `System.Windows.Forms.dll`, and the Windows `Primitives` is a win-x64 R2R image (`BadImageFormatException`) | none — stopped here |
+
+Layers 1–3 would be cheap to keep; 4 is a post-build `deps.json` patch; 5 would need a zone configuration that keeps
+Windows-UI components out of the test shell (Rider's own Linux host evidently doesn't activate them), which is
+undocumented. Revisit only if Windows CI minutes become a problem.
 
 ## Diagnostics
 
