@@ -4,6 +4,7 @@ import org.jetbrains.intellij.platform.gradle.Constants
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import rimworlddev.gradle.RiderVersion
 import rimworlddev.gradle.RiderVersionsTask
+import rimworlddev.gradle.RunVisualStudioTask
 
 plugins {
     id("java")
@@ -47,6 +48,22 @@ val versions by tasks.registering(RiderVersionsTask::class) {
 }
 
 val DotnetPluginId: String by project
+
+// ./gradlew runVisualStudio [--plan] [--clean] [--reinstall] [--usage]: the ReSharper build in an experimental Visual
+// Studio instance. Generic task in buildSrc/src/main/kotlin/rimworlddev/gradle/RunVisualStudioTask.kt; everything
+// specific to this plugin is set here. Same locations as runVisualStudio.ps1, so the two can be compared.
+val runVisualStudio by tasks.registering(RunVisualStudioTask::class) {
+    group = "run"
+    description = "Runs the ReSharper build of the plugin in an experimental Visual Studio instance (Windows).\n\n" +
+        RunVisualStudioTask.USAGE
+    pluginId.set(DotnetPluginId)
+    projectFile.set(layout.projectDirectory.file("src/dotnet/$DotnetPluginId/$DotnetPluginId.csproj"))
+    sdkVersion.set(SdkVersion)
+    rootSuffix.set("RimworldDev")
+    installerDirectory.set(layout.buildDirectory.dir("installer"))
+    packageOutputDirectory.set(layout.projectDirectory.dir("output"))
+    logFile.set(layout.projectDirectory.file("ReSharper.log"))
+}
 val RiderPluginId: String by project
 val PublishToken: String by project
 val PluginVersion: String by project
