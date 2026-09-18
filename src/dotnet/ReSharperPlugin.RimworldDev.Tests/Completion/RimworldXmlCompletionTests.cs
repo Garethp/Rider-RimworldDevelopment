@@ -25,19 +25,17 @@ public class RimworldXmlCompletionTests : RimworldCompletionTestBase
     [Test] public void TestParentName() => DoNamedTest();
     [Test] public void TestModDefClassProperties() => DoNamedTest("ModTypes.cs");
     [Test] public void TestModListItemClassProperties() => DoNamedTest("ModTypes.cs");
-    // Gold is hand-written: what the plugin *should* offer. It currently omits CustomThing, because ExtraDefTagNames is
-    // only built when ScopeHelper already has the RimWorld scope at merge time, and on a cold load it doesn't.
-    [Test, Ignore("ExtraDefTagNames not built when the def index merges before scopes are ready; see docs/testing-plan.md step 9")]
-    public void TestModDefAsSuperclassReference() => DoNamedTest("ModTypes.cs");
+    // A def of a mod's ThingDef subclass is offered where a ThingDef is expected, even though the def index merges
+    // before the scopes are ready on load (docs/testing-plan.md step 9).
+    [Test] public void TestModDefAsSuperclassReference() => DoNamedTest("ModTypes.cs");
 }
 
 /// <summary>
 /// Gold is the document after accepting the item named by the input's ${COMPLETE_ITEM:…} directive.
-/// The golds are correct, but accepting an item commits the edited document, and RimworldSymbolScope.Merge reads the
-/// PSI file mid-commit ("Trying to get PSI file for an uncommitted document"), which fails the test as a logged error.
+/// Accepting an item commits the edited document, which runs RimworldSymbolScope.Merge mid-commit; these guard that the
+/// index doesn't read PSI there (docs/testing-plan.md step 5).
 /// </summary>
 [TestFileExtension(".xml")]
-[Ignore("RimworldSymbolScope.AddToLocalCache calls GetPrimaryPsiFile during commit merge; see docs/testing-plan.md step 5")]
 public class RimworldXmlCompletionActionTests : RimworldCompletionTestBase
 {
     protected override CodeCompletionTestType TestType => CodeCompletionTestType.Action;

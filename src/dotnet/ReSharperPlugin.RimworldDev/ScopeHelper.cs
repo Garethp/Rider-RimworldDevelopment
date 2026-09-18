@@ -339,6 +339,26 @@ public class ScopeHelper
         return items;
     }
 
+    /// <summary>
+    /// The other def types a def class can be referenced as: its superclasses below <c>Verse.Def</c>, nearest first, as
+    /// short names (<c>MyMod.CustomThingDef</c> -> <c>ThingDef</c>, <c>BuildableDef</c>). Null when the class can't be
+    /// resolved, which for a mod's class can just mean the symbol caches aren't ready yet.
+    /// </summary>
+    [CanBeNull]
+    public static List<string> GetDefSuperClassNames(string clrName)
+    {
+        using (CompilationContextCookie.GetOrCreate(UniversalModuleReferenceContext.Instance))
+        {
+            if (GetScopeForClass(clrName)?.GetTypeElementByCLRName(clrName) is not { } typeElement) return null;
+
+            return typeElement.GetAllSuperClasses()
+                .Select(superClass => superClass.GetClrName())
+                .TakeWhile(superClass => superClass.FullName != "Verse.Def")
+                .Select(superClass => superClass.ShortName)
+                .ToList();
+        }
+    }
+
     public static bool ExtendsFromVerseDef(string clrName)
     {
         if (RimworldScope is null) return false;
