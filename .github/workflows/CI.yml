@@ -5,6 +5,7 @@ on:
     branches:
       - main
   pull_request:
+  workflow_dispatch:
 
 jobs:
   Build:
@@ -31,21 +32,3 @@ jobs:
         with:
           name: ${{ github.event.repository.name }}.CI.${{ github.head_ref || github.ref_name }}
           path: output
-  Test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: jlumbroso/free-disk-space@main
-      - uses: actions/checkout@v4
-        with:
-          submodules: recursive
-      - name: configure_java
-        uses: actions/setup-java@v4
-        with:
-          distribution: 'corretto'
-          java-version: '21'
-          cache: 'gradle'
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v4
-        with:
-          global-json-file: global.json
-      - run: ./gradlew :testDotNet --no-daemon

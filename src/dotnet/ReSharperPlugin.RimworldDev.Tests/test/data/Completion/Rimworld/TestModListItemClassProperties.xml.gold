@@ -1,0 +1,16 @@
+﻿Completion: Basic
+Count: 2
+Focus: Hard
+Range: "<♦"
+
+##### RELEVANCE SORT #####
+
+                            [FromSingleCompletion, FromLightAndDynamicEvaluation, NormalSelectionPriority, Other]
+compClass                   Type    <==
+customValue                 float
+
+##### ALPHABETIC SORT #####
+
+                            [Light, Generic]
+compClass                   Type    <==
+customValue                 float

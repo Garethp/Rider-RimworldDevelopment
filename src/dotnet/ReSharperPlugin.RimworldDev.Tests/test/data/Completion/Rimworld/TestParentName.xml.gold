@@ -1,0 +1,14 @@
+﻿Completion: Basic
+Count: 1
+Focus: Hard
+Range: "<ThingDef ParentName="♦">"
+
+##### RELEVANCE SORT #####
+
+                            [FromSingleCompletion, FromLightAndDynamicEvaluation, NormalSelectionPriority, Other]
+AbstractBase                <==
+
+##### ALPHABETIC SORT #####
+
+                            [Light, Generic]
+AbstractBase                <==

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Defs>
+    <ThingDef>
+        <defName>LocalThing</defName>
+    </ThingDef>
+    <ThingDef>
+        <defName>Referrer</defName>
+        <minifiedDef>Local{on}Thing</minifiedDef>
+    </ThingDef>
+</Defs>

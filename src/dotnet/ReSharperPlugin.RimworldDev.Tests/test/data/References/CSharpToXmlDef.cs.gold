@@ -1,0 +1,4 @@
+﻿(9,32) 'ModThingA' [RimworldXmlDefReference] -> OK: XMLTagDeclaredElement ThingDef/ModThingA
+(11,32) 'ModSound' [RimworldXmlDefReference] -> OK: XMLTagDeclaredElement SoundDef/ModSound
+(16,74) '"ModThingB"' [RimworldXmlDefReference] -> OK: XMLTagDeclaredElement ThingDef/ModThingB
+(19,84) '"ModSound"' [RimworldXmlDefReference] -> OK: XMLTagDeclaredElement SoundDef/ModSound

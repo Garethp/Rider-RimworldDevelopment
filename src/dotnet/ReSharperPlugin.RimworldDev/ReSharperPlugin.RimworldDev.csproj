@@ -22,6 +22,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <InternalsVisibleTo Include="ReSharperPlugin.RimworldDev.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="JetBrains.ReSharper.SDK" Version="$(SdkVersion)" PrivateAssets="all" />
     <PackageReference Include="Wave" Version="$(WaveVersion)" />
   </ItemGroup>

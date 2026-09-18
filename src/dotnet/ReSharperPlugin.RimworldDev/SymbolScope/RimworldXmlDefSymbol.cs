@@ -9,35 +9,39 @@ public class RimworldXmlDefSymbol
 {
     public static readonly IUnsafeMarshaller<List<RimworldXmlDefSymbol>> Marshaller =
         UnsafeMarshallers.GetCollectionMarshaller(new UniversalMarshaller<RimworldXmlDefSymbol>(Read, Write), (size) => new List<RimworldXmlDefSymbol>());
-    
+
     public string DefName { get; }
     public string DefType { get; }
 
     public int DocumentOffset { get; }
-    
-    // public IXmlTag Tag { get; }
 
-    public RimworldXmlDefSymbol(ITreeNode tag, string defName, string defType)
+    public bool IsAbstract { get; }
+
+    public RimworldXmlDefSymbol(ITreeNode tag, string defName, string defType, bool isAbstract)
     {
         DefName = defName;
         DefType = defType;
         DocumentOffset = tag.GetTreeStartOffset().Offset;
+        IsAbstract = isAbstract;
     }
-    
-    public RimworldXmlDefSymbol(int documentOffset, string defName, string defType)
+
+    public RimworldXmlDefSymbol(int documentOffset, string defName, string defType, bool isAbstract)
     {
         DefName = defName;
         DefType = defType;
         DocumentOffset = documentOffset;
+        IsAbstract = isAbstract;
     }
-    
+
+    // Changing what's read/written here means bumping RimworldSymbolScope.PersistentVersion, or old caches get misread
     private static RimworldXmlDefSymbol Read(UnsafeReader reader)
     {
         var defType = reader.ReadString();
         var defName = reader.ReadString();
         var documentOffset = reader.ReadInt();
-        
-        return new RimworldXmlDefSymbol(documentOffset, defName, defType);
+        var isAbstract = reader.ReadBool();
+
+        return new RimworldXmlDefSymbol(documentOffset, defName, defType, isAbstract);
     }
 
     private static void Write(UnsafeWriter writer, RimworldXmlDefSymbol value)
@@ -45,5 +49,6 @@ public class RimworldXmlDefSymbol
         writer.Write(value.DefType);
         writer.Write(value.DefName);
         writer.Write(value.DocumentOffset);
+        writer.Write(value.IsAbstract);
     }
 }

@@ -1,0 +1,44 @@
+name: Tests
+
+# Separate from CI.yml so that adding or removing the 'feature-testing' label re-runs only the tests, on the other OS,
+# without touching the Build check.
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    types: [opened, synchronize, reopened, labeled, unlabeled]
+  workflow_dispatch:
+    inputs:
+      windows:
+        description: Run the full backend test suite on Windows
+        type: boolean
+        default: false
+
+jobs:
+  Test:
+    # The backend tests boot the ReSharper test shell, which only runs on Windows (docs/testing-research.md, "Platform").
+    # Windows runners cost more, so by default this runs on Linux, where the suite builds and every test reports as
+    # skipped (WindowsOnlyGuard). The 'feature-testing' PR label (or the workflow_dispatch checkbox) runs it for real.
+    # Other label changes don't re-run anything.
+    if: >-
+      (github.event.action != 'labeled' && github.event.action != 'unlabeled') ||
+      github.event.label.name == 'feature-testing'
+    runs-on: ${{ (contains(github.event.pull_request.labels.*.name, 'feature-testing') || inputs.windows) && 'windows-latest' || 'ubuntu-latest' }}
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: nuget-${{ runner.os }}-${{ hashFiles('Directory.Build.props', 'src/dotnet/**/*.csproj', 'src/dotnet/**/*.props') }}
+          restore-keys: nuget-${{ runner.os }}-
+      # Same command as Gradle's :testDotNet, without needing Java/Gradle on this runner.
+      - run: dotnet test ReSharperPlugin.RimworldDev.sln --logger GitHubActions

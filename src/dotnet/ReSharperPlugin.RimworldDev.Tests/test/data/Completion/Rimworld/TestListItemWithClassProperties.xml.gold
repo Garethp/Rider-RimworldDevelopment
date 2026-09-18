@@ -1,0 +1,34 @@
+﻿Completion: Basic
+Count: 11
+Focus: Hard
+Range: "<♦"
+
+##### RELEVANCE SORT #####
+
+                            [FromSingleCompletion, FromLightAndDynamicEvaluation, NormalSelectionPriority, Other]
+alwaysDisplayAsUsingPower    bool    <==
+compClass                   Type
+idlePowerDraw               float
+powerUpgrades               List<PowerUpgrade>
+shortCircuitInRain          bool
+showPowerNeededIfOff        bool
+soundAmbientPowered         SoundDef
+soundAmbientProducingPower    SoundDef
+soundPowerOff               SoundDef
+soundPowerOn                SoundDef
+transmitsPower              bool
+
+##### ALPHABETIC SORT #####
+
+                            [Light, Generic]
+alwaysDisplayAsUsingPower    bool    <==
+compClass                   Type
+idlePowerDraw               float
+powerUpgrades               List<PowerUpgrade>
+shortCircuitInRain          bool
+showPowerNeededIfOff        bool
+soundAmbientPowered         SoundDef
+soundAmbientProducingPower    SoundDef
+soundPowerOff               SoundDef
+soundPowerOn                SoundDef
+transmitsPower              bool

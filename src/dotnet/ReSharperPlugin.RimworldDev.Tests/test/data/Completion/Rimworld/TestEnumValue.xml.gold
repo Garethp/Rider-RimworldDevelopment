@@ -1,0 +1,36 @@
+﻿Completion: Basic
+Count: 12
+Focus: Hard
+Range: "<category>♦</category>"
+
+##### RELEVANCE SORT #####
+
+                            [FromSingleCompletion, FromLightAndDynamicEvaluation, NormalSelectionPriority, Other]
+Attachment                  8    <==
+Building                    3
+Ethereal                    10
+Filth                       6
+Gas                         7
+Item                        2
+Mote                        9
+None                        0
+Pawn                        1
+Plant                       4
+Projectile                  5
+PsychicEmitter              11
+
+##### ALPHABETIC SORT #####
+
+                            [Light, Generic]
+Attachment                  8    <==
+Building                    3
+Ethereal                    10
+Filth                       6
+Gas                         7
+Item                        2
+Mote                        9
+None                        0
+Pawn                        1
+Plant                       4
+Projectile                  5
+PsychicEmitter              11

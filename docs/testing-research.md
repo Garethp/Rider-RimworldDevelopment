@@ -1,0 +1,323 @@
+# Backend testing — reference
+
+How the ReSharper SDK test framework is used in this repo: what was learned from JetBrains' own plugins (Unity,
+F#, ForTea, the plugin template), one third-party plugin (heapview) and the official docs, and — more usefully —
+what it actually took to get a RimWorld XML completion gold test green here. Sources are at the end.
+
+## The approach
+
+Backend completion is tested with the **ReSharper SDK test framework: NUnit + gold files**. A test boots an
+in-memory ReSharper shell (once per test assembly), creates an in-memory solution containing the test-data file(s),
+runs the feature at `{caret}`, dumps the result to text and diffs it against a committed `.gold` file. First run
+writes a `.tmp`; you review it and rename it to `.gold`.
+
+The Kotlin side is not tested. JetBrains' game-engine plugins without backend tests verify completion end-to-end from
+Kotlin on TeamCity (full Rider download plus a real .NET SDK per test class); our completion logic is entirely
+backend, so that route buys nothing here.
+
+## What exists
+
+See `testing-plan.md` for the step-by-step broadening plan, its status, and the plugin bugs it has turned up. The
+original proof-of-concept tests:
+
+`src/dotnet/ReSharperPlugin.RimworldDev.Tests`:
+
+| Test | Proves |
+|---|---|
+| `SmokeTests.ShellStarts` | the shell boots |
+| `Completion/CSharpCompletionSmokeTests.TestLocalVariable` | `CodeCompletionTestBase` + gold pipeline, no RimWorld involved |
+| `Completion/XmlPsiDiagnosticsTests.TestXmlIsParsed` | `.xml` in the in-memory project is parsed as XML PSI; also the `BaseTestWithSingleProject` + `ExecuteWithGold` pattern |
+| `Completion/RimworldXmlCompletionTests.TestThingDefProperties` | **our provider**, backed by `Krafs.Rimworld.Ref`, lists all 249 `ThingDef` properties with C# types. Goes red when `GetAllPublicFields` is broken. |
+
+Run: `dotnet test src/dotnet/ReSharperPlugin.RimworldDev.Tests/ReSharperPlugin.RimworldDev.Tests.csproj`
+(`--filter FullyQualifiedName~RimworldXmlCompletionTests` for one fixture). ~1 min build with normal `MSB3277`/
+`NU1701`/`NU1608` noise, ~15 s of tests.
+
+## How it works, from `dotnet test` to a gold diff
+
+**1. NUnit starts, and one fixture boots a whole ReSharper.** `dotnet test` runs NUnit over our test assembly. NUnit
+runs a `[SetUpFixture]` once before any test in its namespace; ours is
+`RimworldDevTestsAssembly : ExtensionTestEnvironmentAssembly<…>`, and that base class *is* the ReSharper shell
+bootstrapper. It does what Rider's backend process does at startup — build the component container — except
+in-process, headless, and once per test run. This is why the SDK copies ~1000 DLLs into the test output: the shell
+is assembled from whatever is in that folder.
+
+**2. The component model.** ReSharper doesn't `new` its services; nearly every class is a *component* declared with
+an attribute (`[ShellComponent]`, `[SolutionComponent]`, `[PsiComponent]`, `[IntellisensePart]`, …) and created by a
+container that satisfies constructor parameters from other components. Our plugin is nothing but components:
+`RimworldXMLItemProvider` is one, `RimworldSymbolScope` is one, `RimworlXMLCompletionContextProvider` is one. At
+startup the shell *scans* assemblies for these attributes and registers what it finds. Two consequences bit us:
+the scanner reads metadata with its own reader (which choked on the net8 `JetBrains.Lifetimes`), and it only scans
+assemblies the test assembly references (so the plugin was invisible until a test used a plugin type).
+
+**3. Zones are the on/off switches for components.** Rider, ReSharper, dotCover and JetBrains' tests all share one
+component catalogue, and a *zone* is how each host says which parts of it are active. Concretely:
+
+- A **zone definition** is an empty interface/class marked `[ZoneDefinition]`. `IRequire<TZone>` on it means
+  "this zone only makes sense if that one is active". Example: JetBrains' `PsiFeatureTestZone` requires the daemon,
+  navigation, code-editing, C#, VB, XAML… zones — it is a bundle meaning "everything a PSI feature test needs".
+- A **zone marker** is a class named `ZoneMarker` marked `[ZoneMarker]`, and it applies to *every component in its
+  namespace and below*: those components are only loaded when all the zones the marker `IRequire<>`s are active.
+  The test project's marker requires our env zone, so our test-only components belong to the test host.
+- Components with **no marker anywhere above them** are un-zoned and load in every host. That is our plugin's
+  situation, and it's why the tests didn't need to declare a plugin zone. (Unity, F# and the template do declare
+  one, and then the test env zone must require it, or the plugin's components are filtered out of the test shell.)
+- `ITestsEnvZone` is the host zone for "I am a test run". `ExtensionTestEnvironmentAssembly<TZone>` activates the
+  zone you give it, and everything it requires, transitively. Ours:
+  `RimworldDevTestEnvironmentZone : ITestsEnvZone, IRequire<PsiFeatureTestZone>` — "this is a test host, and I want
+  the full PSI feature set". That one line is what makes C# and XML parsing, completion, the daemon and the
+  reference-resolution machinery exist inside the test.
+
+**4. Each test gets an in-memory solution.** `BaseTestWithSingleProject` (which `CodeCompletionTestBase` extends)
+builds a temporary solution with one project, puts the named test-data file(s) in it, and adds references. The
+project targets .NET 3.5 by default and gets its `mscorlib` etc. from small "platform" NuGet packages the framework
+downloads from JetBrains' feed (hence `test/data/nuget.config` and the `NuGetLocks` lock files). Our override of
+`GetReferencedAssemblies` appends Krafs' DLLs to that reference list, which is how `ScopeHelper.UpdateScopes` — which
+just asks every PSI module "do you have `Verse.ThingDef`?" — finds RimWorld exactly as it does in production.
+
+**5. The feature runs at `{caret}`.** The framework opens the file in an in-memory text control, strips `{caret}`
+and puts the caret there, then invokes the real completion pipeline: the context providers build a
+`CodeCompletionContext`, every `[IntellisensePart]` items provider whose `IsAvailable` says yes gets `AddLookupItems`
+called, and the lookup list is assembled with its normal relevance sorting. Our provider runs unmodified; the only
+plugin-side accommodations are the `ScopeHelper` test hooks.
+
+**6. Dump and diff.** `CodeCompletionTestBase` serialises the lookup list (`ModernList` format) to
+`<input>.tmp`, compares it with `<input>.gold`, and fails on any difference — or on "no gold file", which is how a
+new test's first run hands you the file to review and rename. The framework also fails a test if anything *logged an
+error* during it (that's how the xUnit provider and the leaked-cookie problems surfaced), so "logged N errors" in the
+output means look at the `Message =` lines, not at your assertion.
+
+## Harness — every line in the csproj is there because of a specific crash
+
+Bootstrap is the template's three types (`RimworldDevTestEnvironmentZone : ITestsEnvZone, IRequire<PsiFeatureTestZone>`,
+`ZoneMarker`, `RimworldDevTestsAssembly : ExtensionTestEnvironmentAssembly<…>`, `[assembly: Apartment(STA)]`).
+Every JetBrains example test project is `net472`; ours isn't, and that cost these:
+
+| Setting | Crash it fixed |
+|---|---|
+| `TargetFramework` **`net10.0-windows`** | Rider 2026.1's backend runs plugins on .NET 10 (the SDK bundles that runtime) and some SDK DLLs are net8-built. A net6 host dies loading them. The plugin's `net6.0` is only a compile target. |
+| `UseWindowsForms` + `UseWPF` | `ShellLocks` uses WinForms timers → `FileNotFoundException` in `JetEnvironment.CreateDontRunAsync`. |
+| `AssetTargetFallback=net472` | SDK packages only ship props under `build/net472/`. NuGet's default fallback list starts at `net461` and stops at the first framework a package has *any* asset for, so `LibLevelDb` (`lib/net/_._`) never got its props imported and `leveldb.dll` never reached the output. |
+| `JetBrains.Microsoft.TestPlatform.TranslationLayer` `ExcludeAssets="all"` | Transitive 2019 net451 VSTest repack whose `Microsoft.TestPlatform.*` DLLs overwrite the ones `testhost` needs → `TypeLoadException` at host start. |
+| Post-build copy of **net472** `JetBrains.Lifetimes`/`RdFramework` (`UseNetFrameworkJetBrainsLibs` target) | NuGet gives a .NET host the net8.0 builds; the SDK's component scanner can't read net8.0 Lifetimes metadata ("Error resolving type MaybeNullWhenAttribute… 777.0.0.0") once it scans our plugin. |
+| `xunit.runner.utility.net452.dll` copied to output | The SDK's net4x xUnit provider loads it by name; NuGet gives a .NET host the `netcoreapp10` flavour. Every test "logs an error" and fails. |
+| Root `Directory.Build.props`: `Lifetimes`/`RdFramework` pinned **2026.1.2** | SDK's exact requirement; floated 2026.1.3 → `MissingMethodException: RdId.Hash` when the protocol component constructs. Rider ships its own copies so production never noticed. |
+
+Packages: `JetBrains.ReSharper.SDK.Tests` (= `$(SdkVersion)`; a 20 KB props file that sets `JetTestProject=True`,
+which makes the SDK targets copy ~1000 SDK files into the output), `Microsoft.NET.Test.Sdk`, `NUnit3TestAdapter`,
+`GitHubActionsTestLogger` (our Gradle `testDotNet` passes `--logger GitHubActions`). **No explicit NUnit** — the SDK
+pins `[3.13.2]` exactly.
+
+**The scanner only loads assemblies the test assembly references.** Until a test used a plugin type, the compiler
+emitted no reference to `ReSharperPlugin.RimworldDev.dll` and our components were simply not in the shell. Any
+fixture that tests the plugin must touch a plugin type (ours call `ScopeHelper.Reset()`).
+
+Zones: the plugin has no `ZoneMarker`; un-zoned components load everywhere, tests included. XML has no language
+zone at all (`JetBrains.ReSharper.Psi.Xml.dll` defines none), so nothing to require. If a plugin zone is ever added,
+the test env zone must `IRequire<>` it or every plugin component silently vanishes.
+
+`test/data/nuget.config` is mandatory (framework-reference packages come from `resharper-platform.jetbrains.com`).
+`test/data/NuGetLocks/*.lock` **must be committed**: they pin what the *framework* downloads at run time for the
+in-memory project (e.g. `JetBrains.Tests.Platform.NETFrameWork 3.5`, requested as an open range), which the csproj
+never sees. Without them a new patch upload on JetBrains' feed changes the reference set under the golds. One lock
+file per distinct request (file name = hash of the request); delete ones left behind by abandoned experiments. The
+broadening work added a second, legitimate one (`279ddca8…`, input `Microsoft.NETCore.App [2.0.0]`), requested by one
+of the navigation/highlighting test bases; commit it too.
+
+## Test data
+
+Found by walking up from the test assembly to `test/data`; per fixture `RelativeTestDataPath => @"Completion\Rimworld"`.
+`DoNamedTest()` uses the **full method name**: `TestThingDefProperties` → `TestThingDefProperties.xml` (no prefix
+stripping; that's `DoNamedTest2`). Gold sits beside the input as `<input>.gold`; `.tmp` appears on mismatch.
+`ExecuteWithGold(projectFile, …)` names its gold after the *source file*, so give diagnostics their own input file.
+Failure to find the data root looks like "The marker item cannot be found…" then "the Shell is not running".
+
+## Completion tests
+
+```csharp
+[TestFileExtension(".xml")]
+public class RimworldXmlCompletionTests : CodeCompletionTestBase
+{
+    protected override CodeCompletionTestType TestType => CodeCompletionTestType.ModernList;
+    protected override string RelativeTestDataPath => @"Completion\Rimworld";
+    protected override IEnumerable<string> GetReferencedAssemblies(TargetFrameworkId tfm) => /* base + Krafs DLLs */;
+    [SetUp]    public void Reset() { ScopeHelper.Reset(); ScopeHelper.SkipAssemblyDiscovery = true; }
+    [TearDown] public void Forget() { ScopeHelper.Reset(); }
+    [Test] public void TestThingDefProperties() => DoNamedTest();
+}
+```
+
+- `ModernList` = gold is the lookup list (`Completion: Basic` / `Count: N` / `Range: "<♦"` / relevance + alphabetic
+  sections, `<==` = selected). `Action` = gold is the document after accepting the item named by a
+  `// ${COMPLETE_ITEM:name}` header (`ABSENT_ITEM` asserts absence). Input needs `{caret}`.
+- Empty result is `Count: 0`; `<NULL RESULT>` means no provider produced a context at all — that is what stock,
+  schema-less XML gives in this shell, so there is no "generic XML completion" checkpoint; our provider *is* the
+  XML completion here.
+- `LookupItemFilter(ILookupItem)` restricts the dump to chosen items (not needed yet: the 249-line ThingDef gold is a
+  useful regression net as-is). Also: `Sorting`, `PresentLookupItem`, `[TestSetting(typeof(Key), nameof(Key.Prop), v)]`.
+- Gold formats change with SDK versions; expect regeneration on bumps.
+- Later: `HighlightingTestBase` (gold = source with `|text|(0)` markers) for the value validators.
+
+## RimWorld types: Krafs.Rimworld.Ref
+
+What works: the test csproj has `<PackageReference Include="Krafs.Rimworld.Ref" ExcludeAssets="all" GeneratePathProperty="true" />`
+and bakes `$(PkgKrafs_Rimworld_Ref)\ref\net472` into an `AssemblyMetadataAttribute("RimworldRefDir", …)`; the fixture
+overrides `GetReferencedAssemblies` and adds every DLL there except `mscorlib*`/`System*`/`netstandard*`/`Mono.*`.
+`ScopeHelper` then finds `Verse.ThingDef` exactly as it does with the real game DLL. The Krafs list is identical to
+the real `Assembly-CSharp.dll`'s (the gold was first generated from the latter by accident).
+
+What does not work, so nobody retries it:
+- `[TestPackages("Krafs.Rimworld.Ref/1.6.4871")]` restores the package but the in-memory project defaults to
+  **.NET 3.5** (see the lock file's `Input (NuGetFramework=net35)`), which can't consume `ref/net472` → nothing referenced.
+- `[TestPlatform(".NETFramework", 4, 7, 2)]` needs a `JetBrains.Tests.Platform.NETFrameWork 4.7.2` package; the feed
+  stops at 4.6, and the failed restore poisons other fixtures in the run. A net35 project referencing net472-built
+  DLLs by path is fine.
+
+Plugin-side hooks added for tests (`internal`, `InternalsVisibleTo` the test assembly):
+- `ScopeHelper.Reset()` — the statics otherwise hold scopes from a disposed solution (next test breaks, and the
+  framework reports leaked "assembly cookies" at teardown).
+- `ScopeHelper.SkipAssemblyDiscovery` — without it `AddRef` finds the developer's real Steam install and adds it to
+  the test solution (non-hermetic, and it leaks).
+- `UpdateScopes` now looks for `Verse.ThingDef` *before* the "some module has no types → not ready" bail-out; the
+  XML-only in-memory project is legitimately empty and used to block RimWorld detection forever.
+
+## When a test fails
+
+Failures come in five shapes; the output tells you which:
+
+| You see | It means | Look at |
+|---|---|---|
+| "There is no gold file" | new test, expected | the `.tmp` |
+| "The test output differs from the gold file" | behaviour changed | `diff` the `.tmp` against the `.gold`; either fix the plugin or accept the new gold |
+| `Count: 0` or `<NULL RESULT>` in the `.tmp` | our provider ran but had nothing, or never ran | `ScopeHelper.UpdateScopes` returning `false` (is RimWorld referenced? did `Reset()` run?), then `IsAvailable` |
+| "The test has logged N errors" | some component threw during the test; the assertion may even have passed | the `Message =` lines — usually a missing DLL or a component that couldn't construct |
+| Every test fails in ~4 s with the same exception | the shell didn't boot | the first `EXCEPTION #1` — it's an environment problem (see the harness table), not a test problem |
+
+## Multi-file
+
+`DoNamedTest("Other.xml", "ModTypes.cs")` adds extra files to the one in-memory project; mixing a `.cs` file into an
+`[TestFileExtension(".xml")]` fixture works (the C# compiles against Krafs like any mod). `RimworldSymbolScope`
+populates on solution load with no extra calls for list tests. Not yet used: `DoTestSolution(string[][])` with a
+project GUID appended to a file set for a second, referenced project — needed to test anything that depends on mod
+types living in a *different* module from the RimWorld reference.
+
+## Action completion and edits
+
+`CodeCompletionTestType.Action` reads `${COMPLETE_ITEM:name}` from anywhere in the file, so in XML put it in a comment.
+Any test that edits an XML document currently fails with "Trying to get PSI file for an uncommitted document" logged
+from `RimworldSymbolScope.AddToLocalCache` during commit — a plugin bug, see `testing-plan.md` step 5.
+
+## Reference and navigation tests
+
+Two working routes (examples in `References/`):
+
+- **Dump** (`RimworldReferenceTests`): `BaseTestWithSingleProject`, `CommitAllDocuments`, then for every node of the file
+  `node.GetReferences<IReference>()` → `Resolve()` → write a line into `ExecuteWithGold`. Filter to
+  `reference.GetType().Assembly == typeof(ScopeHelper).Assembly` or C# files drown in ordinary references. Tests the
+  reference providers in isolation, gold is compact.
+- **Real navigation** (`RimworldNavigationTests`): `AllNavigationProvidersTestBase` (namespace
+  `JetBrains.ReSharper.IntentionsTests.Navigation`, in `JetBrains.ReSharper.FeaturesTestFramework`). Marker is `{on}`
+  (`{off}` asserts unavailability), **not** `{caret}`; must override `ExtraPath` (`""` is fine). Gold covers Go to
+  Declaration/Implementation/Type Declaration, Find Usages, Show Usages and Highlight Usages; navigation into
+  referenced assemblies shows decompiled source. Also exist: `NavigationProviderTestBase<T>` (one provider) and
+  `ContextNavigationTestBase<T>`.
+
+There is no general `ReferenceTestBase`/`ResolveTestBase` in the shipped SDK. To find test bases, grep the DLLs:
+`grep -aoE '[A-Za-z]*TestBase' JetBrains.ReSharper.FeaturesTestFramework.dll | sort -u`, then inspect members with
+PowerShell `ReflectionOnlyLoadFrom` (hook `ReflectionOnlyAssemblyResolve` to the bin folder and read
+`ReflectionTypeLoadException.Types` when `GetTypes()` throws). Abstract members are cheapest to discover by compiling.
+
+## Highlighting and Find Usages tests
+
+- **Highlighting** (`Highlighting/`): `HighlightingTestBase` (`JetBrains.ReSharper.FeaturesTestFramework.Daemon`); must
+  override `CompilerIdsLanguage` (`XmlLanguage.Instance`). No markers in the input — the gold adds `|range|(n)` and a
+  numbered list. `HighlightingPredicate` is available to narrow what gets dumped (not needed so far).
+- **Find Usages** (`FindUsages/`): no dedicated base needed — `AllNavigationProvidersTestBase` already runs
+  Find Usages / Show Usages / Highlight Usages. Put `{on}` on the def, extra files via `DoNamedTest("a.xml", "b.cs")`.
+  To start from a C# file, use a second fixture with `[TestFileExtension(".cs")]`.
+
+## Debugging "the provider didn't contribute"
+
+Fastest route: temporarily `File.AppendAllText(Path.Combine(Path.GetTempPath(), "rw-trace.txt"), …)` inside the
+plugin method (e.g. log `context.NodeInFile`'s type, text and parent type in `IsAvailable`), run the one test, read
+the file, revert. That's how the `[DefOf]` provider was found to see a `MethodDeclaration` for unfinished fields.
+
+## Gold hygiene
+
+Golds are written with a UTF-8 BOM; commit as-is. Line endings are undocumented — JetBrains forces
+`test/data/**/* text eol=lf`; ours is `text=auto`, add the rule before CI runs on Linux. Gitignore `*.tmp` under
+test data. Keep input/gold case consistent.
+
+## Platform
+
+JetBrains' last official word (RIDER-23218, 2019): "we don't support plugin unit tests on Linux"; every surveyed
+repo runs backend tests on `windows-latest`. **Tested here (2026-09-18, WSL Ubuntu 22.04, .NET 10 SDK): confirmed.**
+
+**Off Windows** the test project targets plain `net10.0` (no WinForms/WPF), so it builds and `dotnet test` succeeds with
+every test **reported as skipped**, each with the reason: `WindowsOnlyGuard` is a `[SetUpFixture]` outside any
+namespace, so it runs before the one that boots the shell and `Assert.Ignore`s everything on non-Windows. Two
+approaches that look right but aren't: an assembly-level `[Platform(Include = "Win")]` makes the adapter print only "No
+test is available" (exit 0, nothing reported — reads as a pass), and so does leaving `[Apartment(STA)]` in on Linux,
+hence it's under `#if WINDOWS` (defined for the `net10.0-windows` build only).
+
+**CI:** runner cost rules out Windows by default. `Tests.yml` runs `dotnet test ReSharperPlugin.RimworldDev.sln --logger
+GitHubActions` on `ubuntu-latest` (29 skipped), and on `windows-latest` (the real suite) when the PR has the
+`feature-testing` label or the manual run's "windows" box is ticked. PR runs trigger on `labeled`/`unlabeled` too, so
+adding the label re-runs just the tests on Windows; it lives apart from `CI.yml` so label changes don't touch the Build
+check. Deploy's `Publish` job runs on `windows-latest` (releases are rare enough for the cost), so `:publishPlugin` ->
+`:testDotNet` runs the real suite and a failing test stops the release; its steps use `shell: bash` for `./gradlew`
+and the `output/*` globs.
+`.gitattributes` forces `test/data/** eol=lf`, which is **required**: Windows runners check out CRLF, and the
+navigation/Find Usages golds contain document offsets (`RANGE: (78,88)`) that shift with CRLF (4 tests fail; the
+framework normalises gold line endings but not offsets). Longest repo path on a runner is ~200 chars, under MAX_PATH;
+a checkout under a long local path (e.g. the Claude scratchpad) does hit it.
+
+What it takes to get the shell up on Linux, layer by layer (each fix got one layer further; stopped at 5):
+
+| # | Symptom on Linux | Cause | Workaround that got past it |
+|---|---|---|---|
+| 1 | `NETSDK1100` at build | `net10.0-windows` TFM | `net10.0` + no `UseWindowsForms`/`UseWPF` on non-Windows |
+| 2 | NUnit "discovered 29 of 29", then **runs 0, reports nothing** | `[assembly: Apartment(STA)]` is unsupported off Windows | drop the attribute on non-Windows. Note the silent-pass hazard |
+| 3 | `JetDispatcher`: "this thread is MTA rather than STA" | JetBrains emulate STA on Unix (`JetBrains.Util.Concurrency.JetThreadApartment`) but the test bootstrap never opts in | call `JetThreadApartment.STAThread()` from a `[STAThread]` method in the `SetUpFixture` constructor |
+| 4 | `TypeLoadException: System.Windows.Freezable` from `ThemedIconManagerLiveImages` | the stock .NET `WindowsBase` facade wins over JetBrains' Unix mock (`JetBrains.WindowsDesktop.Mock.Runtime`, `runtimes/unix/lib/.../WindowsBase.dll`): same assembly version, higher file version, so the build's conflict resolution drops the mock | copy the mock in and declare it in `deps.json` `runtimeTargets` (rid `unix`) with a huge `fileVersion` — the host resolves conflicts from `deps.json` versions. (JetBrains do the same trick: `JetBrains.Private.Winforms` declares `fileVersion` 42.42.42.42424) |
+| 5 | `System.Windows.Forms.Primitives` 9.0 missing, from `StdApplicationUI.StatusBars.JetStatusBarIndicator` | the test environment activates the WinForms status bar; `JetBrains.Private.Winforms` ships only `System.Windows.Forms.dll`, and the Windows `Primitives` is a win-x64 R2R image (`BadImageFormatException`) | none — stopped here |
+
+Layers 1–3 would be cheap to keep; 4 is a post-build `deps.json` patch; 5 would need a zone configuration that keeps
+Windows-UI components out of the test shell (Rider's own Linux host evidently doesn't activate them), which is
+undocumented. Revisit only if Windows CI minutes become a problem.
+
+## Diagnostics
+
+- `dotnet msbuild <csproj> -getItem:JetContent -getProperty:JetTestProject` shows what the SDK will copy.
+- Reflection over the DLLs in the test output (`ReflectionOnlyLoadFrom`) is the fastest way to find a type's
+  namespace or an attribute's constructor — nothing is documented.
+- Component/zone filtering: Unity's `TestEnvironment.cs` has a `RESHARPER_LOG_CONF` recipe with TRACE loggers for
+  `JetBrains.Application.Environment.JetEnvironment`, `…Extensibility.CatalogComponentSource`,
+  `…Environment.RunsProducts`, `…Catalogs.PartCatalogZoneMapping`.
+- "The test has logged N errors" fails a test even when its own assertion passed; read the `Message =` lines.
+
+## Sources
+
+Best code references: Unity's
+[TestEnvironment.cs](https://github.com/JetBrains/resharper-unity/blob/master/resharper/resharper-unity/test/src/Unity.Tests/TestEnvironment.cs)
+(zone comments are the real docs),
+[AsmDefReferencesCompletionTests.cs](https://github.com/JetBrains/resharper-unity/blob/master/resharper/resharper-unity/test/src/Unity.Tests/Unity/AsmDef/Feature/Services/CodeCompletion/AsmDefReferencesCompletionTests.cs) +
+[gold](https://github.com/JetBrains/resharper-unity/blob/master/resharper/resharper-unity/test/data/Unity/AsmDef/CodeCompletion/AsmDefReferences/TestList01.asmdef.gold),
+[TestUnityAttribute.cs](https://github.com/JetBrains/resharper-unity/blob/master/resharper/resharper-unity/test/src/Unity.Tests/Unity/TestUnityAttribute.cs);
+F#'s [Common.fs](https://raw.githubusercontent.com/JetBrains/resharper-fsharp/main/ReSharper.FSharp/test/src/FSharp.Tests.Common/src/Common.fs) and
+[FSharpCompletionTest.fs](https://raw.githubusercontent.com/JetBrains/resharper-fsharp/main/ReSharper.FSharp/test/src/FSharp.Tests/FSharpCompletionTest.fs);
+ForTea's [T4CodeCompletionTest.cs](https://raw.githubusercontent.com/JetBrains/ForTea/master/Backend/RiderPlugin/test/src/T4CodeCompletionTest.cs) +
+[Directive.tt.gold](https://raw.githubusercontent.com/JetBrains/ForTea/master/Backend/RiderPlugin/test/data/CodeCompletion/Directive.tt.gold);
+heapview's [test csproj](https://raw.githubusercontent.com/controlflow/resharper-heapview/master/src/dotnet/ReSharperPlugin.HeapView.Tests/ReSharperPlugin.HeapView.Tests.csproj) and
+[ci.yml](https://raw.githubusercontent.com/controlflow/resharper-heapview/master/.github/workflows/ci.yml);
+the [template's Tests project](https://github.com/JetBrains/resharper-rider-plugin/tree/master/content/src/dotnet/ReSharperPlugin.SamplePlugin.Tests).
+
+Official docs worth reading (the rest is skeletal or stale):
+[ProjectStructure](https://www.jetbrains.com/help/resharper/sdk/ProjectStructure.html),
+[GoldFiles](https://www.jetbrains.com/help/resharper/sdk/GoldFiles.html),
+[ExternalAnnotations_Testing](https://www.jetbrains.com/help/resharper/sdk/ExternalAnnotations_Testing.html) (`[TestReferences]`),
+[Analysis_Testing](https://www.jetbrains.com/help/resharper/sdk/Analysis_Testing.html).
+
+Negative results: `godot-support` and `azure-tools-for-intellij` have no backend tests (Kotlin end-to-end only, TeamCity);
+the docs' `ITestsZone` is stale (`ITestsEnvZone` is current); `[TestPackages]`, `[TestPlatform]`,
+`CodeCompletionTestBase` and non-net472 hosts are undocumented anywhere.

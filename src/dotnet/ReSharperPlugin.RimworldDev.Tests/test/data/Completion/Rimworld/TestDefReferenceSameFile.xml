@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Defs>
+    <ThingDef>
+        <defName>TestThingA</defName>
+    </ThingDef>
+    <ThingDef>
+        <defName>TestThingB</defName>
+        <minifiedDef>{caret}</minifiedDef>
+    </ThingDef>
+</Defs>

@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- ${COMPLETE_ITEM:Building} -->
+<Defs>
+    <ThingDef>
+        <defName>TestThing</defName>
+        <category>{caret}</category>
+    </ThingDef>
+</Defs>

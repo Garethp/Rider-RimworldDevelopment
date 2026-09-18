@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Defs>
+    <ThingDef>
+        <label>test thing</label>
+        <category>Building</category>
+        <graphicData>
+            <texPath>Things/Test</texPath>
+        </graphicData>
+        <comps>
+            <li>
+                <compClass>CompGlower</compClass>
+            </li>
+            <li Class="CompProperties_Power">
+                <idlePowerDraw>5</idlePowerDraw>
+            </li>
+        </comps>
+        <notARealField>1</notARealField>
+    </ThingDef>
+</Defs>

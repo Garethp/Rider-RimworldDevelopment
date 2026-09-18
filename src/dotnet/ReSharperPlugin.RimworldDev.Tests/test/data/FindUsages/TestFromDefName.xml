@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Defs>
+    <ThingDef>
+        <defName>Shared{on}Thing</defName>
+    </ThingDef>
+    <ThingDef>
+        <defName>LocalUser</defName>
+        <minifiedDef>SharedThing</minifiedDef>
+    </ThingDef>
+</Defs>
