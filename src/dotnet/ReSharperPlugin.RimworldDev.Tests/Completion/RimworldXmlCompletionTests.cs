@@ -1,65 +1,48 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Reflection;
 using JetBrains.ReSharper.FeaturesTestFramework.Completion;
 using JetBrains.ReSharper.TestFramework;
-using JetBrains.Util.Dotnet.TargetFrameworkIds;
 using NUnit.Framework;
 
 namespace ReSharperPlugin.RimworldDev.Tests.Completion;
 
 /// <summary>
-/// The real thing: RimWorld XML completion backed by the game's types. Krafs.Rimworld.Ref (a complete reference
-/// assembly for RimWorld) is referenced into the in-memory project, and ScopeHelper finds it the same way it finds
-/// the real Assembly-CSharp.dll: by looking for Verse.ThingDef.
+/// The real thing: RimWorld XML completion backed by the game's types. Gold is the lookup list at {caret}.
 /// </summary>
 [TestFileExtension(".xml")]
-public class RimworldXmlCompletionTests : CodeCompletionTestBase
+public class RimworldXmlCompletionTests : RimworldCompletionTestBase
 {
     protected override CodeCompletionTestType TestType => CodeCompletionTestType.ModernList;
     protected override string RelativeTestDataPath => @"Completion\Rimworld";
 
-    /// <summary>
-    /// Every DLL from the Krafs package's ref/net472 folder except the framework ones, which the test platform
-    /// already provides. The folder path is baked into this assembly by the csproj from NuGet's restore.
-    /// </summary>
-    protected override IEnumerable<string> GetReferencedAssemblies(TargetFrameworkId targetFrameworkId)
-    {
-        var refDir = typeof(RimworldXmlCompletionTests).Assembly
-            .GetCustomAttributes<AssemblyMetadataAttribute>()
-            .Single(a => a.Key == "RimworldRefDir").Value;
-
-        var rimworldDlls = Directory.GetFiles(refDir, "*.dll")
-            .Where(path =>
-            {
-                var name = Path.GetFileName(path);
-                return !name.StartsWith("mscorlib", StringComparison.OrdinalIgnoreCase) &&
-                       !name.StartsWith("System", StringComparison.OrdinalIgnoreCase) &&
-                       !name.StartsWith("netstandard", StringComparison.OrdinalIgnoreCase) &&
-                       !name.StartsWith("Mono.", StringComparison.OrdinalIgnoreCase);
-            });
-
-        return base.GetReferencedAssemblies(targetFrameworkId).Concat(rimworldDlls);
-    }
-
-    [SetUp]
-    public void ResetRimworldScope()
-    {
-        // ScopeHelper caches the RimWorld scope in statics; without this the second test reuses a scope from a solution
-        // that no longer exists. The discovery switch stops it from finding a real RimWorld install on this machine and
-        // adding that to the test solution on top of the Krafs reference.
-        ScopeHelper.Reset();
-        ScopeHelper.SkipAssemblyDiscovery = true;
-    }
-
-    [TearDown]
-    public void ForgetRimworldScope()
-    {
-        // Drop our references to the solution's modules before the framework checks that nothing is still holding them.
-        ScopeHelper.Reset();
-    }
-
     [Test] public void TestThingDefProperties() => DoNamedTest();
+    [Test] public void TestNestedFieldProperties() => DoNamedTest();
+    [Test] public void TestListItemProperties() => DoNamedTest();
+    [Test] public void TestListItemWithClassProperties() => DoNamedTest();
+    [Test] public void TestEnumValue() => DoNamedTest();
+
+    // Phase B: the def index (RimworldSymbolScope)
+    [Test] public void TestDefReferenceSameFile() => DoNamedTest();
+    [Test] public void TestDefReferenceOtherFile() => DoNamedTest("OtherDefs.xml");
+    [Test] public void TestParentName() => DoNamedTest();
+    [Test] public void TestModDefClassProperties() => DoNamedTest("ModTypes.cs");
+    [Test] public void TestModListItemClassProperties() => DoNamedTest("ModTypes.cs");
+    // Gold is hand-written: what the plugin *should* offer. It currently omits CustomThing, because ExtraDefTagNames is
+    // only built when ScopeHelper already has the RimWorld scope at merge time, and on a cold load it doesn't.
+    [Test, Ignore("ExtraDefTagNames not built when the def index merges before scopes are ready; see docs/testing-plan.md step 9")]
+    public void TestModDefAsSuperclassReference() => DoNamedTest("ModTypes.cs");
+}
+
+/// <summary>
+/// Gold is the document after accepting the item named by the input's ${COMPLETE_ITEM:…} directive.
+/// The golds are correct, but accepting an item commits the edited document, and RimworldSymbolScope.Merge reads the
+/// PSI file mid-commit ("Trying to get PSI file for an uncommitted document"), which fails the test as a logged error.
+/// </summary>
+[TestFileExtension(".xml")]
+[Ignore("RimworldSymbolScope.AddToLocalCache calls GetPrimaryPsiFile during commit merge; see docs/testing-plan.md step 5")]
+public class RimworldXmlCompletionActionTests : RimworldCompletionTestBase
+{
+    protected override CodeCompletionTestType TestType => CodeCompletionTestType.Action;
+    protected override string RelativeTestDataPath => @"Completion\Rimworld\Action";
+
+    [Test] public void TestCompleteTag() => DoNamedTest();
+    [Test] public void TestCompleteEnumValue() => DoNamedTest();
 }

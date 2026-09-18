@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Defs>
+    <ThingDef>
+        <defName>ModThingA</defName>
+    </ThingDef>
+    <ThingDef>
+        <defName>ModThingB</defName>
+    </ThingDef>
+    <SoundDef>
+        <defName>ModSound</defName>
+    </SoundDef>
+</Defs>

@@ -15,7 +15,10 @@ The Kotlin side is not tested. JetBrains' game-engine plugins without backend te
 Kotlin on TeamCity (full Rider download plus a real .NET SDK per test class); our completion logic is entirely
 backend, so that route buys nothing here.
 
-## What exists (all green)
+## What exists
+
+See `testing-plan.md` for the step-by-step broadening plan, its status, and the plugin bugs it has turned up. The
+original proof-of-concept tests:
 
 `src/dotnet/ReSharperPlugin.RimworldDev.Tests`:
 
@@ -117,7 +120,9 @@ the test env zone must `IRequire<>` it or every plugin component silently vanish
 `test/data/NuGetLocks/*.lock` **must be committed**: they pin what the *framework* downloads at run time for the
 in-memory project (e.g. `JetBrains.Tests.Platform.NETFrameWork 3.5`, requested as an open range), which the csproj
 never sees. Without them a new patch upload on JetBrains' feed changes the reference set under the golds. One lock
-file per distinct request (file name = hash of the request); delete ones left behind by abandoned experiments.
+file per distinct request (file name = hash of the request); delete ones left behind by abandoned experiments. The
+broadening work added a second, legitimate one (`279ddca8…`, input `Microsoft.NETCore.App [2.0.0]`), requested by one
+of the navigation/highlighting test bases; commit it too.
 
 ## Test data
 
@@ -188,11 +193,54 @@ Failures come in five shapes; the output tells you which:
 | "The test has logged N errors" | some component threw during the test; the assertion may even have passed | the `Message =` lines — usually a missing DLL or a component that couldn't construct |
 | Every test fails in ~4 s with the same exception | the shell didn't boot | the first `EXCEPTION #1` — it's an environment problem (see the harness table), not a test problem |
 
-## Multi-file (not yet used)
+## Multi-file
 
-`DoTestSolution([TestName], ["Other.xml"])` for extra files in one project; `DoTestSolution(string[][])` with a project
-GUID appended to a file set for a second, referenced project. `SimpleICache`s (e.g. `RimworldSymbolScope`) populate
-on solution load; call `psiServices.Files.CommitAllDocuments()` before asserting.
+`DoNamedTest("Other.xml", "ModTypes.cs")` adds extra files to the one in-memory project; mixing a `.cs` file into an
+`[TestFileExtension(".xml")]` fixture works (the C# compiles against Krafs like any mod). `RimworldSymbolScope`
+populates on solution load with no extra calls for list tests. Not yet used: `DoTestSolution(string[][])` with a
+project GUID appended to a file set for a second, referenced project — needed to test anything that depends on mod
+types living in a *different* module from the RimWorld reference.
+
+## Action completion and edits
+
+`CodeCompletionTestType.Action` reads `${COMPLETE_ITEM:name}` from anywhere in the file, so in XML put it in a comment.
+Any test that edits an XML document currently fails with "Trying to get PSI file for an uncommitted document" logged
+from `RimworldSymbolScope.AddToLocalCache` during commit — a plugin bug, see `testing-plan.md` step 5.
+
+## Reference and navigation tests
+
+Two working routes (examples in `References/`):
+
+- **Dump** (`RimworldReferenceTests`): `BaseTestWithSingleProject`, `CommitAllDocuments`, then for every node of the file
+  `node.GetReferences<IReference>()` → `Resolve()` → write a line into `ExecuteWithGold`. Filter to
+  `reference.GetType().Assembly == typeof(ScopeHelper).Assembly` or C# files drown in ordinary references. Tests the
+  reference providers in isolation, gold is compact.
+- **Real navigation** (`RimworldNavigationTests`): `AllNavigationProvidersTestBase` (namespace
+  `JetBrains.ReSharper.IntentionsTests.Navigation`, in `JetBrains.ReSharper.FeaturesTestFramework`). Marker is `{on}`
+  (`{off}` asserts unavailability), **not** `{caret}`; must override `ExtraPath` (`""` is fine). Gold covers Go to
+  Declaration/Implementation/Type Declaration, Find Usages, Show Usages and Highlight Usages; navigation into
+  referenced assemblies shows decompiled source. Also exist: `NavigationProviderTestBase<T>` (one provider) and
+  `ContextNavigationTestBase<T>`.
+
+There is no general `ReferenceTestBase`/`ResolveTestBase` in the shipped SDK. To find test bases, grep the DLLs:
+`grep -aoE '[A-Za-z]*TestBase' JetBrains.ReSharper.FeaturesTestFramework.dll | sort -u`, then inspect members with
+PowerShell `ReflectionOnlyLoadFrom` (hook `ReflectionOnlyAssemblyResolve` to the bin folder and read
+`ReflectionTypeLoadException.Types` when `GetTypes()` throws). Abstract members are cheapest to discover by compiling.
+
+## Highlighting and Find Usages tests
+
+- **Highlighting** (`Highlighting/`): `HighlightingTestBase` (`JetBrains.ReSharper.FeaturesTestFramework.Daemon`); must
+  override `CompilerIdsLanguage` (`XmlLanguage.Instance`). No markers in the input — the gold adds `|range|(n)` and a
+  numbered list. `HighlightingPredicate` is available to narrow what gets dumped (not needed so far).
+- **Find Usages** (`FindUsages/`): no dedicated base needed — `AllNavigationProvidersTestBase` already runs
+  Find Usages / Show Usages / Highlight Usages. Put `{on}` on the def, extra files via `DoNamedTest("a.xml", "b.cs")`.
+  To start from a C# file, use a second fixture with `[TestFileExtension(".cs")]`.
+
+## Debugging "the provider didn't contribute"
+
+Fastest route: temporarily `File.AppendAllText(Path.Combine(Path.GetTempPath(), "rw-trace.txt"), …)` inside the
+plugin method (e.g. log `context.NodeInFile`'s type, text and parent type in `IsAvailable`), run the one test, read
+the file, revert. That's how the `[DefOf]` provider was found to see a `MethodDeclaration` for unfinished fields.
 
 ## Gold hygiene
 

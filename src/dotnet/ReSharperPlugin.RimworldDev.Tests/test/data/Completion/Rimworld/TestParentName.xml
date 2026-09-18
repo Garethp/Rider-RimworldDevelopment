@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Defs>
+    <ThingDef Name="AbstractBase" Abstract="True">
+    </ThingDef>
+    <ThingDef Name="ConcreteBase">
+        <defName>ConcreteThing</defName>
+    </ThingDef>
+    <SoundDef Name="AbstractSoundBase" Abstract="True">
+    </SoundDef>
+    <ThingDef ParentName="{caret}">
+        <defName>Child</defName>
+    </ThingDef>
+</Defs>

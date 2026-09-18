@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Defs>
+    <ThingDef>
+        <defName>OtherThing</defName>
+    </ThingDef>
+    <SoundDef>
+        <defName>NotAThing</defName>
+    </SoundDef>
+</Defs>

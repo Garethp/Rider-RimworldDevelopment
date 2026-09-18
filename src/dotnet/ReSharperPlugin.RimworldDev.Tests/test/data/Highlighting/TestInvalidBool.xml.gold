@@ -1,0 +1,11 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Defs>
+    <ThingDef>
+        <defName>TestThing</defName>
+        <leaveResourcesWhenKilled>|maybe|(0)</leaveResourcesWhenKilled>
+        <alwaysHaulable>true</alwaysHaulable>
+    </ThingDef>
+</Defs>
+
+---------------------------------------------------------
+(0): ReSharper Underlined Error Highlighting: Value must be "true" or "false"

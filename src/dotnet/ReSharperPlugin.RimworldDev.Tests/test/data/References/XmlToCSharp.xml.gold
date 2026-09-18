@@ -1,0 +1,9 @@
+﻿(3,6) 'ThingDef' [RimworldXmlReference] -> OK: type Verse.ThingDef
+(4,10) 'label' [RimworldXmlReference] -> OK: field Verse.Def.label
+(5,10) 'category' [RimworldXmlReference] -> OK: field Verse.ThingDef.category
+(5,19) 'Building' [RimworldXmlReference] -> OK: enum member Verse.ThingCategory.Building
+(6,10) 'graphicData' [RimworldXmlReference] -> OK: field Verse.ThingDef.graphicData
+(7,14) 'texPath' [RimworldXmlReference] -> OK: field Verse.GraphicData.texPath
+(9,10) 'comps' [RimworldXmlReference] -> OK: field Verse.ThingDef.comps
+(11,18) 'compClass' [RimworldXmlReference] -> OK: field Verse.CompProperties.compClass
+(14,18) 'idlePowerDraw' [RimworldXmlReference] -> OK: field RimWorld.CompProperties_Power.idlePowerDraw

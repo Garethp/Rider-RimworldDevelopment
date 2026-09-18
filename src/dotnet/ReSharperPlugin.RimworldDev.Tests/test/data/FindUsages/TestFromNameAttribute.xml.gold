@@ -1,0 +1,70 @@
+﻿## FindReferencedCodeProvider activity:
+  Tooltip was shown: Referenced code in 'XmlTag ThingDef/BaseThing' were not found
+
+## FindUsagesAdvancedProvider activity:
+  FindResults window with 3 results
+    TO: [O] <ThingDef Name=|"BaseThing"| Abstract="True"> RANGE: (65,76) @ TestFromNameAttribute.xml
+    TO: [O] <ThingDef ParentName=|"BaseThing"|> RANGE: (135,146) @ TestFromNameAttribute.xml
+    TO: [O] <ThingDef ParentName=|"BaseThing"|> RANGE: (223,234) @ TestFromNameAttribute.xml
+
+## FindUsagesProvider activity:
+  FindResults window with 3 results
+    TO: [O] <ThingDef Name=|"BaseThing"| Abstract="True"> RANGE: (65,76) @ TestFromNameAttribute.xml
+    TO: [O] <ThingDef ParentName=|"BaseThing"|> RANGE: (135,146) @ TestFromNameAttribute.xml
+    TO: [O] <ThingDef ParentName=|"BaseThing"|> RANGE: (223,234) @ TestFromNameAttribute.xml
+
+## GotoDeclarationProvider activity:
+  Immediate result:
+    TO: [O] <ThingDef Name=|"BaseThing"| Abstract="True"> RANGE: (65,76) @ TestFromNameAttribute.xml
+    Navigation result:
+      caret did not move
+
+## GotoImplementationProvider activity:
+  Immediate result:
+    TO: [O] <ThingDef Name=|"BaseThing"| Abstract="True"> RANGE: (65,76) @ TestFromNameAttribute.xml
+    Navigation result:
+      caret did not move
+
+## ShowUsagesProvider activity:
+  Async context menu shown `Usages of 'ThingDef/BaseThing'`:
+    TO: [O] <ThingDef Name=|"BaseThing"| Abstract="True"> RANGE: (65,76) @ TestFromNameAttribute.xml
+    Menu item (enabled) :
+      icon: UsageOther
+      text: TestFromNameAttribute.xml      <font color="FFD5A286"><ThingDef Name=**"BaseThing"** Abstract="True"></font><font color="06C"> (3)</font>
+      tail: <font color="FF6D6D6D">in <TestProject></font>
+      tooltip: <ThingDef Name=**"BaseThing"** Abstract="True">
+    Navigation result:
+      caret did not move
+    TO: [O] <ThingDef ParentName=|"BaseThing"|> RANGE: (135,146) @ TestFromNameAttribute.xml
+    Menu item (enabled) :
+      icon: UsageOther
+      text: TestFromNameAttribute.xml      <font color="FFD5A286"><ThingDef ParentName=**"BaseThing"**></font><font color="06C"> (5)</font>
+      tail: <font color="FF6D6D6D">in <TestProject></font>
+      tooltip: <ThingDef ParentName=**"BaseThing"**>
+    Navigation result:
+      opened file: TestFromNameAttribute.xml
+      ------------------
+          <ThingDef Name="BaseThing" Abstract="True">
+          </ThingDef>
+          <ThingDef ParentName=|CARET|"BaseThing">
+              <defName>ChildA</defName>
+          </ThingDef>
+      ------------------
+
+    TO: [O] <ThingDef ParentName=|"BaseThing"|> RANGE: (223,234) @ TestFromNameAttribute.xml
+    Menu item (enabled) :
+      icon: UsageOther
+      text: TestFromNameAttribute.xml      <font color="FFD5A286"><ThingDef ParentName=**"BaseThing"**></font><font color="06C"> (8)</font>
+      tail: <font color="FF6D6D6D">in <TestProject></font>
+      tooltip: <ThingDef ParentName=**"BaseThing"**>
+    Navigation result:
+      opened file: TestFromNameAttribute.xml
+      ------------------
+              <defName>ChildA</defName>
+          </ThingDef>
+          <ThingDef ParentName=|CARET|"BaseThing">
+              <defName>ChildB</defName>
+          </ThingDef>
+      ------------------
+
+
