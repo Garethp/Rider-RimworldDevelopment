@@ -6,8 +6,8 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 plugins {
     id("java")
     alias(libs.plugins.kotlinJvm)
-    id("org.jetbrains.intellij.platform") version "2.15.0"     // https://github.com/JetBrains/gradle-intellij-plugin/releases
-    id("me.filippov.gradle.jvm.wrapper") version "0.16.0"
+    alias(libs.plugins.intellijPlatform)
+    alias(libs.plugins.gradleJvmWrapper)
 }
 
 
@@ -24,7 +24,40 @@ extra["isWindows"] = isWindows
 
 val DotnetSolution: String by project
 val BuildConfiguration: String by project
-val ProductVersion: String by project
+
+// The Rider version comes from one place: <SdkVersion> in Directory.Build.props (NuGet form). Read through a provider so
+// the configuration cache is invalidated when that file changes. -PProductVersion=... still overrides it.
+val SdkVersion: String = providers.fileContents(layout.projectDirectory.file("Directory.Build.props")).asText
+    .map { props ->
+        Regex("""<SdkVersion>\s*([^<\s]+)\s*</SdkVersion>""").find(props)?.groupValues?.get(1)
+            ?: throw GradleException("No <SdkVersion> found in Directory.Build.props")
+    }
+    .get()
+
+// Rider's Maven artifacts name the same builds differently from NuGet:
+//   2026.3.0-eap02 -> 2026.3-EAP2-SNAPSHOT, 2026.2.0-rc01 -> 2026.2-RC1-SNAPSHOT, 2026.2.0 -> 2026.2, 2026.1.5.2 -> 2026.1.5.2
+fun riderMavenVersion(sdkVersion: String): String {
+    Regex("""^(\d+\.\d+)\.0-(eap|rc)0*(\d+)$""").matchEntire(sdkVersion)?.let { m ->
+        return "${m.groupValues[1]}-${m.groupValues[2].uppercase()}${m.groupValues[3]}-SNAPSHOT"
+    }
+    Regex("""^(\d+\.\d+)\.0$""").matchEntire(sdkVersion)?.let { return it.groupValues[1] }
+    return sdkVersion
+}
+
+val ProductVersion: String = providers.gradleProperty("ProductVersion").orNull ?: riderMavenVersion(SdkVersion)
+
+// ./gradlew riderVersions -q: what this checkout targets, in both formats.
+val riderVersions by tasks.registering {
+    group = "help"
+    description = "Prints the Rider version this build targets (NuGet SdkVersion and IntelliJ Platform ProductVersion)."
+    val sdk = SdkVersion
+    val product = ProductVersion
+    doLast {
+        println("SdkVersion (NuGet, Directory.Build.props): $sdk")
+        println("ProductVersion (IntelliJ Platform/Maven):   $product")
+    }
+}
+
 val DotnetPluginId: String by project
 val RiderPluginId: String by project
 val PublishToken: String by project
