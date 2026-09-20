@@ -9,16 +9,16 @@ using JetBrains.ReSharper.Resources.Shell;
 using JetBrains.ReSharper.TestFramework;
 using NUnit.Framework;
 
-namespace ReSharperPlugin.RimworldDev.Tests.Completion;
+namespace ReSharperPlugin.RimworldDev.Tests.SmokeTests;
 
 /// <summary>
 /// Dumps how the test shell sees an .xml file in the in-memory project. Exists to answer "is XML even parsed as
 /// XML here?" when XML completion returns nothing.
 /// </summary>
 [TestFileExtension(".xml")]
-public class XmlPsiDiagnosticsTests : BaseTestWithSingleProject
+public class XmlParsing : BaseTestWithSingleProject
 {
-    protected override string RelativeTestDataPath => @"Completion\Xml";
+    protected override string RelativeTestDataPath => @"SmokeTests\Xml";
 
     [Test] public void TestXmlIsParsed() => DoTestSolution("XmlIsParsed.xml");
 

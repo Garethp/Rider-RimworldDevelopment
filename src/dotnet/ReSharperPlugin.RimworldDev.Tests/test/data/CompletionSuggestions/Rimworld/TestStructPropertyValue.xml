@@ -1,0 +1,5 @@
+<Defs>
+    <ThingDef>
+        <defaultPlacingRot>{caret}</defaultPlacingRot>
+    </ThingDef>
+</Defs>

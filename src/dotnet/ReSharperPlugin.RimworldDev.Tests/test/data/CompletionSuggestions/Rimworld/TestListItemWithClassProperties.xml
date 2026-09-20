@@ -4,7 +4,7 @@
         <defName>TestThing</defName>
         <comps>
             <li Class="CompProperties_Power">
-                <{caret}
+                <always{caret}
             </li>
         </comps>
     </ThingDef>

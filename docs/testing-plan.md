@@ -117,11 +117,19 @@ affect *any* future test that edits an XML document (Action completion, quick-fi
 index design: it resolves persisted offsets back to live `ITreeNode`s at merge time. Fix candidates: resolve lazily at
 query time, or defer resolution until after commit.
 
+**Fixed (2026-09-18):** the index now stores `(sourceFile, offset, isAbstract)` and `GetTagByDef` finds the node on
+query (`isAbstract` is computed in `Build` and persisted). Both Action tests pass unchanged against their golds.
+`SymbolScope/RimworldSymbolScopeTests` edits a def file and checks the node handed back is the live one at the def's new
+offset, including a def moving onto another def's old offset (checked by removing the cached-node check: it fails).
+
 **Step 9c ⚠️ — plugin bug (load order).** A `MyMod.CustomThingDef` def is not offered where a `ThingDef` is expected.
 Traced: when the index merges on load, `ScopeHelper.RimworldScope` is still `null` (symbol caches not ready), so
 `AddDefTagToList` skips building `ExtraDefTagNames`, and nothing rebuilds it later. Likely also real on a cold open in
 Rider (custom def subclasses unresolved until their file is edited) — not verified in Rider. Test has a hand-written
 expected gold and is ignored.
+
+**Fixed (2026-09-18)** with step 5: `ExtraDefTagNames` is rebuilt on the first query after a custom-typed def changes,
+and stays stale until the scopes are ready and every custom def type resolves. The hand-written gold now passes.
 
 **Step 10 ⚠️ — narrow `IsAvailable`.** `CSharpDefsOfItemProvider` requires the caret's parent to be an
 `IFieldDeclaration`. With `public static ThingDef Mod{caret}` followed by `}` (i.e. typing a new field at the end of
@@ -215,8 +223,8 @@ host once its abstract members were supplied — no new harness fixes were neede
 
 | # | Problem | Where | Blocks |
 |---|---|---|---|
-| 1 | Index reads PSI mid-commit ("uncommitted document" logged) | `RimworldSymbolScope.AddToLocalCache` via `Merge` | any test that edits an XML document (Action completion, future quick-fix/generator tests) |
-| 2 | Custom def subclasses not indexed under their base type on cold load | `ExtraDefTagNames` built only if `ScopeHelper.RimworldScope` is set at merge | step 9c |
+| 1 | ✅ Fixed — Index reads PSI mid-commit ("uncommitted document" logged) | `RimworldSymbolScope.AddToLocalCache` via `Merge` | any test that edits an XML document (Action completion, future quick-fix/generator tests) |
+| 2 | ✅ Fixed — Custom def subclasses not indexed under their base type on cold load | `ExtraDefTagNames` built only if `ScopeHelper.RimworldScope` is set at merge | step 9c |
 | 3 | `[DefOf]` completion needs a following `;` | `CSharpDefsOfItemProvider.IsAvailable` (unfinished declaration parses as a method) | step 10 variant |
 | 4 | Find Usages ignores C# | `RimworldSearcherFactory.IsCompatibleWithLanguage` | step 18's C# usages |
 | 5 | `GetScopeForClass` searches `knownCustomScopes` twice (should be `allScopes`) | `ScopeHelper` | found by reading; needs a two-project test |
@@ -224,6 +232,6 @@ host once its abstract members were supplied — no new harness fixes were neede
 | 7 | Daemon stage relies on another stage having set the scope | `CustomXmlAnalysisStageProcess` | nothing yet; fragile |
 
 **Not explored:** Phase G (disk discovery via `RimworldPath`/`AddRef`, the generator) and Phase H (Rider-only code,
-Remodder, Kotlin). #1 must be fixed before the generator (step 20) can be tested. Also still open from the proof of
+Remodder, Kotlin). #1 (now fixed) was the blocker for testing the generator (step 20). Also still open from the proof of
 concept: moving CI to Windows and the `.gitattributes` LF rule for golds.
 

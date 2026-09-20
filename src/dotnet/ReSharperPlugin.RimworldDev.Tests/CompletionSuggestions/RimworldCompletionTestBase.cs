@@ -7,7 +7,7 @@ using JetBrains.ReSharper.FeaturesTestFramework.Completion;
 using JetBrains.Util.Dotnet.TargetFrameworkIds;
 using NUnit.Framework;
 
-namespace ReSharperPlugin.RimworldDev.Tests.Completion;
+namespace ReSharperPlugin.RimworldDev.Tests.CompletionSuggestions;
 
 /// <summary>
 /// Completion tests backed by the game's types. Krafs.Rimworld.Ref (a complete reference assembly for RimWorld) is

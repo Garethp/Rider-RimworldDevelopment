@@ -2,6 +2,6 @@
 <Defs>
     <MyMod.CustomThingDef>
         <defName>CustomThing</defName>
-        <{caret}
+        <cus{caret}
     </MyMod.CustomThingDef>
 </Defs>

@@ -4,7 +4,7 @@ using JetBrains.ReSharper.IntentionsTests.Navigation;
 using JetBrains.ReSharper.TestFramework;
 using JetBrains.Util.Dotnet.TargetFrameworkIds;
 using NUnit.Framework;
-using ReSharperPlugin.RimworldDev.Tests.Completion;
+using ReSharperPlugin.RimworldDev.Tests.CompletionSuggestions;
 
 namespace ReSharperPlugin.RimworldDev.Tests.References;
 

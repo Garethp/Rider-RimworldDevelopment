@@ -1,0 +1,7 @@
+<Defs>
+    <ThingDef>
+        <stuffCategories>
+            <li>{caret}
+        </stuffCategories>
+    </ThingDef>
+</Defs>

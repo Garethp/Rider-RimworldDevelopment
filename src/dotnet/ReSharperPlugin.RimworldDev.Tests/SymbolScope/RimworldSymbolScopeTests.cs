@@ -11,7 +11,7 @@ using JetBrains.Util;
 using JetBrains.Util.Dotnet.TargetFrameworkIds;
 using NUnit.Framework;
 using ReSharperPlugin.RimworldDev.SymbolScope;
-using ReSharperPlugin.RimworldDev.Tests.Completion;
+using ReSharperPlugin.RimworldDev.Tests.CompletionSuggestions;
 
 namespace ReSharperPlugin.RimworldDev.Tests.SymbolScope;
 

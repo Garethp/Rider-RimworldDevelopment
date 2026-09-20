@@ -69,6 +69,10 @@
           CopyToOutputDirectory="PreserveNewest" Link="xunit.runner.utility.net452.dll" Visible="false" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="test\data\SmokeTests\" />
+  </ItemGroup>
+
   <!-- NuGet gives a .NET host the net8.0 builds of these two packages, but the SDK's component scanner cannot read
        the net8.0 JetBrains.Lifetimes metadata (MaybeNullWhenAttribute resolution fails and the shell never starts)
        once anything makes it scan our plugin assembly. JetBrains' own test projects always run the net472 builds, which
