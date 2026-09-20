@@ -56,12 +56,29 @@ public class RimworldReferenceFactory : IReferenceFactory
             return GetReferenceForDeclaredElement(element, oldReferences);
         }
 
+        var rimworldSymbolScope = ScopeHelper.RimworldScope;
+        var allSymbolScopes = ScopeHelper.AllScopes;
+        
+        // an attempt to pick up class attributes and provide references to the class itself
+        if (element.Parent != null && element.NodeType.ToString() == "STRING" &&
+            element.Parent.Parent is IXmlAttribute xmlAttr &&
+            string.Equals(xmlAttr.AttributeName, "Class", StringComparison.OrdinalIgnoreCase))
+        {
+            var className = element.GetText().Trim('"');
+            if (string.IsNullOrWhiteSpace(className)) return new ReferenceCollection();
+
+            var typeElement = className.Contains(".")
+                ? ScopeHelper.GetScopeForClass(className).GetTypeElementByCLRName(className)
+                : rimworldSymbolScope.GetElementsByShortName(className).FirstOrDefault();
+
+            if (typeElement == null) return new ReferenceCollection();
+            return new ReferenceCollection(new RimworldXmlReference(typeElement, element));
+        }
+
         if (element.NodeType.ToString() == "TEXT") return GetReferencesForText(element, oldReferences);
         if (element is not XmlIdentifier identifier) return new ReferenceCollection();
         if (element.GetSourceFile() is not { } sourceFile) return new ReferenceCollection();
 
-        var rimworldSymbolScope = ScopeHelper.RimworldScope;
-        var allSymbolScopes = ScopeHelper.AllScopes;
 
         var hierarchy = RimworldXMLItemProvider.GetHierarchy(identifier);
 
