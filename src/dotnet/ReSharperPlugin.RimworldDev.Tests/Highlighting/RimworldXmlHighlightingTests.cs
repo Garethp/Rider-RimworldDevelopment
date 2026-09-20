@@ -4,11 +4,6 @@ using ReSharperPlugin.RimworldDev.Tests.TestBases;
 
 namespace ReSharperPlugin.RimworldDev.Tests.Highlighting;
 
-/// <summary>
-/// CustomXmlAnalysisStage: XML values checked against the C# type of the field they set. Gold is the source with the
-/// highlighted ranges marked, followed by the list of highlightings. The two inputs have the same structure, so a
-/// value that is reported in one and not the other is the difference between them.
-/// </summary>
 [ProjectLayouts(ProjectLayout.XmlProject, ProjectLayout.CSharpProject)]
 [TestFileExtension(".xml")]
 public class RimworldXmlHighlightingTests(ProjectLayout layout) : RimworldHighlightingTestBase(layout)
@@ -17,14 +12,12 @@ public class RimworldXmlHighlightingTests(ProjectLayout layout) : RimworldHighli
 
     [Test] public void TestValidValues() => DoNamedTest();
 
-    // Float values are only reported in a mod's own project; see boundary 8 in docs/testing-plan.md
+    // Float values are only reported when loaded up XmlProjects, they don't actually get matched properly in CSharp
+    // projects
     [ProjectLayouts(ProjectLayout.XmlProject)]
     [Test] public void TestInvalidValues() => DoNamedTest();
 }
 
-/// <summary>
-/// The same input with no RimWorld types in the solution: the stage must quietly produce nothing (and log nothing).
-/// </summary>
 [ProjectLayouts(ProjectLayout.CSharpProject)]
 [TestFileExtension(".xml")]
 public class RimworldXmlHighlightingWithoutRimworldTests(ProjectLayout layout) : RimworldHighlightingTestBase(layout)

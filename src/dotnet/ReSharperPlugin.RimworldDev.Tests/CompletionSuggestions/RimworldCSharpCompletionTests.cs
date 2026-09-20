@@ -5,10 +5,6 @@ using ReSharperPlugin.RimworldDev.Tests.TestBases;
 
 namespace ReSharperPlugin.RimworldDev.Tests.CompletionSuggestions;
 
-/// <summary>
-/// Def names offered in C#, from the same def index the XML side uses. Each test brings Defs.xml along so the index has
-/// something in it.
-/// </summary>
 [TestFileExtension(".cs")]
 [ProjectLayouts(ProjectLayout.CSharpProject)]
 public class RimworldCSharpCompletionTests(ProjectLayout layout) : RimworldCompletionTestBase(layout)
