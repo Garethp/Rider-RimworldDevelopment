@@ -60,6 +60,8 @@ Phase B's XML + index setup, caret in a `.cs` file, different providers.
 |---|---|---|---|
 | 16 | One invalid `bool` via `HighlightingTestBase` (gold = source with `\|text\|(0)` markers) | `CustomXmlAnalysisStage` in the test shell; daemon registration, severity filter | ✅ |
 | 17 | No RimWorld reference → no highlights, no logged errors | the bail-out path; first test without Krafs | ✅ |
+| 17b | Every validating branch across a pair of same-shaped inputs, valid and invalid: int, float, IntRange, FloatRange, Vector2, Vector3, enum, struct, the types the stage skips, unresolvable fields and whitespace-padded values | the rest of the switch in `CustomXmlAnalysisStageProcess`; found boundaries 8 and 9 | ✅ |
+| 17c | The same suite again in a mod's real layout — XML in a referenceless project, RimWorld referenced by a C# project beside it | `[ProjectLayouts]` + `ProjectLayoutSupport`; project descriptors and per-project references | ✅ |
 
 ## Phase F — Find Usages (known rough edge)
 
@@ -194,6 +196,145 @@ With no Krafs reference the stage produces nothing and logs nothing.
 references, and our reference factory calls `UpdateScopes`. Reorder the stages or change the reference factory and the
 analyser silently goes quiet.
 
+### Phase E, expanded (2026-09-20) — the rest of the value validators
+
+`Highlighting/RimworldXmlHighlightingTests.cs` covers the whole switch in three tests: `TestValidValues` and
+`TestInvalidValues` over two inputs with the **same structure**, and `TestWithoutRimworld`. Between them the pair holds
+every validating branch, both operands of each range, the types the stage deliberately skips (string,
+`IntVec2`/`IntVec3`, `Color`, `Nullable<>`), the single-value shorthand the ranges and `Vector2` allow, values whose
+field resolves to no type at all (unknown def type, misspelled field, RimWorld's `statBases` syntax, unknown
+`li Class`) and whitespace-padded values. A value reported in one input and not in its twin is the difference between
+them.
+
+Two gaps turned up:
+
+- **Floats are checked in a real mod but not in a C# project** (boundary 8). `TestInvalidValues` carries the float
+  fields along with everything else and runs in the XML layout only, because in the C# one those values go unreported.
+
+  `GetContextFromHierachy` identifies a field's type by `field.Type.GetLongPresentableName(CSharpLanguage.Instance)` and
+  looks that string up in the symbol scope. What that returns depends on whether the type resolves in the module the
+  file belongs to — `DeclaredTypeBase.GetPresentableName` is:
+
+  ```csharp
+  var typeElement = GetTypeElement();
+  if (typeElement == null) return GetUnresolvedPresentation(...);   // "System.Single"
+  return typePresenter.GetPresentableName(this, style);             // "float"
+  ```
+
+  Resolved, it reaches `CSharpTypePresenter`, whose default style carries `UseKeywordsForPredefinedTypes`, so a
+  predefined type prints as its keyword — not a CLR name, resolves to nothing. Unresolved, it reaches
+  `DeclaredTypeFromReflectionClassType.GetUnresolvedPresentation`, which prints `myClrTypeName.FullName` because
+  `GetLongPresentableName` asks for `DefaultWithQualifiedName` — and that *does* resolve.
+
+  In the shell the `.xml` is a file of the C# test project, `System.Single` resolves through its mscorlib, and floats go
+  unchecked. In a mod, `Defs` belong to the plugin's own XML project, where it doesn't resolve, so the value is checked.
+  Confirmed from both ends: the author moved the same file between the two projects in a real solution and watched the
+  highlightings appear and disappear. Float validation therefore works by accident and only outside a C# project;
+  `bool`/`string`/`int` work everywhere only because of the hand-written keyword switch, and `Verse.FloatRange` has no
+  keyword to print so it behaves the same either way. Ruled out along the way, each by experiment: the Krafs reference
+  assemblies (the real `Assembly-CSharp.dll` from a Steam install behaves the same), the filtered reference set (every
+  framework DLL from the package changes nothing) and the compilation-context cookie (no cookie, the universal context
+  and the file's own resolve context all answer `float`).
+
+  **The fix is to read the CLR name off `field.Type` instead of its presentation**, which removes the fork entirely
+  (adding `case "float"` only patches one keyword of a dozen). It was tried and reverted: it changes what completion
+  and references resolve too, which the current tests don't cover, and `Nullable<>` has to be looked through at the
+  same time or every nullable value gets reported as wrong. Left for a bug-fix pass.
+- **Leading whitespace silences a tag** (boundary 9). Trailing whitespace is fine — it is included in both the checked
+  text and the highlighted range — but a value written on its own line has a whitespace token before the text token, so
+  `element.Parent.Children().FirstOrDefault(x => x is XmlFloatingTextToken) != element` sends the stage home. That is
+  also why `ProcessBoolean`/`ProcessEnum` get away with comparing untrimmed text.
+
+One more quirk, harmless but worth knowing: `Vector2`'s regex is lazy and `float.TryParse` accepts a thousands
+separator, so `(1,2,3)` in a `Vector2` field parses its second component as `"2,3"` → 23 and reports nothing.
+
+### Both project layouts (2026-09-20) — the harness can now build what a mod actually looks like
+
+A mod keeps its `Defs` in the plugin's own XML project, not in a C# project, and that changes what the plugin sees
+(boundary 8). A fixture now declares which layouts it runs in, and one class covers both:
+
+```csharp
+[ProjectLayouts(ProjectLayout.XmlProject, ProjectLayout.CSharpProject)]
+[TestFileExtension(".xml")]
+public class RimworldXmlHighlightingTests(ProjectLayout layout) : RimworldHighlightingTestBase(layout)
+```
+
+`ProjectLayoutsAttribute` is an `IFixtureBuilder2` that builds one fixture per layout listed, so every `[Test]` in the
+class runs once in each — against **one shared gold**. A test that passes in only one layout therefore *fails*, which
+is the point. `--filter FullyQualifiedName~XmlProject` runs a single layout, which is how to regenerate a gold since
+both layouts write the same `.tmp`.
+
+**Declaring a layout is mandatory** for every fixture that touches the plugin: the layout-aware bases take it as a
+constructor argument with no default, so a fixture without the attribute has nothing to build it from. Each fixture
+therefore says which model it is testing, and the ones that only work in one say so, with a comment explaining what
+fails in the other. (The smoke tests stay on the SDK's own bases — they exist to answer "do tests work at all".)
+
+A test can narrow itself further: the same attribute on a `[Test]` method limits that test to the layouts it lists and
+skips it in the others, so one awkward test doesn't hold its whole suite back (`TestInvalidValues` is the current
+case).
+
+| Suite | Layouts | Why |
+|---|---|---|
+| `RimworldXmlHighlightingTests` | both | `TestInvalidValues` narrowed to the XML layout (boundary 8) |
+| `RimworldSymbolScopeTests` | both | |
+| `AcceptCompletion.RimworldXmlTests` | both | |
+| `RimworldXmlCompletionTests` | C# only | keyword-less type column and empty def-name lists in the XML layout |
+| `RimworldNavigationTests` | C# only | nothing to navigate to in the XML layout; not investigated |
+| `RimworldFindUsagesFromXmlTests` | C# only | no usages found in the XML layout; not investigated |
+| `RimworldReferenceTests` | C# only | its one `.cs`-driven test lands in the referenceless project |
+| `RimworldCSharpCompletionTests`, `RimworldFindUsagesFromCSharpTests`, `…WithoutRimworldTests` | C# only | the layout isn't what they're about |
+
+Two things to know when adding a suite to the XML layout:
+
+- The C# project has to hold *something*, which is `test/data/ModAssembly.cs` — one file for every suite, reached with
+  the `..\` prefix the split computes from `RelativeTestDataPath`. Don't put copies in the suite folders: a completion
+  fixture picks up stray `.cs` files in its own data folder, and a spare one changes what its tests see.
+- The layout bases set the project names in their constructor and override `CanReuseSolution` to check them, because
+  the framework otherwise hands a fixture a solution another fixture built in the other layout.
+
+`ProjectLayout.cs` holds the enum, the attribute, the `IProjectLayoutFixture` marker and `ProjectLayoutSupport`, which
+has all the behaviour. Changing an existing fixture's layouts is the attribute and nothing else. The only plumbing left
+is per **SDK test class**, because C# has no mixins: a layout-aware base has to exist for each of them, and the four
+that do live together in `TestBases/` (`RimworldHighlightingTestBase`, `RimworldCompletionTestBase`,
+`RimworldNavigationTestBase`, `RimworldSolutionTestBase`). They are identical apart from which SDK class they extend — a constructor, `Layout`,
+`ReferenceRimworld`, and four one-line overrides that hand off to `ProjectLayoutSupport`:
+
+| Override | Hands off to |
+|---|---|
+| constructor | `ProjectNames` — names the two projects before the solution is built |
+| `CanReuseSolution` | `CanReuse` — the framework otherwise hands over a solution built in the other layout |
+| `GetReferencedAssemblies` | `ReferencedAssemblies` — the game's assemblies, unless `ReferenceRimworld` is off |
+| `CreateProjectDescriptor` | `Libraries` — strips every reference off the XML project |
+| `DoNamedTest` (or `DoLayoutTestSolution`) | `BuildSolution` — `.cs` data to the C# project, the Defs to the XML one |
+
+Resetting `ScopeHelper` around each test, and skipping a test whose own `[ProjectLayouts]` excludes the fixture's
+layout, are both done by the attribute (it is an NUnit `ITestAction`), so a base needs no `SetUp` for either. To cover
+an SDK test class that has no base yet, copy one of the four and change what it extends.
+
+The highlighting suite reproduces the real behaviour exactly: every invalid value in `TestInvalidValues` is reported
+in the XML layout, and the float ones are not in the C# project - which is what the author sees when moving the same
+file between the two projects in a real solution. Since the two layouts share a gold, that test carries
+`[ProjectLayouts(XmlProject)]` and skips in the C# one until boundary 8 is fixed. `TestValidValues` runs in both.
+
+That also settled the other open question: the whitespace-padded values behave the same in both layouts, so **the
+whitespace gap (boundary 9) is real plugin behaviour, not a harness artifact.**
+
+XML completion declares the C# layout only. Running it in both was tried and surfaces two differences, neither fixed:
+
+1. The popup's type column loses its C# keywords — `Int32`, `Boolean`, `Single`, `List` instead of `int`, `bool`,
+   `float`, `List<AltitudeLayer>`. Same cause as the float highlighting, cosmetic but user-visible.
+2. Def-name completion comes back empty (`Count: 0`) in the emulated layout. It tracks the reference stripping — put the
+   XML project's references back and the list fills — and everything the provider needs still works when probed
+   directly (the def index finds both defs, `GetTagByDef` returns live nodes, the type resolves and its supertypes
+   include `Verse.Def`). A real XML-only mod completing def names is the plugin's headline feature, so treat this as the
+   emulation being harsher than the real project model until someone confirms otherwise in a real mod.
+
+Next step for #2: give the XML project the project properties the real host uses (`RimworldXmlProjectHost` builds
+`ProjectLanguage.JAVASCRIPT` with a `NetFramework` target framework of *null version*) instead of stripping a C#
+project bare. `GetProjectProperties` is virtual but doesn't know which project it's building, so it needs a field set
+from `CreateProjectDescriptor`. Once that behaves, turn the completion suite on with the attribute and gold both
+layouts.
+
 ### Phase F (2026-09-18) — Find Usages runs; C# usages are missed, cause found
 
 Tests: `FindUsages/RimworldFindUsagesTests.cs`, data `test/data/FindUsages/`. Same `AllNavigationProvidersTestBase` as
@@ -230,6 +371,8 @@ host once its abstract members were supplied — no new harness fixes were neede
 | 5 | `GetScopeForClass` searches `knownCustomScopes` twice (should be `allScopes`) | `ScopeHelper` | found by reading; needs a two-project test |
 | 6 | Closing tags resolve only by coincidence | `GetHierarchy` on closing identifiers | cosmetic |
 | 7 | Daemon stage relies on another stage having set the scope | `CustomXmlAnalysisStageProcess` | nothing yet; fragile |
+| 8 | Predefined field types are identified by a *presented* name, which differs between a mod's XML project and a C# project, so floats are validated in a real mod but not in a C# project. Reading the CLR name off the type fixes it (tried, reverted — it reaches further than the highlighting tests cover; left for a bug-fix pass, and `Nullable<>` needs looking through at the same time or every nullable value is reported as wrong) | `GetContextFromHierachy`'s `GetLongPresentableName` + the `bool`/`string`/`int` keyword switch | `TestInvalidValues` runs in the XML layout only; any future test over a `float`, `double`, `long`, … field |
+| 9 | ✅ Confirmed in both layouts — a value with leading whitespace (typically one written on its own line) is never validated | the "first text child" guard in `CustomXmlAnalysisStageProcess.ProcessAfterInterior` — the whitespace is a separate, earlier token | any multi-line value |
 
 **Not explored:** Phase G (disk discovery via `RimworldPath`/`AddRef`, the generator) and Phase H (Rider-only code,
 Remodder, Kotlin). #1 (now fixed) was the blocker for testing the generator (step 20). Also still open from the proof of

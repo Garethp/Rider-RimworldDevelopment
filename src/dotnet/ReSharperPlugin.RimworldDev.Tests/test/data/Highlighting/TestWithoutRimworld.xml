@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Defs>
+    <NotARealDef>
+        <defName>UnknownDefType</defName>
+        <stackLimit>seven and a half</stackLimit>
+    </NotARealDef>
+    <ThingDef>
+        <defName>TestThing</defName>
+        <label>a test thing</label>
+        <devNote>1~2~3</devNote>
+        <stackLimitt>75</stackLimitt>
+
+        <leaveResourcesWhenKilled>maybe</leaveResourcesWhenKilled>
+        <stackLimit>7.5</stackLimit>
+        <deepCommonality>lots</deepCommonality>
+        <deepLumpSizeRange>1~2~3</deepLumpSizeRange>
+        <startingHpRange>half~2</startingHpRange>
+        <uiIconOffset>(1,up)</uiIconOffset>
+        <category>Bulding</category>
+        <defaultPlacingRot>Sideways</defaultPlacingRot>
+
+        <size>(one,two)</size>
+        <interactionCellOffset>(one,two,three)</interactionCellOffset>
+        <highlightColor>(one,two,three)</highlightColor>
+
+        <deepCountPerCell> lots</deepCountPerCell>
+        <deepCountPerPortion>
+            lots
+        </deepCountPerPortion>
+        <minRewardCount>lots </minRewardCount>
+
+        <graphicData>
+            <drawSize>(1,wide)</drawSize>
+            <drawOffset>(1,2)</drawOffset>
+            <onGroundRandomRotateAngle>lots</onGroundRandomRotateAngle>
+            <color>(one,two,three)</color>
+            <drawOffsetNorth>(1,up,0)</drawOffsetNorth>
+        </graphicData>
+
+        <tradeTags>
+            <li>Artifact</li>
+        </tradeTags>
+        <statBases>
+            <li>
+                <stat>MaxHitPoints</stat>
+                <value>lots</value>
+            </li>
+            <MaxHitPoints>lots</MaxHitPoints>
+        </statBases>
+        <comps>
+            <li Class="NotARealCompProperties">
+                <someField>lots</someField>
+            </li>
+        </comps>
+    </ThingDef>
+    <ThingDef>
+        <defName>TestThingSecondOperand</defName>
+        <deepLumpSizeRange>1~two</deepLumpSizeRange>
+        <startingHpRange>0.5~high</startingHpRange>
+        <uiIconOffset>left,2</uiIconOffset>
+        <graphicData>
+            <drawOffset>(1,2,down)</drawOffset>
+        </graphicData>
+    </ThingDef>
+</Defs>

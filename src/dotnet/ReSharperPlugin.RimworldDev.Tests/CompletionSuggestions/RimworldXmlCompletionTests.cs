@@ -1,14 +1,16 @@
 using JetBrains.ReSharper.FeaturesTestFramework.Completion;
 using JetBrains.ReSharper.TestFramework;
 using NUnit.Framework;
+using ReSharperPlugin.RimworldDev.Tests.TestBases;
 
 namespace ReSharperPlugin.RimworldDev.Tests.CompletionSuggestions;
 
 /// <summary>
 /// The real thing: RimWorld XML completion backed by the game's types. Gold is the lookup list at {caret}.
 /// </summary>
+[ProjectLayouts(ProjectLayout.CSharpProject)]
 [TestFileExtension(".xml")]
-public class RimworldXmlCompletionTests : RimworldCompletionTestBase
+public class RimworldXmlCompletionTests(ProjectLayout layout) : RimworldCompletionTestBase(layout)
 {
     protected override CodeCompletionTestType TestType => CodeCompletionTestType.ModernList;
     protected override string RelativeTestDataPath => @"CompletionSuggestions\Rimworld";

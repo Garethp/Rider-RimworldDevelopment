@@ -1,0 +1,84 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Defs>
+    <NotARealDef>
+        <defName>UnknownDefType</defName>
+        <stackLimit>seven and a half</stackLimit>
+    </NotARealDef>
+    <ThingDef>
+        <defName>TestThing</defName>
+        <label>a test thing</label>
+        <devNote>1~2~3</devNote>
+        <stackLimitt>75</stackLimitt>
+
+        <leaveResourcesWhenKilled>|maybe|(0)</leaveResourcesWhenKilled>
+        <stackLimit>|7.5|(1)</stackLimit>
+        <deepCommonality>|lots|(2)</deepCommonality>
+        <deepLumpSizeRange>|1~2~3|(3)</deepLumpSizeRange>
+        <startingHpRange>|half~2|(4)</startingHpRange>
+        <uiIconOffset>|(1,up)|(5)</uiIconOffset>
+        <category>|Bulding|(6)</category>
+        <defaultPlacingRot>|Sideways|(7)</defaultPlacingRot>
+
+        <size>(one,two)</size>
+        <interactionCellOffset>(one,two,three)</interactionCellOffset>
+        <highlightColor>(one,two,three)</highlightColor>
+
+        <deepCountPerCell> lots</deepCountPerCell>
+        <deepCountPerPortion>
+            lots
+        </deepCountPerPortion>
+        <minRewardCount>|lots |(8)</minRewardCount>
+
+        <graphicData>
+            <drawSize>|(1,wide)|(9)</drawSize>
+            <drawOffset>|(1,2)|(10)</drawOffset>
+            <onGroundRandomRotateAngle>|lots|(11)</onGroundRandomRotateAngle>
+            <color>(one,two,three)</color>
+            <drawOffsetNorth>(1,up,0)</drawOffsetNorth>
+        </graphicData>
+
+        <tradeTags>
+            <li>Artifact</li>
+        </tradeTags>
+        <statBases>
+            <li>
+                <stat>MaxHitPoints</stat>
+                <value>|lots|(12)</value>
+            </li>
+            <MaxHitPoints>lots</MaxHitPoints>
+        </statBases>
+        <comps>
+            <li Class="NotARealCompProperties">
+                <someField>lots</someField>
+            </li>
+        </comps>
+    </ThingDef>
+    <ThingDef>
+        <defName>TestThingSecondOperand</defName>
+        <deepLumpSizeRange>|1~two|(13)</deepLumpSizeRange>
+        <startingHpRange>|0.5~high|(14)</startingHpRange>
+        <uiIconOffset>|left,2|(15)</uiIconOffset>
+        <graphicData>
+            <drawOffset>|(1,2,down)|(16)</drawOffset>
+        </graphicData>
+    </ThingDef>
+</Defs>
+
+---------------------------------------------------------
+(0): ReSharper Underlined Error Highlighting: Value must be "true" or "false"
+(1): ReSharper Underlined Error Highlighting: Value must be a whole number with no decimal points
+(2): ReSharper Underlined Error Highlighting: Value must be a valid number
+(3): ReSharper Underlined Error Highlighting: Your value must be two integers in a format similar to "1~2"
+(4): ReSharper Underlined Error Highlighting: "half" is not a valid float
+(5): ReSharper Underlined Error Highlighting: "up" is not a valid number
+(6): ReSharper Underlined Error Highlighting: "Bulding" is not a valid value for ThingCategory
+(7): ReSharper Underlined Error Highlighting: "Sideways" is not a valid value for Rot4
+(8): ReSharper Underlined Error Highlighting: Value must be a whole number with no decimal points
+(9): ReSharper Underlined Error Highlighting: "wide" is not a valid number
+(10): ReSharper Underlined Error Highlighting: Your value must be in a format similar to (1,2,3)
+(11): ReSharper Underlined Error Highlighting: Value must be a valid number
+(12): ReSharper Underlined Error Highlighting: Value must be a valid number
+(13): ReSharper Underlined Error Highlighting: "two" is not a valid integer
+(14): ReSharper Underlined Error Highlighting: "high" is not a valid float
+(15): ReSharper Underlined Error Highlighting: "left" is not a valid number
+(16): ReSharper Underlined Error Highlighting: "down" is not a valid number

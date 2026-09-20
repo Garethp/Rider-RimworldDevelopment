@@ -190,7 +190,10 @@ tasks.runIde {
     // part of a plugin, but there are dangers about keeping plugins in sync
     autoReload = false
 
-    val exampleModSolution = layout.projectDirectory.file("example-mod/AshAndDust.sln").asFile.absolutePath
+    // What the sandbox opens. Defaults to the checked-in example mod; the highlighting fixtures under example-mods/
+    // are opened with e.g. -PrunIdeSolution=example-mods/XmlOnlyMod (a folder is fine, it doesn't have to be a .sln).
+    val solutionToOpen = providers.gradleProperty("runIdeSolution").getOrElse("example-mod/AshAndDust.sln")
+    val exampleModSolution = layout.projectDirectory.file(solutionToOpen).asFile.absolutePath
 
     argumentProviders += CommandLineArgumentProvider {
         listOf(exampleModSolution)

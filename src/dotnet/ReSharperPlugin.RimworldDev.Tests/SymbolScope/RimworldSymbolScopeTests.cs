@@ -1,17 +1,15 @@
-using System.Collections.Generic;
-using System.Linq;
 using JetBrains.Application.Components;
 using JetBrains.Lifetimes;
 using JetBrains.ProjectModel;
-using JetBrains.ReSharper.Psi;
 using JetBrains.ReSharper.Psi.Tree;
+using JetBrains.ReSharper.Psi;
 using JetBrains.ReSharper.Resources.Shell;
 using JetBrains.ReSharper.TestFramework;
 using JetBrains.Util;
-using JetBrains.Util.Dotnet.TargetFrameworkIds;
 using NUnit.Framework;
 using ReSharperPlugin.RimworldDev.SymbolScope;
-using ReSharperPlugin.RimworldDev.Tests.CompletionSuggestions;
+using ReSharperPlugin.RimworldDev.Tests.TestBases;
+using System.Linq;
 
 namespace ReSharperPlugin.RimworldDev.Tests.SymbolScope;
 
@@ -20,27 +18,15 @@ namespace ReSharperPlugin.RimworldDev.Tests.SymbolScope;
 /// Build + Merge for the file, which used to read PSI mid-commit and log an error. After each edit, the node handed back
 /// must be the one at the def's current position, not a node cached from an earlier tree.
 /// </summary>
-public class RimworldSymbolScopeTests : BaseTestWithSingleProject
+[ProjectLayouts(ProjectLayout.XmlProject, ProjectLayout.CSharpProject)]
+public class RimworldSymbolScopeTests(ProjectLayout layout) : RimworldSolutionTestBase(layout)
 {
     private const string FileName = "TestDefNodesFollowEdits.xml";
     private const string ThingALine = "    <ThingDef><defName>ThingA</defName></ThingDef>\n";
 
     protected override string RelativeTestDataPath => @"SymbolScope";
 
-    protected override IEnumerable<string> GetReferencedAssemblies(TargetFrameworkId targetFrameworkId) =>
-        base.GetReferencedAssemblies(targetFrameworkId).Concat(RimworldCompletionTestBase.RimworldReferenceAssemblies());
-
-    [SetUp]
-    public void ResetRimworldScope()
-    {
-        ScopeHelper.Reset();
-        ScopeHelper.SkipAssemblyDiscovery = true;
-    }
-
-    [TearDown]
-    public void ForgetRimworldScope() => ScopeHelper.Reset();
-
-    [Test] public void TestDefNodesFollowEdits() => DoTestSolution(FileName);
+    [Test] public void TestDefNodesFollowEdits() => DoLayoutTestSolution(FileName);
 
     protected override void DoTest(Lifetime lifetime, IProject project)
     {

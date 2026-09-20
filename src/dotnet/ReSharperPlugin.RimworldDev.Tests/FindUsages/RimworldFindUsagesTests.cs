@@ -1,10 +1,7 @@
-using System.Collections.Generic;
-using System.Linq;
-using JetBrains.ReSharper.IntentionsTests.Navigation;
 using JetBrains.ReSharper.TestFramework;
-using JetBrains.Util.Dotnet.TargetFrameworkIds;
 using NUnit.Framework;
-using ReSharperPlugin.RimworldDev.Tests.CompletionSuggestions;
+using ReSharperPlugin.RimworldDev.Tests.References;
+using ReSharperPlugin.RimworldDev.Tests.TestBases;
 
 namespace ReSharperPlugin.RimworldDev.Tests.FindUsages;
 
@@ -15,34 +12,23 @@ namespace ReSharperPlugin.RimworldDev.Tests.FindUsages;
 /// DefDatabase string in CSharpUsages.cs) are not, because RimworldSearcherFactory.IsCompatibleWithLanguage only
 /// accepts XML. Allowing C# there makes both appear (verified), so when that's fixed these golds should gain them.
 /// </summary>
-public abstract class RimworldFindUsagesTestBase : AllNavigationProvidersTestBase
+public abstract class RimworldFindUsagesTestBase(ProjectLayout layout) : RimworldNavigationTestBase(layout)
 {
     protected override string ExtraPath => "";
     protected override string RelativeTestDataPath => @"FindUsages";
-
-    protected override IEnumerable<string> GetReferencedAssemblies(TargetFrameworkId targetFrameworkId) =>
-        base.GetReferencedAssemblies(targetFrameworkId).Concat(RimworldCompletionTestBase.RimworldReferenceAssemblies());
-
-    [SetUp]
-    public void ResetRimworldScope()
-    {
-        ScopeHelper.Reset();
-        ScopeHelper.SkipAssemblyDiscovery = true;
-    }
-
-    [TearDown]
-    public void ForgetRimworldScope() => ScopeHelper.Reset();
 }
 
+[ProjectLayouts(ProjectLayout.CSharpProject)]
 [TestFileExtension(".xml")]
-public class RimworldFindUsagesFromXmlTests : RimworldFindUsagesTestBase
+public class RimworldFindUsagesFromXmlTests(ProjectLayout layout) : RimworldFindUsagesTestBase(layout)
 {
     [Test] public void TestFromDefName() => DoNamedTest("OtherUsages.xml", "CSharpUsages.cs");
     [Test] public void TestFromNameAttribute() => DoNamedTest();
 }
 
+[ProjectLayouts(ProjectLayout.CSharpProject)]
 [TestFileExtension(".cs")]
-public class RimworldFindUsagesFromCSharpTests : RimworldFindUsagesTestBase
+public class RimworldFindUsagesFromCSharpTests(ProjectLayout layout) : RimworldFindUsagesTestBase(layout)
 {
     [Test] public void TestFromCSharpString() => DoNamedTest("Defs.xml", "OtherUsages.xml");
 }

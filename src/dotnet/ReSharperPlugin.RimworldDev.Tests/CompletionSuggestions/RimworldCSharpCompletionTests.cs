@@ -1,6 +1,7 @@
 using JetBrains.ReSharper.FeaturesTestFramework.Completion;
 using JetBrains.ReSharper.TestFramework;
 using NUnit.Framework;
+using ReSharperPlugin.RimworldDev.Tests.TestBases;
 
 namespace ReSharperPlugin.RimworldDev.Tests.CompletionSuggestions;
 
@@ -9,7 +10,8 @@ namespace ReSharperPlugin.RimworldDev.Tests.CompletionSuggestions;
 /// something in it.
 /// </summary>
 [TestFileExtension(".cs")]
-public class RimworldCSharpCompletionTests : RimworldCompletionTestBase
+[ProjectLayouts(ProjectLayout.CSharpProject)]
+public class RimworldCSharpCompletionTests(ProjectLayout layout) : RimworldCompletionTestBase(layout)
 {
     protected override CodeCompletionTestType TestType => CodeCompletionTestType.ModernList;
     protected override string RelativeTestDataPath => @"CompletionSuggestions\RimworldCSharp";

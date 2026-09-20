@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<Defs>
-    <ThingDef>
-        <defName>TestThing</defName>
-        <leaveResourcesWhenKilled>maybe</leaveResourcesWhenKilled>
-        <alwaysHaulable>true</alwaysHaulable>
-    </ThingDef>
-</Defs>

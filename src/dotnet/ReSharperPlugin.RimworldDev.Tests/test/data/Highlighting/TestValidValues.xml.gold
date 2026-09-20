@@ -1,0 +1,67 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Defs>
+    <NotARealDef>
+        <defName>UnknownDefType</defName>
+        <stackLimit>75</stackLimit>
+    </NotARealDef>
+    <ThingDef>
+        <defName>TestThing</defName>
+        <label>a test thing</label>
+        <devNote>1~2~3</devNote>
+        <stackLimitt>75</stackLimitt>
+
+        <leaveResourcesWhenKilled>True</leaveResourcesWhenKilled>
+        <stackLimit>-75</stackLimit>
+        <deepCommonality>1.5</deepCommonality>
+        <deepLumpSizeRange>2~8</deepLumpSizeRange>
+        <startingHpRange>0.5~1</startingHpRange>
+        <uiIconOffset>(0.5,-0.25)</uiIconOffset>
+        <category>Building</category>
+        <defaultPlacingRot>North</defaultPlacingRot>
+
+        <size>(1,2)</size>
+        <interactionCellOffset>(0,0,-1)</interactionCellOffset>
+        <highlightColor>(1,1,1)</highlightColor>
+
+        <deepCountPerCell> 75</deepCountPerCell>
+        <deepCountPerPortion>
+            75
+        </deepCountPerPortion>
+        <minRewardCount>75 </minRewardCount>
+
+        <graphicData>
+            <drawSize>(1,1)</drawSize>
+            <drawOffset>(0,0.2,0)</drawOffset>
+            <onGroundRandomRotateAngle>12.5</onGroundRandomRotateAngle>
+            <color>(0.5,0.5,0.5)</color>
+            <drawOffsetNorth>(0,0.2,0)</drawOffsetNorth>
+        </graphicData>
+
+        <tradeTags>
+            <li>Artifact</li>
+        </tradeTags>
+        <statBases>
+            <li>
+                <stat>MaxHitPoints</stat>
+                <value>100</value>
+            </li>
+            <MaxHitPoints>100</MaxHitPoints>
+        </statBases>
+        <comps>
+            <li Class="NotARealCompProperties">
+                <someField>100</someField>
+            </li>
+        </comps>
+    </ThingDef>
+    <ThingDef>
+        <defName>TestThingSecondOperand</defName>
+        <deepLumpSizeRange>4</deepLumpSizeRange>
+        <startingHpRange>2</startingHpRange>
+        <uiIconOffset>1.5</uiIconOffset>
+        <graphicData>
+            <drawOffset>(0,0,0)</drawOffset>
+        </graphicData>
+    </ThingDef>
+</Defs>
+
+---------------------------------------------------------

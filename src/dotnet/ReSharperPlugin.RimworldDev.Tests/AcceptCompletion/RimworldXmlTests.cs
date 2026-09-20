@@ -2,6 +2,7 @@ using JetBrains.ReSharper.FeaturesTestFramework.Completion;
 using JetBrains.ReSharper.TestFramework;
 using NUnit.Framework;
 using ReSharperPlugin.RimworldDev.Tests.CompletionSuggestions;
+using ReSharperPlugin.RimworldDev.Tests.TestBases;
 
 namespace ReSharperPlugin.RimworldDev.Tests.AcceptCompletion;
 
@@ -10,8 +11,9 @@ namespace ReSharperPlugin.RimworldDev.Tests.AcceptCompletion;
 /// Accepting an item commits the edited document, which runs RimworldSymbolScope.Merge mid-commit; these guard that the
 /// index doesn't read PSI there (docs/testing-plan.md step 5).
 /// </summary>
+[ProjectLayouts(ProjectLayout.XmlProject, ProjectLayout.CSharpProject)]
 [TestFileExtension(".xml")]
-public class RimworldXmlTests : RimworldCompletionTestBase
+public class RimworldXmlTests(ProjectLayout layout) : RimworldCompletionTestBase(layout)
 {
     protected override CodeCompletionTestType TestType => CodeCompletionTestType.Action;
     protected override string RelativeTestDataPath => @"AcceptCompletion\Rimworld";

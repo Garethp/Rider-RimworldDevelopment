@@ -1,59 +1,36 @@
-using System.Collections.Generic;
-using System.Linq;
-using JetBrains.ReSharper.FeaturesTestFramework.Daemon;
-using JetBrains.ReSharper.Psi;
-using JetBrains.ReSharper.Psi.Xml;
 using JetBrains.ReSharper.TestFramework;
-using JetBrains.Util.Dotnet.TargetFrameworkIds;
 using NUnit.Framework;
-using ReSharperPlugin.RimworldDev.Tests.CompletionSuggestions;
+using ReSharperPlugin.RimworldDev.Tests.TestBases;
 
 namespace ReSharperPlugin.RimworldDev.Tests.Highlighting;
 
 /// <summary>
 /// CustomXmlAnalysisStage: XML values checked against the C# type of the field they set. Gold is the source with the
-/// highlighted ranges marked, followed by the list of highlightings.
+/// highlighted ranges marked, followed by the list of highlightings. The two inputs have the same structure, so a
+/// value that is reported in one and not the other is the difference between them.
 /// </summary>
+[ProjectLayouts(ProjectLayout.XmlProject, ProjectLayout.CSharpProject)]
 [TestFileExtension(".xml")]
-public class RimworldXmlHighlightingTests : HighlightingTestBase
+public class RimworldXmlHighlightingTests(ProjectLayout layout) : RimworldHighlightingTestBase(layout)
 {
     protected override string RelativeTestDataPath => @"Highlighting";
-    protected override PsiLanguageType CompilerIdsLanguage => XmlLanguage.Instance;
 
-    protected override IEnumerable<string> GetReferencedAssemblies(TargetFrameworkId targetFrameworkId) =>
-        base.GetReferencedAssemblies(targetFrameworkId).Concat(RimworldCompletionTestBase.RimworldReferenceAssemblies());
+    [Test] public void TestValidValues() => DoNamedTest();
 
-    [SetUp]
-    public void ResetRimworldScope()
-    {
-        ScopeHelper.Reset();
-        ScopeHelper.SkipAssemblyDiscovery = true;
-    }
-
-    [TearDown]
-    public void ForgetRimworldScope() => ScopeHelper.Reset();
-
-    [Test] public void TestInvalidBool() => DoNamedTest();
+    // Float values are only reported in a mod's own project; see boundary 8 in docs/testing-plan.md
+    [ProjectLayouts(ProjectLayout.XmlProject)]
+    [Test] public void TestInvalidValues() => DoNamedTest();
 }
 
 /// <summary>
 /// The same input with no RimWorld types in the solution: the stage must quietly produce nothing (and log nothing).
 /// </summary>
+[ProjectLayouts(ProjectLayout.CSharpProject)]
 [TestFileExtension(".xml")]
-public class RimworldXmlHighlightingWithoutRimworldTests : HighlightingTestBase
+public class RimworldXmlHighlightingWithoutRimworldTests(ProjectLayout layout) : RimworldHighlightingTestBase(layout)
 {
     protected override string RelativeTestDataPath => @"Highlighting";
-    protected override PsiLanguageType CompilerIdsLanguage => XmlLanguage.Instance;
+    protected override bool ReferenceRimworld => false;
 
-    [SetUp]
-    public void ResetRimworldScope()
-    {
-        ScopeHelper.Reset();
-        ScopeHelper.SkipAssemblyDiscovery = true;
-    }
-
-    [TearDown]
-    public void ForgetRimworldScope() => ScopeHelper.Reset();
-
-    [Test] public void TestNoRimworldReference() => DoNamedTest();
+    [Test] public void TestWithoutRimworld() => DoNamedTest();
 }

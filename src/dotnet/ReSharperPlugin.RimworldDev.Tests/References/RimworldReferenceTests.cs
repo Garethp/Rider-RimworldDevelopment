@@ -1,18 +1,17 @@
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using JetBrains.Application.Components;
 using JetBrains.Lifetimes;
 using JetBrains.ProjectModel;
-using JetBrains.ReSharper.Psi;
 using JetBrains.ReSharper.Psi.Files;
 using JetBrains.ReSharper.Psi.Resolve;
 using JetBrains.ReSharper.Psi.Tree;
+using JetBrains.ReSharper.Psi;
 using JetBrains.ReSharper.Resources.Shell;
 using JetBrains.ReSharper.TestFramework;
-using JetBrains.Util.Dotnet.TargetFrameworkIds;
 using NUnit.Framework;
-using ReSharperPlugin.RimworldDev.Tests.CompletionSuggestions;
+using ReSharperPlugin.RimworldDev.Tests.TestBases;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 
 namespace ReSharperPlugin.RimworldDev.Tests.References;
 
@@ -22,22 +21,10 @@ namespace ReSharperPlugin.RimworldDev.Tests.References;
 /// "node → reference type → what it resolved to". The first file given to DoTestSolution is the one dumped; the rest
 /// only exist to be resolved into.
 /// </summary>
-public class RimworldReferenceTests : BaseTestWithSingleProject
+[ProjectLayouts(ProjectLayout.CSharpProject)]
+public class RimworldReferenceTests(ProjectLayout layout) : RimworldSolutionTestBase(layout)
 {
     protected override string RelativeTestDataPath => @"References";
-
-    protected override IEnumerable<string> GetReferencedAssemblies(TargetFrameworkId targetFrameworkId) =>
-        base.GetReferencedAssemblies(targetFrameworkId).Concat(RimworldCompletionTestBase.RimworldReferenceAssemblies());
-
-    [SetUp]
-    public void ResetRimworldScope()
-    {
-        ScopeHelper.Reset();
-        ScopeHelper.SkipAssemblyDiscovery = true;
-    }
-
-    [TearDown]
-    public void ForgetRimworldScope() => ScopeHelper.Reset();
 
     [Test] public void TestXmlToCSharp() => DoTestSolution("XmlToCSharp.xml");
     [Test] public void TestXmlToXmlDef() => DoTestSolution("XmlToXmlDef.xml", "OtherDefs.xml");
@@ -80,7 +67,7 @@ public class RimworldReferenceTests : BaseTestWithSingleProject
     protected new void DoTestSolution(params string[] fileSet)
     {
         myFileSet = fileSet;
-        base.DoTestSolution(fileSet);
+        DoLayoutTestSolution(fileSet);
     }
 
     private static string Describe(IDeclaredElement element) => element switch
