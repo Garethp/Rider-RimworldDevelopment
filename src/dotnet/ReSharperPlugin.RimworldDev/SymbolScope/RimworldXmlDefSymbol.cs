@@ -15,8 +15,6 @@ public class RimworldXmlDefSymbol
 
     public int DocumentOffset { get; }
     
-    // public IXmlTag Tag { get; }
-
     public RimworldXmlDefSymbol(ITreeNode tag, string defName, string defType)
     {
         DefName = defName;

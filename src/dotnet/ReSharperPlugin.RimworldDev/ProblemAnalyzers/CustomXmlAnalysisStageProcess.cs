@@ -30,6 +30,8 @@ public sealed class CustomXmlAnalysisStageProcess : XmlDaemonStageProcessBase, I
 
     public override void Execute([InstantHandle] Action<DaemonStageResult> committer)
     {
+        if (!ScopeHelper.IsRimworldProject()) return;
+        
         File.ProcessDescendants(this);
         committer(new DaemonStageResult(myConsumer.CollectHighlightings()));
     }

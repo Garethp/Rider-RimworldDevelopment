@@ -3,9 +3,7 @@ using System.Linq;
 using JetBrains;
 using JetBrains.Annotations;
 using JetBrains.Application.Parts;
-using JetBrains.Application.Parts;
 using JetBrains.Application.Threading;
-using JetBrains.Collections;
 using JetBrains.Lifetimes;
 using JetBrains.Metadata.Reader.API;
 using JetBrains.ProjectModel;
@@ -43,9 +41,12 @@ public class RimworldSymbolScope : SimpleICache<List<RimworldXmlDefSymbol>>
     private SymbolTable _symbolTable;
 
     public RimworldSymbolScope
-    (Lifetime lifetime, [NotNull] IShellLocks locks, [NotNull] IPersistentIndexManager persistentIndexManager,
-        long? version = null)
-        : base(lifetime, locks, persistentIndexManager, RimworldXmlDefSymbol.Marshaller, version)
+    (
+        Lifetime lifetime, 
+        [NotNull] IShellLocks locks, 
+        [NotNull] IPersistentIndexManager persistentIndexManager,
+        long? version = null
+    ) : base(lifetime, locks, persistentIndexManager, RimworldXmlDefSymbol.Marshaller, version)
     {
     }
 

@@ -1,8 +1,8 @@
 using System.Collections.Generic;
-using System.Linq;
 using System.Xml;
 using JetBrains.ReSharper.Psi;
 using JetBrains.ReSharper.Psi.Tree;
+using JetBrains.ReSharper.Psi.Xml.Impl.Tree;
 using JetBrains.Util;
 using JetBrains.Util.DataStructures;
 
@@ -18,6 +18,15 @@ public class XMLTagDeclaredElement : IDeclaredElement
         this.owner = owner;
         myPsiServices = owner.GetPsiServices();
         ShortName = $"{defType}/{defName}";
+        CaseSensitiveName = caseSensitiveName;
+        PresentationLanguage = owner.Language;
+    }
+
+    public XMLTagDeclaredElement(ITreeNode owner, string keyName, bool caseSensitiveName)
+    {
+        this.owner = owner;
+        myPsiServices = owner.GetPsiServices();
+        ShortName = $"{keyName}";
         CaseSensitiveName = caseSensitiveName;
         PresentationLanguage = owner.Language;
     }
@@ -70,7 +79,11 @@ public class XMLTagDeclaredElement : IDeclaredElement
 
     public IPsiServices GetPsiServices() => myPsiServices;
 
-    public XmlNode GetXMLDoc(bool inherit) => (XmlNode)null;
+    public XmlNode GetXMLDoc(bool inherit) => null;
 
-    public XmlNode GetXMLDescriptionSummary(bool inherit) => (XmlNode)null;
+    public XmlNode GetXMLDescriptionSummary(bool inherit) => null;
+
+    public string GetText() => owner.GetText();
+    
+    public string GetInnerText() => owner is XmlTag ownerTag ? ownerTag.InnerText : owner.GetText();
 }
