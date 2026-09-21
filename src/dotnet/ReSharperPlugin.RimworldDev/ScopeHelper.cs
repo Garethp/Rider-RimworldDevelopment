@@ -27,6 +27,26 @@ public class ScopeHelper
     private static List<ISymbolScope> usedScopes;
     private static bool adding = false;
 
+    /// <summary>
+    /// When set, never go looking for Assembly-CSharp.dll on disk. Tests set this so that a RimWorld install on the
+    /// developer's machine can't leak into an in-memory test solution that already references the game types.
+    /// </summary>
+    internal static bool SkipAssemblyDiscovery;
+
+    /// <summary>
+    /// Forgets every cached scope/module. Tests need this because the statics otherwise outlive the in-memory solution
+    /// that produced them; production never calls it.
+    /// </summary>
+    internal static void Reset()
+    {
+        allScopes = new();
+        knownCustomScopes = new();
+        rimworldScope = null;
+        rimworldModule = null;
+        usedScopes = null;
+        adding = false;
+    }
+
     public static bool UpdateScopes(ISolution solution)
     {
         if (solution == null) return false;
@@ -35,12 +55,6 @@ public class ScopeHelper
             allScopes = solution.PsiModules().GetModules().Select(module =>
                 module.GetPsiServices().Symbols.GetSymbolScope(module, true, true)).ToList();
 
-            // If we haven't determined the Rimworld scope yet, our scopes may not be ready for querying. Since I'd rather
-            // that we were able to pull the scope from the dependencies than try to find it ourselves, let's check if the
-            // scopes are ready for querying first. Ofcourse, if we have no scopes at all, there's nothing to wait for
-            if (rimworldScope == null && allScopes.Any() && allScopes.Any(scope => !scope.GetAllShortNames().Any()))
-                return false;
-
             if (rimworldScope == null)
             {
                 rimworldScope =
@@ -48,6 +62,14 @@ public class ScopeHelper
 
                 if (rimworldScope == null)
                 {
+                    // If we haven't determined the Rimworld scope yet, our scopes may not be ready for querying. Since I'd
+                    // rather that we were able to pull the scope from the dependencies than try to find it ourselves, let's
+                    // check if the scopes are ready for querying first. Ofcourse, if we have no scopes at all, there's
+                    // nothing to wait for. This check deliberately comes *after* looking for Rimworld: a module that is
+                    // legitimately empty (an XML-only project) must not stop us from using a Rimworld module that's ready.
+                    if (allScopes.Any() && allScopes.Any(scope => !scope.GetAllShortNames().Any()))
+                        return false;
+
                     AddRef(solution);
 
                     return false;
@@ -81,7 +103,7 @@ public class ScopeHelper
 
     private static async void AddRef(ISolution solution)
     {
-        if (adding) return;
+        if (adding || SkipAssemblyDiscovery) return;
         adding = true;
 
         var path = FindRimworldDll(solution.SolutionDirectory.FullPath);
@@ -315,6 +337,26 @@ public class ScopeHelper
         });
 
         return items;
+    }
+
+    /// <summary>
+    /// The other def types a def class can be referenced as: its superclasses below <c>Verse.Def</c>, nearest first, as
+    /// short names (<c>MyMod.CustomThingDef</c> -> <c>ThingDef</c>, <c>BuildableDef</c>). Null when the class can't be
+    /// resolved, which for a mod's class can just mean the symbol caches aren't ready yet.
+    /// </summary>
+    [CanBeNull]
+    public static List<string> GetDefSuperClassNames(string clrName)
+    {
+        using (CompilationContextCookie.GetOrCreate(UniversalModuleReferenceContext.Instance))
+        {
+            if (GetScopeForClass(clrName)?.GetTypeElementByCLRName(clrName) is not { } typeElement) return null;
+
+            return typeElement.GetAllSuperClasses()
+                .Select(superClass => superClass.GetClrName())
+                .TakeWhile(superClass => superClass.FullName != "Verse.Def")
+                .Select(superClass => superClass.ShortName)
+                .ToList();
+        }
     }
 
     public static bool ExtendsFromVerseDef(string clrName)

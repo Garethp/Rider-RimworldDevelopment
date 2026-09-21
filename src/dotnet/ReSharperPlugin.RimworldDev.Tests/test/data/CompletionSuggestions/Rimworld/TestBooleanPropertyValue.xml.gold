@@ -1,0 +1,16 @@
+﻿Completion: Basic
+Count: 2
+Focus: Hard
+Range: "<leaveResourcesWhenKilled>♦"
+
+##### RELEVANCE SORT #####
+
+                            [FromSingleCompletion, FromLightAndDynamicEvaluation, NormalSelectionPriority, Other]
+false                       <==
+true
+
+##### ALPHABETIC SORT #####
+
+                            [Light, Generic]
+false                       <==
+true

@@ -1,0 +1,16 @@
+﻿Completion: Basic
+Prefix: "always"
+Count: 1
+Focus: Hard
+Range: "<always♦"
+         ▲▲▲▲▲▲▲
+
+##### RELEVANCE SORT #####
+
+                            [FromSingleCompletion, FromLightAndDynamicEvaluation, PrefixMatch, NormalSelectionPriority, Other]
+ạḷẉạỵṣDisplayAsUsingPower    bool    <==
+
+##### ALPHABETIC SORT #####
+
+                            [Light, Generic]
+ạḷẉạỵṣDisplayAsUsingPower    bool    <==

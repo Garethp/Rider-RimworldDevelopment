@@ -1,0 +1,22 @@
+﻿Completion: Basic
+Count: 5
+Focus: Hard
+Range: "<defaultPlacingRot>♦</defaultPlacingRot>"
+
+##### RELEVANCE SORT #####
+
+                            [FromSingleCompletion, FromLightAndDynamicEvaluation, NormalSelectionPriority, Other]
+East                        Rot4    <==
+Invalid                     Rot4
+North                       Rot4
+South                       Rot4
+West                        Rot4
+
+##### ALPHABETIC SORT #####
+
+                            [Light, Generic]
+East                        Rot4    <==
+Invalid                     Rot4
+North                       Rot4
+South                       Rot4
+West                        Rot4

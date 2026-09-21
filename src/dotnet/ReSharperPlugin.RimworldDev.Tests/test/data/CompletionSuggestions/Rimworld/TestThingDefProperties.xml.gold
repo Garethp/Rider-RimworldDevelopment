@@ -1,0 +1,19 @@
+﻿Completion: Basic
+Prefix: "altit"
+Count: 2
+Focus: Hard
+Range: "<altit♦"
+         ▲▲▲▲▲▲
+
+##### RELEVANCE SORT #####
+
+                            [PrefixMatch]
+ạḷṭịṭudeLayer               AltitudeLayer    <==
+                            [FromSingleCompletion^, FromLightAndDynamicEvaluation^, NormalSelectionPriority^, Other^]
+blocksẠḷṭịṭudes             List<AltitudeLayer>
+
+##### ALPHABETIC SORT #####
+
+                            [Light, Generic]
+ạḷṭịṭudeLayer               AltitudeLayer    <==
+blocksẠḷṭịṭudes             List<AltitudeLayer>

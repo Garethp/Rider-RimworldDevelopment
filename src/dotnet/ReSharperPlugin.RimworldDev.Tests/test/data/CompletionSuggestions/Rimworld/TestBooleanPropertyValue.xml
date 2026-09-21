@@ -1,0 +1,5 @@
+<Defs>
+    <ThingDef>
+        <leaveResourcesWhenKilled>{caret}
+    </ThingDef>
+</Defs>

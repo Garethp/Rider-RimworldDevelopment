@@ -1,0 +1,54 @@
+﻿## FindUsagesAdvancedProvider activity:
+  Tooltip was shown: Usages of 'HighPriority' were not found
+
+## FindUsagesProvider activity:
+  Tooltip was shown: Usages of 'HighPriority' were not found
+
+## GotoDeclarationProvider activity:
+  Immediate result:
+    DEO: Envoy: EnumMember:Verse.AI.ThinkTreeDutyHook.HighPriority, PsiLanguageType:UNKNOWN as Envoy: EnumMember:Verse.AI.ThinkTreeDutyHook.HighPriority, PsiLanguageType:UNKNOWN RANGE: (0,0) @ Assembly-CSharp
+    Navigation result:
+      opened file: ThinkTreeDutyHook.cs
+      ------------------
+      {
+        None,
+        |CARET|HighPriority,
+        MediumPriority,
+      }
+      ------------------
+
+
+## GotoImplementationProvider activity:
+  Immediate result:
+    DEO: Envoy: EnumMember:Verse.AI.ThinkTreeDutyHook.HighPriority, PsiLanguageType:UNKNOWN as Envoy: EnumMember:Verse.AI.ThinkTreeDutyHook.HighPriority, PsiLanguageType:UNKNOWN RANGE: (0,0) @ Assembly-CSharp
+    Navigation result:
+      opened file: ThinkTreeDutyHook.cs
+      ------------------
+      {
+        None,
+        |CARET|HighPriority,
+        MediumPriority,
+      }
+      ------------------
+
+
+## GotoTypeDeclarationProvider activity:
+  Immediate result:
+    DEO: Envoy: Enum:Verse.AI.ThinkTreeDutyHook, PsiLanguageType:UNKNOWN as Envoy: Enum:Verse.AI.ThinkTreeDutyHook, PsiLanguageType:UNKNOWN RANGE: (0,0) @ Assembly-CSharp
+    Navigation result:
+      opened file: ThinkTreeDutyHook.cs
+      ------------------
+      namespace Verse.AI;
+
+      public enum |CARET|ThinkTreeDutyHook
+      {
+        None,
+      ------------------
+
+
+## HighlightUsagesProvider activity:
+  Tooltip was shown: Usages of 'HighPriority' were not found in this file
+
+## ShowUsagesProvider activity:
+  Tooltip was shown: Usages of 'HighPriority' were not found
+

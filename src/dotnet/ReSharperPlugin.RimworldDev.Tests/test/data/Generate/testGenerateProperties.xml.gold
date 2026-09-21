@@ -1,0 +1,47 @@
+﻿Provided elements:
+ 0: drawSize:UnityEngine.Vector2
+ 1: graphicClass:System.Type
+ 2: shadowData:Verse.ShadowData
+ 3: shaderType:Verse.ShaderTypeDef
+ 4: color:UnityEngine.Color
+ 5: damageData:Verse.DamageGraphicData
+ 6: shaderParameters:System.Collections.Generic.List`1
+ 7: maskPath:System.String
+ 8: name:System.String
+ 9: colorTwo:UnityEngine.Color
+ 10: drawOffset:UnityEngine.Vector3
+ 11: drawOffsetNorth:System.Nullable`1
+ 12: drawOffsetEast:System.Nullable`1
+ 13: drawOffsetSouth:System.Nullable`1
+ 14: drawOffsetWest:System.Nullable`1
+ 15: onGroundRandomRotateAngle:System.Single
+ 16: drawRotated:System.Boolean
+ 17: allowFlip:System.Boolean
+ 18: flipExtraRotation:System.Single
+ 19: renderInstanced:System.Boolean
+ 20: allowAtlasing:System.Boolean
+ 21: renderQueue:System.Int32
+ 22: overlayOpacity:System.Single
+ 23: attachments:System.Collections.Generic.List`1
+ 24: attachPoints:System.Collections.Generic.List`1
+ 25: addTopAltitudeBias:System.Boolean
+ 26: ignoreThingDrawColor:System.Boolean
+ 27: maxSnS:UnityEngine.Vector2
+ 28: offsetSnS:UnityEngine.Vector2
+ 29: linkType:Verse.LinkDrawerType
+ 30: linkFlags:Verse.LinkFlags
+ 31: asymmetricLink:Verse.AsymmetricLinkData
+ 32: cornerOverlayPath:System.String
+
+<?xml version="1.0" encoding="utf-8"?>
+<!-- ${KIND:RimworldPropertyGenerator} ${SELECT0:drawSize:UnityEngine.Vector2} ${SELECT1:color:UnityEngine.Color} -->
+<Defs>
+    <ThingDef>
+        <defName>TestThing</defName>
+        <graphicData>
+            <texPath>Things/Test</texPath>
+          <drawSize></drawSize>
+          <color></color>{caret}
+        </graphicData>
+    </ThingDef>
+</Defs>

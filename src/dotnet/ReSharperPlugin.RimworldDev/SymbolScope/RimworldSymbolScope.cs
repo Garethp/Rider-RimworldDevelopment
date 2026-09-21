@@ -1,13 +1,11 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using JetBrains;
 using JetBrains.Annotations;
 using JetBrains.Application.Parts;
-using JetBrains.Application.Parts;
 using JetBrains.Application.Threading;
-using JetBrains.Collections;
 using JetBrains.Lifetimes;
-using JetBrains.Metadata.Reader.API;
 using JetBrains.ProjectModel;
 using JetBrains.ReSharper.Psi;
 using JetBrains.ReSharper.Psi.Caches;
@@ -16,37 +14,67 @@ using JetBrains.ReSharper.Psi.Files;
 using JetBrains.ReSharper.Psi.Resolve;
 using JetBrains.ReSharper.Psi.Tree;
 using JetBrains.ReSharper.Psi.Util;
-using JetBrains.ReSharper.Psi.Xml.Impl.Tree;
 using JetBrains.ReSharper.Psi.Xml.Tree;
 using ReSharperPlugin.RimworldDev.TypeDeclaration;
 
 namespace ReSharperPlugin.RimworldDev.SymbolScope;
 
-public struct DefTag
+/// <summary>
+/// Where a def is declared: the offset of its <c>&lt;defName&gt;</c> text or <c>Name=""</c> value in its file. The tree
+/// node itself is only looked up when someone asks for it (<see cref="RimworldSymbolScope.GetTagByDef(string)"/>).
+/// </summary>
+public readonly struct DefTag
 {
-    public DefTag(ITreeNode treeNode, bool isAbstract = false)
+    public DefTag(IPsiSourceFile sourceFile, int documentOffset, bool isAbstract)
     {
-        TreeNode = treeNode;
+        SourceFile = sourceFile;
+        DocumentOffset = documentOffset;
         IsAbstract = isAbstract;
     }
 
-    public ITreeNode TreeNode { get; }
+    public IPsiSourceFile SourceFile { get; }
+    public int DocumentOffset { get; }
     public bool IsAbstract { get; }
 }
 
+/// <summary>
+/// Index of every def in the solution, keyed by <c>"{defType}/{defName}"</c>.
+///
+/// Merge/MergeLoaded only record where each def lives; they must not touch PSI, because Merge runs in the middle of a
+/// document commit, where asking for a PSI file asserts ("Trying to get PSI file for an uncommitted document"). Tree
+/// nodes are looked up when queried, and the superclass aliases in <see cref="GetExtraDefTagNames"/> are resolved on the
+/// first query after a change, once the RimWorld and mod types can actually be resolved.
+/// </summary>
 [PsiComponent(Instantiation.ContainerAsyncPrimaryThread)]
 public class RimworldSymbolScope : SimpleICache<List<RimworldXmlDefSymbol>>
 {
-    private Dictionary<string, DefTag> DefTags = new();
-    private Dictionary<string, string> ExtraDefTagNames = new();
+    // Version of the persisted RimworldXmlDefSymbol format; bump it whenever the marshaller changes
+    private const long PersistentVersion = 2;
+
+    private readonly ISolution _solution;
+
+    // Written in Merge/Drop (write lock), read by queries (read lock), so the two never overlap
+    private readonly Dictionary<string, DefTag> DefTags = new();
+
+    // "ThingDef/CustomThing" -> "MyMod.CustomThingDef/CustomThing". Queries can run on several threads at once, so it's
+    // rebuilt under a lock and swapped in whole.
+    private Dictionary<string, string> _extraDefTagNames = new();
+    private volatile bool _extraDefTagNamesStale;
+    private readonly object _extraDefTagNamesLock = new();
+
+    // Offset -> defName/Name value node for each XML file we've looked into. Keyed weakly on the IFile so the nodes
+    // go away with the tree instead of being kept alive by the index.
+    private readonly ConditionalWeakTable<IXmlFile, Dictionary<int, ITreeNode>> _defNodesByFile = new();
+
     private Dictionary<string, XMLTagDeclaredElement> _declaredElements = new();
     private SymbolTable _symbolTable;
 
     public RimworldSymbolScope
     (Lifetime lifetime, [NotNull] IShellLocks locks, [NotNull] IPersistentIndexManager persistentIndexManager,
-        long? version = null)
-        : base(lifetime, locks, persistentIndexManager, RimworldXmlDefSymbol.Marshaller, version)
+        ISolution solution)
+        : base(lifetime, locks, persistentIndexManager, RimworldXmlDefSymbol.Marshaller, PersistentVersion)
     {
+        _solution = solution;
     }
 
     protected override bool IsApplicable(IPsiSourceFile sourceFile)
@@ -54,8 +82,24 @@ public class RimworldSymbolScope : SimpleICache<List<RimworldXmlDefSymbol>>
         return base.IsApplicable(sourceFile) && sourceFile.LanguageType.Name == "XML";
     }
 
+    /// <summary>
+    /// The current aliases, rebuilding them first if they're stale (see <see cref="RebuildExtraDefTagNames"/>). Call it
+    /// once per query and use the result throughout: each call may retry the rebuild, and another query may swap in a
+    /// new dictionary between calls.
+    /// </summary>
+    private Dictionary<string, string> GetExtraDefTagNames()
+    {
+        if (!_extraDefTagNamesStale) return _extraDefTagNames;
+
+        lock (_extraDefTagNamesLock)
+        {
+            if (_extraDefTagNamesStale) RebuildExtraDefTagNames();
+            return _extraDefTagNames;
+        }
+    }
+
     public bool HasTag(DefNameValue defName) =>
-        DefTags.ContainsKey(defName.TagId) || ExtraDefTagNames.ContainsKey(defName.TagId);
+        DefTags.ContainsKey(defName.TagId) || GetExtraDefTagNames().ContainsKey(defName.TagId);
 
     [CanBeNull]
     public ITreeNode GetTagByDef(string defType, string defName)
@@ -69,31 +113,32 @@ public class RimworldSymbolScope : SimpleICache<List<RimworldXmlDefSymbol>>
     [CanBeNull]
     public ITreeNode GetTagByDef(string defId)
     {
-        if (!DefTags.ContainsKey(defId))
+        if (!DefTags.TryGetValue(defId, out var defTag))
             return null;
 
-        return DefTags[defId].TreeNode;
+        return FindDefNode(defTag);
     }
 
     public bool IsDefAbstract(string defId)
     {
-        return DefTags.ContainsKey(defId) && DefTags[defId].IsAbstract;
+        return DefTags.TryGetValue(defId, out var defTag) && defTag.IsAbstract;
     }
 
     public DefNameValue GetDefName(DefNameValue value) =>
-        ExtraDefTagNames.TryGetValue(value.TagId, out var defTag) ? new DefNameValue(defTag) : value;
+        GetExtraDefTagNames().TryGetValue(value.TagId, out var defTag) ? new DefNameValue(defTag) : value;
 
     public List<string> GetDefsByType(string defType)
     {
+        var extraDefTagNames = GetExtraDefTagNames();
+
         return DefTags
             .Keys
             .Where(key => key.StartsWith($"{defType}/"))
-            .Select(defId => ExtraDefTagNames.ContainsKey(defId) ? ExtraDefTagNames[defId] : defId)
-            .ToList()
+            .Select(defId => extraDefTagNames.TryGetValue(defId, out var aliasedDefId) ? aliasedDefId : defId)
             .Concat(
-                ExtraDefTagNames.Keys
-                    .Where(key => key.StartsWith($"{defType}/"))
-                    .Select(key => ExtraDefTagNames[key])
+                extraDefTagNames
+                    .Where(alias => alias.Key.StartsWith($"{defType}/"))
+                    .Select(alias => alias.Value)
             ).ToList();
     }
 
@@ -125,7 +170,7 @@ public class RimworldSymbolScope : SimpleICache<List<RimworldXmlDefSymbol>>
                               .Children()
                               .FirstOrDefault(element => element is IXmlValueToken)?
                               .GetUnquotedText();
-            
+
             var defNameTag = tag.GetNestedTags<IXmlTag>("defName").
                                  FirstOrDefault()?.
                                  Children().
@@ -133,10 +178,15 @@ public class RimworldSymbolScope : SimpleICache<List<RimworldXmlDefSymbol>>
                              tag.GetAttribute("Name")?.
                                  Children().
                                  FirstOrDefault(element => element is IXmlValueToken);
-            
+
             if (defName is null) continue;
 
-            defs.Add(new RimworldXmlDefSymbol(defNameTag, defName, tag.GetTagName()));
+            // Only defs identified by a Name="" attribute can be abstract parents
+            var isAbstract = defNameTag is IXmlValueToken &&
+                             tag.GetAttribute("Abstract") is { } attribute &&
+                             attribute.UnquotedValue.ToLower() == "true";
+
+            defs.Add(new RimworldXmlDefSymbol(defNameTag, defName, tag.GetTagName(), isAbstract));
         }
 
         return defs;
@@ -161,76 +211,14 @@ public class RimworldSymbolScope : SimpleICache<List<RimworldXmlDefSymbol>>
         base.Drop(sourceFile);
     }
 
+    // Runs inside Merge, i.e. mid-commit: must not ask for PSI (see the class comment)
     private void AddToLocalCache(IPsiSourceFile sourceFile, [CanBeNull] List<RimworldXmlDefSymbol> cacheItem)
     {
-        ScopeHelper.UpdateScopes(sourceFile.GetSolution());
-        if (sourceFile.GetPrimaryPsiFile() is not IXmlFile xmlFile) return;
-
         cacheItem?.ForEach(item =>
         {
-            var matchingDefTag = xmlFile
-                                     .GetNestedTags<IXmlTag>("Defs/*/defName").FirstOrDefault(tag =>
-                                         tag.Children().ElementAt(1).GetTreeStartOffset().Offset ==
-                                         item.DocumentOffset) ??
-                                 xmlFile
-                                     .GetNestedTags<IXmlTag>("Defs/*")
-                                     .FirstOrDefault(tag =>
-                                         tag.GetAttribute("Name")?
-                                             .Children()
-                                             .FirstOrDefault(element => element is IXmlValueToken)?
-                                             .GetTreeStartOffset().Offset == item.DocumentOffset
-                                     )?
-                                     .GetAttribute("Name")?
-                                     .Children()
-                                     .FirstOrDefault(element => element is IXmlValueToken);
-            
-            if (matchingDefTag is null) return;
-
-            // If the DefName is in a [Name=""] Attribute, it'll be matched to a XmlValueToken, which doesn't have any
-            // children. Otherwise, it'll be matched to the XmlTag for <defName>, where we want the first child as the
-            // string value
-            var xmlTag = matchingDefTag is IXmlValueToken ? matchingDefTag : matchingDefTag.Children().ElementAt(1);
-
-            AddDefTagToList(item, xmlTag);
+            DefTags[$"{item.DefType}/{item.DefName}"] = new DefTag(sourceFile, item.DocumentOffset, item.IsAbstract);
+            if (item.DefType.Contains(".")) _extraDefTagNamesStale = true;
         });
-
-        void AddDefTagToList(RimworldXmlDefSymbol item, ITreeNode xmlTag)
-        {
-            using (CompilationContextCookie.GetOrCreate(UniversalModuleReferenceContext.Instance))
-            {
-                if (item.DefType.Contains(".") && ScopeHelper.RimworldScope is not null)
-                {
-                    var superClasses = ScopeHelper.GetScopeForClass(item.DefType)?
-                        .GetTypeElementByCLRName(item.DefType)?
-                        .GetAllSuperClasses().ToList() ?? new();
-
-                    foreach (var superClass in superClasses)
-                    {
-                        if (superClass.GetClrName().FullName == "Verse.Def") break;
-
-                        var subDefType = superClass.GetClrName().ShortName;
-                        if (!ExtraDefTagNames.ContainsKey($"{subDefType}/{item.DefName}"))
-                        {
-                            ExtraDefTagNames.Add($"{subDefType}/{item.DefName}", $"{item.DefType}/{item.DefName}");
-                        }
-                        else
-                        {
-                            ExtraDefTagNames[$"{subDefType}/{item.DefName}"] = $"{item.DefType}/{item.DefName}";
-                        }
-                    }
-                }
-
-                var isAbstract = xmlTag is IXmlValueToken && 
-                                  xmlTag.Parent?.Parent is XmlTagHeaderNode defTypeTag && 
-                                  defTypeTag.GetAttribute("Abstract") is {} attribute && 
-                                  attribute.UnquotedValue.ToLower() == "true";
-
-                if (!DefTags.ContainsKey($"{item.DefType}/{item.DefName}"))
-                    DefTags.Add($"{item.DefType}/{item.DefName}", new DefTag(xmlTag, isAbstract));
-                else
-                    DefTags[$"{item.DefType}/{item.DefName}"] = new DefTag(xmlTag, isAbstract);
-            }
-        }
     }
 
     private void RemoveFromLocalCache(IPsiSourceFile sourceFile)
@@ -239,8 +227,12 @@ public class RimworldSymbolScope : SimpleICache<List<RimworldXmlDefSymbol>>
 
         items?.ForEach(item =>
         {
-            if (DefTags.ContainsKey($"{item.DefType}/{item.DefName}"))
-                DefTags.Remove($"{item.DefType}/{item.DefName}");
+            var defId = $"{item.DefType}/{item.DefName}";
+
+            if (DefTags.TryGetValue(defId, out var defTag) && defTag.SourceFile.Equals(sourceFile))
+                DefTags.Remove(defId);
+
+            if (item.DefType.Contains(".")) _extraDefTagNamesStale = true;
         });
     }
 
@@ -248,6 +240,85 @@ public class RimworldSymbolScope : SimpleICache<List<RimworldXmlDefSymbol>>
     {
         foreach (var (sourceFile, cacheItem) in Map)
             AddToLocalCache(sourceFile, cacheItem);
+    }
+
+    /// <summary>
+    /// Maps each def whose type is a mod class (<c>&lt;MyMod.CustomThingDef&gt;</c>) to every RimWorld superclass short
+    /// name up to <c>Verse.Def</c>, so that a <c>ThingDef</c> reference finds it. Stays stale, so the next query tries
+    /// again, until RimWorld's scope is ready and every such type resolves; on a cold load neither is true when the
+    /// index is merged.
+    /// </summary>
+    private void RebuildExtraDefTagNames()
+    {
+        var customDefs = DefTags.Keys
+            .Select(defId => new DefNameValue(defId))
+            .Where(defId => defId.DefType.Contains("."))
+            .ToList();
+
+        var extraDefTagNames = new Dictionary<string, string>();
+        var allResolved = true;
+
+        if (customDefs.Any())
+        {
+            if (!ScopeHelper.UpdateScopes(_solution)) return;
+
+            foreach (var def in customDefs)
+            {
+                if (ScopeHelper.GetDefSuperClassNames(def.DefType) is not { } superClassNames)
+                {
+                    allResolved = false;
+                    continue;
+                }
+
+                foreach (var superClassName in superClassNames)
+                    extraDefTagNames[$"{superClassName}/{def.DefName}"] = def.TagId;
+            }
+        }
+
+        _extraDefTagNames = extraDefTagNames;
+        _extraDefTagNamesStale = !allResolved;
+    }
+
+    [CanBeNull]
+    private ITreeNode FindDefNode(DefTag defTag)
+    {
+        var sourceFile = defTag.SourceFile;
+        if (!sourceFile.IsValid()) return null;
+
+        // Queries normally run on committed documents, but don't turn a stray one into the assertion this design avoids
+        if (!sourceFile.GetPsiServices().Files.IsCommitted(sourceFile)) return null;
+        if (sourceFile.GetPrimaryPsiFile() is not IXmlFile xmlFile) return null;
+
+        if (_defNodesByFile.TryGetValue(xmlFile, out var nodes) &&
+            nodes.TryGetValue(defTag.DocumentOffset, out var cachedNode) &&
+            cachedNode.IsValid() &&
+            cachedNode.GetTreeStartOffset().Offset == defTag.DocumentOffset)
+            return cachedNode;
+
+        // Not looked at yet, or reparsed since (an incremental reparse can keep the same IFile)
+        nodes = FindDefNodes(xmlFile);
+        _defNodesByFile.AddOrUpdate(xmlFile, nodes);
+
+        return nodes.TryGetValue(defTag.DocumentOffset, out var node) ? node : null;
+    }
+
+    // The same nodes Build records offsets for: the text inside <defName>, and the value of Name=""
+    private static Dictionary<int, ITreeNode> FindDefNodes(IXmlFile xmlFile)
+    {
+        var nodes = new Dictionary<int, ITreeNode>();
+
+        foreach (var tag in xmlFile.GetNestedTags<IXmlTag>("Defs/*"))
+        {
+            if (tag.GetNestedTags<IXmlTag>("defName").FirstOrDefault()?.Children().ElementAtOrDefault(1) is
+                { } defNameValue)
+                nodes[defNameValue.GetTreeStartOffset().Offset] = defNameValue;
+
+            if (tag.GetAttribute("Name")?.Children().FirstOrDefault(element => element is IXmlValueToken) is
+                { } nameValue)
+                nodes[nameValue.GetTreeStartOffset().Offset] = nameValue;
+        }
+
+        return nodes;
     }
 
     public void AddDeclaredElement(ISolution solution, ITreeNode owner, string defType, string defName,

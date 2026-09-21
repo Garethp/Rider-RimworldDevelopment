@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Defs>
+    <MyMod.CustomThingDef>
+        <defName>CustomThing</defName>
+        <cus{caret}
+    </MyMod.CustomThingDef>
+</Defs>

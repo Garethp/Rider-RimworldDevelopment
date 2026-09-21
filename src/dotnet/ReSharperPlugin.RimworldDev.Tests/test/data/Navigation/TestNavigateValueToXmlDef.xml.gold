@@ -1,0 +1,68 @@
+﻿## FindReferencedCodeProvider activity:
+  Tooltip was shown: Referenced code in 'XmlTag ThingDef/LocalThing' were not found
+
+## FindUsagesAdvancedProvider activity:
+  FindResults window with 2 results
+    TO: [O] <defName>|LocalThing|</defName> RANGE: (78,88) @ TestNavigateValueToXmlDef.xml
+    TO: [O] <minifiedDef>|LocalThing|</minifiedDef> RANGE: (187,197) @ TestNavigateValueToXmlDef.xml
+
+## FindUsagesProvider activity:
+  FindResults window with 2 results
+    TO: [O] <defName>|LocalThing|</defName> RANGE: (78,88) @ TestNavigateValueToXmlDef.xml
+    TO: [O] <minifiedDef>|LocalThing|</minifiedDef> RANGE: (187,197) @ TestNavigateValueToXmlDef.xml
+
+## GotoDeclarationProvider activity:
+  Immediate result:
+    TO: [O] <defName>|LocalThing|</defName> RANGE: (78,88) @ TestNavigateValueToXmlDef.xml
+    Navigation result:
+      opened file: TestNavigateValueToXmlDef.xml
+      ------------------
+      <Defs>
+          <ThingDef>
+              <defName>|CARET|LocalThing</defName>
+          </ThingDef>
+          <ThingDef>
+      ------------------
+
+
+## GotoImplementationProvider activity:
+  Immediate result:
+    TO: [O] <defName>|LocalThing|</defName> RANGE: (78,88) @ TestNavigateValueToXmlDef.xml
+    Navigation result:
+      opened file: TestNavigateValueToXmlDef.xml
+      ------------------
+      <Defs>
+          <ThingDef>
+              <defName>|CARET|LocalThing</defName>
+          </ThingDef>
+          <ThingDef>
+      ------------------
+
+
+## ShowUsagesProvider activity:
+  Async context menu shown `Usages of 'ThingDef/LocalThing'`:
+    TO: [O] <defName>|LocalThing|</defName> RANGE: (78,88) @ TestNavigateValueToXmlDef.xml
+    Menu item (enabled) :
+      icon: UsageOther
+      text: TestNavigateValueToXmlDef.xml      <font color="FFD5A286"><defName>**LocalThing**</defName></font><font color="06C"> (4)</font>
+      tail: <font color="FF6D6D6D">in <TestProject></font>
+      tooltip: <defName>**LocalThing**</defName>
+    Navigation result:
+      opened file: TestNavigateValueToXmlDef.xml
+      ------------------
+      <Defs>
+          <ThingDef>
+              <defName>|CARET|LocalThing</defName>
+          </ThingDef>
+          <ThingDef>
+      ------------------
+
+    TO: [O] <minifiedDef>|LocalThing|</minifiedDef> RANGE: (187,197) @ TestNavigateValueToXmlDef.xml
+    Menu item (enabled) :
+      icon: UsageOther
+      text: TestNavigateValueToXmlDef.xml      <font color="FFD5A286"><minifiedDef>**LocalThing**</minifiedDef></font><font color="06C"> (8)</font>
+      tail: <font color="FF6D6D6D">in <TestProject></font>
+      tooltip: <minifiedDef>**LocalThing**</minifiedDef>
+    Navigation result:
+      caret did not move
+

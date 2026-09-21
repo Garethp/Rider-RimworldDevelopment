@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Defs>
+
+    <StuffCategoryDef>
+        <defName>Metallic</defName>
+        <label>metallic</label>
+        <noun>metal</noun>
+        <destroySoundSmall>BuildingDestroyed_Metal_Small</destroySoundSmall>
+        <destroySoundMedium>BuildingDestroyed_Metal_Medium</destroySoundMedium>
+        <destroySoundLarge>BuildingDestroyed_Metal_Big</destroySoundLarge>
+    </StuffCategoryDef>
+
+    <StuffCategoryDef>
+        <defName>Woody</defName>
+        <label>woody</label>
+        <noun>wood</noun>
+        <destroySoundSmall>BuildingDestroyed_Wood_Small</destroySoundSmall>
+        <destroySoundMedium>BuildingDestroyed_Wood_Medium</destroySoundMedium>
+        <destroySoundLarge>BuildingDestroyed_Wood_Big</destroySoundLarge>
+    </StuffCategoryDef>
+
+</Defs>

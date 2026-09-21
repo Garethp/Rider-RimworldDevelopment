@@ -1,0 +1,17 @@
+﻿Provided elements:
+ 0: stat:RimWorld.StatDef
+ 1: value:System.Single
+
+<?xml version="1.0" encoding="utf-8"?>
+<!-- ${KIND:RimworldPropertyGenerator} ${SELECTALL:true} -->
+<Defs>
+    <ThingDef>
+        <defName>TestThing</defName>
+        <statBases>
+            <li>
+              <stat></stat>
+              <value></value>{caret}
+            </li>
+        </statBases>
+    </ThingDef>
+</Defs>

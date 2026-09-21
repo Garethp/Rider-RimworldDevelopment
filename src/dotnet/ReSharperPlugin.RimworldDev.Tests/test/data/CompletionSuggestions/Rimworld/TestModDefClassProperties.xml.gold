@@ -1,0 +1,21 @@
+﻿Completion: Basic
+Prefix: "cus"
+Count: 3
+Focus: Hard
+Range: "<cus♦"
+         ▲▲▲▲
+
+##### RELEVANCE SORT #####
+
+                            [PrefixMatch]
+c̣ụṣtomField                 int    <==
+                            [FromSingleCompletion^, FromLightAndDynamicEvaluation^, NormalSelectionPriority^, Other^]
+c̣anBeỤṣedUnderRoof          bool
+hasC̣ụṣtomRectForSelector    bool
+
+##### ALPHABETIC SORT #####
+
+                            [Light, Generic]
+c̣anBeỤṣedUnderRoof          bool
+c̣ụṣtomField                 int    <==
+hasC̣ụṣtomRectForSelector    bool

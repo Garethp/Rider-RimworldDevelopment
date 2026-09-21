@@ -1,0 +1,54 @@
+﻿## FindUsagesAdvancedProvider activity:
+  Tooltip was shown: Usages of 'minifiedDef' were not found
+
+## FindUsagesProvider activity:
+  Tooltip was shown: Usages of 'minifiedDef' were not found
+
+## GotoDeclarationProvider activity:
+  Immediate result:
+    DEO: Envoy: Field:Verse.ThingDef.minifiedDef, PsiLanguageType:UNKNOWN as Envoy: Field:Verse.ThingDef.minifiedDef, PsiLanguageType:UNKNOWN RANGE: (0,0) @ Assembly-CSharp
+    Navigation result:
+      opened file: ThingDef.cs
+      ------------------
+        public bool isTechHediff;
+        public RecipeMakerProperties recipeMaker;
+        public ThingDef |CARET|minifiedDef;
+        public bool isUnfinishedThing;
+        public bool leaveResourcesWhenKilled;
+      ------------------
+
+
+## GotoImplementationProvider activity:
+  Immediate result:
+    DEO: Envoy: Field:Verse.ThingDef.minifiedDef, PsiLanguageType:UNKNOWN as Envoy: Field:Verse.ThingDef.minifiedDef, PsiLanguageType:UNKNOWN RANGE: (0,0) @ Assembly-CSharp
+    Navigation result:
+      opened file: ThingDef.cs
+      ------------------
+        public bool isTechHediff;
+        public RecipeMakerProperties recipeMaker;
+        public ThingDef |CARET|minifiedDef;
+        public bool isUnfinishedThing;
+        public bool leaveResourcesWhenKilled;
+      ------------------
+
+
+## GotoTypeDeclarationProvider activity:
+  Immediate result:
+    DEO: Envoy: Class:Verse.ThingDef, PsiLanguageType:UNKNOWN as Envoy: Class:Verse.ThingDef, PsiLanguageType:UNKNOWN RANGE: (0,0) @ Assembly-CSharp
+    Navigation result:
+      opened file: ThingDef.cs
+      ------------------
+      namespace Verse;
+
+      public class |CARET|ThingDef : BuildableDef
+      {
+        public System.Type thingClass;
+      ------------------
+
+
+## HighlightUsagesProvider activity:
+  Tooltip was shown: Usages of 'minifiedDef' were not found in this file
+
+## ShowUsagesProvider activity:
+  Tooltip was shown: Usages of 'minifiedDef' were not found
+

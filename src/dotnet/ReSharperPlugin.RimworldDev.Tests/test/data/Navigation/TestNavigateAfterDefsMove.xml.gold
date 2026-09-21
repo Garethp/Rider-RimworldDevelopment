@@ -1,0 +1,74 @@
+﻿## FindReferencedCodeProvider activity:
+  Tooltip was shown: Referenced code in 'XmlTag ThingDef/ThingA' were not found
+
+## FindUsagesAdvancedProvider activity:
+  FindResults window with 2 results
+    TO: [O] <minifiedDef>|ThingA|</minifiedDef> RANGE: (118,124) @ TestNavigateAfterDefsMove.xml
+    TO: [O] <ThingDef><defName>|ThingA|</defName></ThingDef> RANGE: (136,142) @ MovingDefs.xml
+
+## FindUsagesProvider activity:
+  FindResults window with 2 results
+    TO: [O] <minifiedDef>|ThingA|</minifiedDef> RANGE: (118,124) @ TestNavigateAfterDefsMove.xml
+    TO: [O] <ThingDef><defName>|ThingA|</defName></ThingDef> RANGE: (136,142) @ MovingDefs.xml
+
+## GotoDeclarationProvider activity:
+  Immediate result:
+    TO: [O] <ThingDef><defName>|ThingA|</defName></ThingDef> RANGE: (136,142) @ MovingDefs.xml
+    Navigation result:
+      opened file: MovingDefs.xml
+      ------------------
+       -->
+      <Defs>
+          <ThingDef><defName>|CARET|ThingA</defName></ThingDef>
+          <ThingDef><defName>ThingB</defName></ThingDef>
+      </Defs>
+      ------------------
+
+
+## GotoImplementationProvider activity:
+  Immediate result:
+    TO: [O] <ThingDef><defName>|ThingA|</defName></ThingDef> RANGE: (136,142) @ MovingDefs.xml
+    Navigation result:
+      opened file: MovingDefs.xml
+      ------------------
+       -->
+      <Defs>
+          <ThingDef><defName>|CARET|ThingA</defName></ThingDef>
+          <ThingDef><defName>ThingB</defName></ThingDef>
+      </Defs>
+      ------------------
+
+
+## HighlightUsagesProvider activity:
+  Immediate result:
+    TO: [O] <minifiedDef>|ThingA|</minifiedDef> RANGE: (118,124) @ TestNavigateAfterDefsMove.xml
+    Navigation result:
+      caret did not move
+
+## ShowUsagesProvider activity:
+  Async context menu shown `Usages of 'ThingDef/ThingA'`:
+    TO: [O] <ThingDef><defName>|ThingA|</defName></ThingDef> RANGE: (136,142) @ MovingDefs.xml
+    Menu item (enabled) :
+      icon: UsageOther
+      text: MovingDefs.xml      <font color="FFD5A286"><ThingDef><defName>**ThingA**</defName></ThingDef></font><font color="06C"> (5)</font>
+      tail: <font color="FF6D6D6D">in <TestProject></font>
+      tooltip: <ThingDef><defName>**ThingA**</defName></ThingDef>
+    Navigation result:
+      opened file: MovingDefs.xml
+      ------------------
+       -->
+      <Defs>
+          <ThingDef><defName>|CARET|ThingA</defName></ThingDef>
+          <ThingDef><defName>ThingB</defName></ThingDef>
+      </Defs>
+      ------------------
+
+    TO: [O] <minifiedDef>|ThingA|</minifiedDef> RANGE: (118,124) @ TestNavigateAfterDefsMove.xml
+    Menu item (enabled) :
+      icon: UsageOther
+      text: TestNavigateAfterDefsMove.xml      <font color="FFD5A286"><minifiedDef>**ThingA**</minifiedDef></font><font color="06C"> (5)</font>
+      tail: <font color="FF6D6D6D">in <TestProject></font>
+      tooltip: <minifiedDef>**ThingA**</minifiedDef>
+    Navigation result:
+      caret did not move
+

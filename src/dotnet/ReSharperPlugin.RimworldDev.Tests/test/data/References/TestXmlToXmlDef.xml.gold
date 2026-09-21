@@ -1,0 +1,38 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Defs>
+    <|ThingDef|(0) Name=|"BaseThing"|(1) Abstract="True">
+    </ThingDef>
+    <|ThingDef|(2) ParentName=|"BaseThing"|(3)>
+        <|defName|(4)>|LocalThing|(5)</defName>
+    </ThingDef>
+    <|ThingDef|(6)>
+        <|defName|(7)>|Referrer|(8)</defName>
+        <|minifiedDef|(9)>|LocalThing|(10)</|minifiedDef|(11)>
+        <|leaveResourcesWhenKilled|(12)>true</leaveResourcesWhenKilled>
+        <|soundDrop|(13)>|OtherSound|(14)</soundDrop>
+        <|soundInteract|(15)>MissingSound</soundInteract>
+        <|stuffCategories|(16)>
+            <li>|OtherStuff|(17)</li>
+        </stuffCategories>
+    </ThingDef>
+</Defs>
+
+------------------------------------------------
+0: result=OK declaredElem=Verse.ThingDef
+1: result=OK declaredElem=ThingDef/BaseThing
+2: result=OK declaredElem=Verse.ThingDef
+3: result=OK declaredElem=ThingDef/BaseThing
+4: result=OK declaredElem=System.String Verse.Def.defName
+5: result=OK declaredElem=ThingDef/LocalThing
+6: result=OK declaredElem=Verse.ThingDef
+7: result=OK declaredElem=System.String Verse.Def.defName
+8: result=OK declaredElem=ThingDef/Referrer
+9: result=OK declaredElem=Verse.ThingDef Verse.ThingDef.minifiedDef
+10: result=OK declaredElem=ThingDef/LocalThing
+11: result=OK declaredElem=Verse.ThingDef Verse.ThingDef.minifiedDef
+12: result=OK declaredElem=System.Boolean Verse.ThingDef.leaveResourcesWhenKilled
+13: result=OK declaredElem=Verse.SoundDef Verse.ThingDef.soundDrop
+14: result=OK declaredElem=SoundDef/OtherSound
+15: result=OK declaredElem=Verse.SoundDef Verse.ThingDef.soundInteract
+16: result=OK declaredElem=System.Collections.Generic.List`1[T -> RimWorld.StuffCategoryDef] Verse.BuildableDef.stuffCategories
+17: result=OK declaredElem=StuffCategoryDef/OtherStuff

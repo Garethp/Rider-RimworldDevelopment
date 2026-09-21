@@ -1,0 +1,16 @@
+﻿Completion: Basic
+Count: 2
+Focus: Hard
+Range: "<minifiedDef>♦</minifiedDef>"
+
+##### RELEVANCE SORT #####
+
+                            [FromSingleCompletion, FromLightAndDynamicEvaluation, NormalSelectionPriority, Other]
+TestThingA                  <==
+TestThingB
+
+##### ALPHABETIC SORT #####
+
+                            [Light, Generic]
+TestThingA                  <==
+TestThingB

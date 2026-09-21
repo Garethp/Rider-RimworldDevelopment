@@ -1,0 +1,22 @@
+﻿Completion: Basic
+Prefix: "Mod"
+Count: 4
+Focus: Hard
+Range: "public static ThingDef Mod♦;"
+                               ▲▲▲▲
+
+##### RELEVANCE SORT #####
+
+                            [FromSingleCompletion, FromLightAndDynamicEvaluation, PrefixMatch, NotObsolete, ObsoleteRuleApplied, NormalSelectionPriority, Other]
+ṂọḍDef                      <==
+ṂọḍThingA
+ṂọḍThingB
+ṂọḍThingDef
+
+##### ALPHABETIC SORT #####
+
+                            [Light, Generic]
+ṂọḍDef                      <==
+ṂọḍThingA
+ṂọḍThingB
+ṂọḍThingDef

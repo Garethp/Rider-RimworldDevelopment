@@ -1,0 +1,80 @@
+﻿Completion: Basic
+Count: 34
+Focus: Hard
+Range: "<♦"
+
+##### RELEVANCE SORT #####
+
+                            [FromSingleCompletion, FromLightAndDynamicEvaluation, NormalSelectionPriority, Other]
+addTopAltitudeBias          bool    <==
+allowAtlasing               bool
+allowFlip                   bool
+asymmetricLink              AsymmetricLinkData
+attachPoints                List<AttachPoint>
+attachments                 List<GraphicData>
+color                       Color
+colorTwo                    Color
+cornerOverlayPath           string
+damageData                  DamageGraphicData
+drawOffset                  Vector3
+drawOffsetEast              Vector3?
+drawOffsetNorth             Vector3?
+drawOffsetSouth             Vector3?
+drawOffsetWest              Vector3?
+drawRotated                 bool
+drawSize                    Vector2
+flipExtraRotation           float
+graphicClass                Type
+ignoreThingDrawColor        bool
+linkFlags                   LinkFlags
+linkType                    LinkDrawerType
+maskPath                    string
+maxSnS                      Vector2
+name                        string
+offsetSnS                   Vector2
+onGroundRandomRotateAngle    float
+overlayOpacity              float
+renderInstanced             bool
+renderQueue                 int
+shaderParameters            List<ShaderParameter>
+shaderType                  ShaderTypeDef
+shadowData                  ShadowData
+texPath                     string
+
+##### ALPHABETIC SORT #####
+
+                            [Light, Generic]
+addTopAltitudeBias          bool    <==
+allowAtlasing               bool
+allowFlip                   bool
+asymmetricLink              AsymmetricLinkData
+attachPoints                List<AttachPoint>
+attachments                 List<GraphicData>
+color                       Color
+colorTwo                    Color
+cornerOverlayPath           string
+damageData                  DamageGraphicData
+drawOffset                  Vector3
+drawOffsetEast              Vector3?
+drawOffsetNorth             Vector3?
+drawOffsetSouth             Vector3?
+drawOffsetWest              Vector3?
+drawRotated                 bool
+drawSize                    Vector2
+flipExtraRotation           float
+graphicClass                Type
+ignoreThingDrawColor        bool
+linkFlags                   LinkFlags
+linkType                    LinkDrawerType
+maskPath                    string
+maxSnS                      Vector2
+name                        string
+offsetSnS                   Vector2
+onGroundRandomRotateAngle    float
+overlayOpacity              float
+renderInstanced             bool
+renderQueue                 int
+shaderParameters            List<ShaderParameter>
+shaderType                  ShaderTypeDef
+shadowData                  ShadowData
+texPath                     string

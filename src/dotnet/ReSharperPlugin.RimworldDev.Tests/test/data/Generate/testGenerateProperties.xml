@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- ${KIND:RimworldPropertyGenerator} ${SELECT0:drawSize:UnityEngine.Vector2} ${SELECT1:color:UnityEngine.Color} -->
+<Defs>
+    <ThingDef>
+        <defName>TestThing</defName>
+        <graphicData>
+            <texPath>Things/Test</texPath>
+            {caret}
+        </graphicData>
+    </ThingDef>
+</Defs>

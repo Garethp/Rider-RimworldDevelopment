@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Defs>
+    <ThingDef Name="BaseThing" Abstract="True">
+    </ThingDef>
+    <ThingDef ParentName="BaseThing">
+        <defName>LocalThing</defName>
+    </ThingDef>
+    <ThingDef>
+        <defName>Referrer</defName>
+        <minifiedDef>LocalThing</minifiedDef>
+        <leaveResourcesWhenKilled>true</leaveResourcesWhenKilled>
+        <soundDrop>OtherSound</soundDrop>
+        <soundInteract>MissingSound</soundInteract>
+        <stuffCategories>
+            <li>OtherStuff</li>
+        </stuffCategories>
+    </ThingDef>
+</Defs>

@@ -1,12 +1,57 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
+    <!-- The plugin compiles for net6.0, but Rider 2026.1's backend runs it on .NET 10 and some SDK assemblies
+         are built for net8+. The test host must match the runtime, not the plugin's compile target. -->
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <!-- The ReSharper shell's ShellLocks/GroupingEventHost use WinForms timers and WPF dispatchers; without the
+         Windows Desktop framework reference the test host dies in JetEnvironment.CreateDontRunAsync. -->
+    <UseWindowsForms>true</UseWindowsForms>
+    <UseWPF>true</UseWPF>
+  </PropertyGroup>
+
+  <!-- Elsewhere the shell can't run at all (docs/testing-research.md, "Platform"), so build for plain net10.0: the
+       project still compiles, and every test that needs the shell reports as skipped (see WindowsOnlyGuard.cs). `dotnet test` on Linux/macOS therefore succeeds instead of failing. -->
+  <PropertyGroup Condition="!$([MSBuild]::IsOSPlatform('Windows'))">
     <TargetFramework>net10.0</TargetFramework>
+    <UseWindowsForms>false</UseWindowsForms>
+    <UseWPF>false</UseWPF>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <!-- The SDK packages only ship build props under build/net472 (and build/net4.0.30319). NuGet's default
+         fallback list starts at net461 and stops at the first framework a package has *any* asset for, so packages
+         like JetBrains.Platform.Lib.LibLevelDb (lib/net/_._ + build/net472/) never get their props imported and
+         their native DLLs never reach the output. Making net472 the only fallback fixes that. -->
+    <AssetTargetFallback>net472</AssetTargetFallback>
     <IsPackable>false</IsPackable>
+    <LangVersion>latest</LangVersion>
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="GitHubActionsTestLogger" Version="2.0.1" />
+    <PackageReference Include="JetBrains.ReSharper.SDK.Tests" Version="$(SdkVersion)" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.9.0" />
+    <PackageReference Include="NUnit3TestAdapter" Version="4.5.0" />
     <PackageReference Include="Lib.Harmony" Version="2.3.3" />
+
+    <!-- JetBrains.Psi.Features.UnitTesting (transitive via the SDK) drags in a 2019 net451 repack of the VSTest
+         translation layer. Its Microsoft.TestPlatform.* DLLs land in the output next to Microsoft.NET.Test.Sdk's
+         testhost and are older than it expects, so the test host dies on startup with a TypeLoadException.
+         Keep the dependency for NuGet graph purposes but take none of its assets. -->
+    <PackageReference Include="JetBrains.Microsoft.TestPlatform.TranslationLayer" Version="16.0.0.20191015" ExcludeAssets="all" />
+
+    <!-- RimWorld's public API as reference assemblies. Not consumed by this project (ExcludeAssets) — restore only puts
+         it in the NuGet cache, and the path below is handed to the test fixtures, which reference the DLLs into the
+         in-memory test solution. See RimworldXmlCompletionTests.GetReferencedAssemblies. -->
+    <PackageReference Include="Krafs.Rimworld.Ref" Version="1.6.4871" ExcludeAssets="all" GeneratePathProperty="true" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
+      <_Parameter1>RimworldRefDir</_Parameter1>
+      <_Parameter2>$(PkgKrafs_Rimworld_Ref)\ref\net472</_Parameter2>
+    </AssemblyAttribute>
   </ItemGroup>
 
   <ItemGroup>
@@ -16,6 +61,34 @@
   <ItemGroup>
     <Compile Remove="test/**/*" />
     <None Include="test/**/*" />
+
+    <!-- The SDK's xUnit test-provider (net4x-built) loads xunit.runner.utility.net452 by name, but for a .NET host
+         NuGet hands us the netcoreapp10 flavour of that package instead. Without the net452 file every test logs
+         "Component XUnitConfigurationSource construction has failed" and the framework fails it for that. -->
+    <None Include="$([MSBuild]::EnsureTrailingSlash('$(NuGetPackageRoot)'))xunit.runner.utility/2.4.1/lib/net452/xunit.runner.utility.net452.dll"
+          CopyToOutputDirectory="PreserveNewest" Link="xunit.runner.utility.net452.dll" Visible="false" />
   </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="test\data\SmokeTests\" />
+  </ItemGroup>
+
+  <!-- NuGet gives a .NET host the net8.0 builds of these two packages, but the SDK's component scanner cannot read
+       the net8.0 JetBrains.Lifetimes metadata (MaybeNullWhenAttribute resolution fails and the shell never starts)
+       once anything makes it scan our plugin assembly. JetBrains' own test projects always run the net472 builds, which
+       the runtime loads fine, so use those. -->
+  <Target Name="UseNetFrameworkJetBrainsLibs" AfterTargets="Build">
+    <ItemGroup>
+      <!-- Whatever version NuGet resolved, so this follows SdkVersion with no hard-coded package path; the net472 build
+           sits next to the one NuGet picked, in the same package folder. -->
+      <_JetPinnedLib Include="@(RuntimeCopyLocalItems)"
+                     Condition="'%(RuntimeCopyLocalItems.Extension)' == '.dll' And ('%(RuntimeCopyLocalItems.NuGetPackageId)' == 'JetBrains.Lifetimes' Or '%(RuntimeCopyLocalItems.NuGetPackageId)' == 'JetBrains.RdFramework')" />
+      <_JetNetFxLib Include="@(_JetPinnedLib->'%(RootDir)%(Directory)..\net472\%(Filename)%(Extension)')" />
+    </ItemGroup>
+    <Error Condition="'@(_JetNetFxLib->Count())' != '2'"
+           Text="Expected JetBrains.Lifetimes and JetBrains.RdFramework among the resolved packages, found: @(_JetPinnedLib->'%(NuGetPackageId) %(NuGetPackageVersion)')" />
+    <Error Condition="!Exists('%(_JetNetFxLib.FullPath)')" Text="No net472 build at %(_JetNetFxLib.FullPath)" />
+    <Copy SourceFiles="@(_JetNetFxLib)" DestinationFolder="$(OutDir)" />
+  </Target>
 
 </Project>

@@ -7,10 +7,16 @@ on:
 
 jobs:
   Publish:
-    runs-on: ubuntu-latest
+    # Windows so that :publishPlugin's dependency on :testDotNet runs the real backend test suite before anything is
+    # published (the ReSharper test shell only runs on Windows; on Linux every test reports as skipped). Releases are
+    # rare, so the Windows runner cost is acceptable here, unlike on every PR commit (see Tests.yml).
+    runs-on: windows-latest
     environment: Deploy
+    defaults:
+      run:
+        # ./gradlew and the output/* globs below are written for bash; Windows runners ship Git Bash.
+        shell: bash
     steps:
-      - uses: jlumbroso/free-disk-space@main
       - uses: actions/checkout@v4
         with:
           submodules: recursive
@@ -36,6 +42,5 @@ jobs:
       - name: Upload binaries to release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        shell: bash
         run: |
           gh release upload ${{ github.ref_name }} output/*

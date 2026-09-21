@@ -1,5 +1,9 @@
 # Set the default behavior, in case people don't have core.autocrlf set.
 * text=auto
 
+# Backend test inputs and golds must be LF everywhere. Some golds record document offsets (navigation/Find Usages
+# RANGE: (78,88)), which shift if a Windows checkout turns the inputs into CRLF. Same rule as JetBrains' own plugins.
+src/dotnet/ReSharperPlugin.RimworldDev.Tests/test/data/** text eol=lf
+
 # Preserve line endings in gradle scripts
 gradlew* -text diff

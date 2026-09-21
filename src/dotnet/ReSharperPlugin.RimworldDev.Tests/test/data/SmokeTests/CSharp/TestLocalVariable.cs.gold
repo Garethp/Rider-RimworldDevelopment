@@ -1,0 +1,16 @@
+﻿Completion: Basic
+Prefix: "myLoc"
+Count: 1
+Focus: Hard
+Range: "myLoc♦"
+        ▲▲▲▲▲▲
+
+##### RELEVANCE SORT #####
+
+                            [FromSingleCompletion, FromLightAndDynamicEvaluation, PrefixMatch, LocalVariablesAndParameters, NotObsolete, ObsoleteRuleApplied, NormalSelectionPriority, ClosestLocalVar, Other]
+ṃỵḶọc̣alVariable             int    <==
+
+##### ALPHABETIC SORT #####
+
+                            [Light, Generic]
+ṃỵḶọc̣alVariable             int    <==
