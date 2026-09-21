@@ -1,4 +1,27 @@
-﻿(9,32) 'ModThingA' [RimworldXmlDefReference] -> OK: XMLTagDeclaredElement ThingDef/ModThingA
-(11,32) 'ModSound' [RimworldXmlDefReference] -> OK: XMLTagDeclaredElement SoundDef/ModSound
-(16,74) '"ModThingB"' [RimworldXmlDefReference] -> OK: XMLTagDeclaredElement ThingDef/ModThingB
-(19,84) '"ModSound"' [RimworldXmlDefReference] -> OK: XMLTagDeclaredElement SoundDef/ModSound
+﻿using RimWorld;
+using Verse;
+
+namespace MyMod
+{
+    [DefOf]
+    public static class MyThingDefOf
+    {
+        public static ThingDef |ModThingA|(0);
+        public static ThingDef MissingThing;
+        public static SoundDef |ModSound|(1);
+    }
+
+    public static class Lookup
+    {
+        public static ThingDef Found() => DefDatabase<ThingDef>.GetNamed(|"ModThingB"|(2));
+        public static ThingDef Missing() => DefDatabase<ThingDef>.GetNamed("NoSuchThing");
+        public static ThingDef WrongType() => DefDatabase<ThingDef>.GetNamed("ModSound");
+        public static SoundDef Sound() => DefDatabase<SoundDef>.GetNamedSilentFail(|"ModSound"|(3));
+    }
+}
+
+------------------------------------------------
+0: result=OK declaredElem=ThingDef/ModThingA
+1: result=OK declaredElem=SoundDef/ModSound
+2: result=OK declaredElem=ThingDef/ModThingB
+3: result=OK declaredElem=SoundDef/ModSound

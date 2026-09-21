@@ -1,9 +1,30 @@
-﻿(3,6) 'ThingDef' [RimworldXmlReference] -> OK: type Verse.ThingDef
-(4,10) 'label' [RimworldXmlReference] -> OK: field Verse.Def.label
-(5,10) 'category' [RimworldXmlReference] -> OK: field Verse.ThingDef.category
-(5,19) 'Building' [RimworldXmlReference] -> OK: enum member Verse.ThingCategory.Building
-(6,10) 'graphicData' [RimworldXmlReference] -> OK: field Verse.ThingDef.graphicData
-(7,14) 'texPath' [RimworldXmlReference] -> OK: field Verse.GraphicData.texPath
-(9,10) 'comps' [RimworldXmlReference] -> OK: field Verse.ThingDef.comps
-(11,18) 'compClass' [RimworldXmlReference] -> OK: field Verse.CompProperties.compClass
-(14,18) 'idlePowerDraw' [RimworldXmlReference] -> OK: field RimWorld.CompProperties_Power.idlePowerDraw
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Defs>
+    <|ThingDef|(0)>
+        <|label|(1)>test thing</label>
+        <|category|(2)>|Building|(3)</category>
+        <|graphicData|(4)>
+            <|texPath|(5)>Things/Test</texPath>
+        </graphicData>
+        <|comps|(6)>
+            <li>
+                <|compClass|(7)>CompGlower</compClass>
+            </li>
+            <li Class="CompProperties_Power">
+                <|idlePowerDraw|(8)>5</idlePowerDraw>
+            </li>
+        </comps>
+        <notARealField>1</notARealField>
+    </ThingDef>
+</Defs>
+
+------------------------------------------------
+0: result=OK declaredElem=Verse.ThingDef
+1: result=OK declaredElem=System.String Verse.Def.label
+2: result=OK declaredElem=Verse.ThingCategory Verse.ThingDef.category
+3: result=OK declaredElem=Verse.ThingCategory Verse.ThingCategory.Building
+4: result=OK declaredElem=Verse.GraphicData Verse.ThingDef.graphicData
+5: result=OK declaredElem=System.String Verse.GraphicData.texPath
+6: result=OK declaredElem=System.Collections.Generic.List`1[T -> Verse.CompProperties] Verse.ThingDef.comps
+7: result=OK declaredElem=System.Type Verse.CompProperties.compClass
+8: result=OK declaredElem=System.Single RimWorld.CompProperties_Power.idlePowerDraw

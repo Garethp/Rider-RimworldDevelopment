@@ -1,61 +1,48 @@
-using System.Linq;
-using JetBrains.Lifetimes;
+using System;
+using System.Collections.Generic;
 using JetBrains.ProjectModel;
-using JetBrains.ReSharper.Psi;
-using JetBrains.ReSharper.Psi.Files;
+using JetBrains.ProjectModel.Update;
+using JetBrains.Util;
+using JetBrains.Util.Dotnet.TargetFrameworkIds;
 using JetBrains.ReSharper.Psi.Resolve;
-using JetBrains.ReSharper.Psi.Tree;
-using JetBrains.ReSharper.Resources.Shell;
+using JetBrains.ReSharper.TestFramework;
 
 namespace ReSharperPlugin.RimworldDev.Tests.TestBases;
 
-/// <summary>
-/// Ctrl+Click, tested without the SDK's navigation machinery: walk every node of the test file, ask it for its
-/// references (which is where our IReferenceProviderFactory implementations plug in), resolve each one and dump
-/// "node → reference type → what it resolved to". The file named after the test is the one dumped; the files given to
-/// DoNamedTest only exist to be resolved into.
-/// </summary>
-public abstract class RimworldReferenceTestBase(ProjectLayout layout) : RimworldSolutionTestBase(layout)
+/// <summary>Reference resolution the way the SDK's own resolve tests check it, in the layout the fixture asks for.</summary>
+public abstract class RimworldReferenceTestBase : ReferenceTestBase, IProjectLayoutFixture
 {
-    protected void DoNamedTest(params string[] otherFiles) =>
-        ProjectLayoutSupport.BuildSolution(Layout, TestName, otherFiles, RelativeTestDataPath,
-            files => DoTestSolution(files),
-            (xmlProjectFiles, cSharpProjectFiles) => DoTestSolution(xmlProjectFiles, cSharpProjectFiles));
-
-    protected override void DoTest(Lifetime lifetime, IProject project)
+    protected RimworldReferenceTestBase(ProjectLayout layout)
     {
-        Solution.GetPsiServices().Files.CommitAllDocuments();
-        using (ReadLockCookie.Create())
-        {
-            var projectFile = project.GetAllProjectFiles().Single(file => file.Name == TestName);
-            var sourceFile = projectFile.ToSourceFiles().Single();
-            var psiFile = sourceFile.GetPrimaryPsiFile()!;
-            var document = sourceFile.Document;
-
-            ExecuteWithGold(projectFile, writer =>
-            {
-                foreach (var node in psiFile.Descendants().ToEnumerable())
-                {
-                    // Only the plugin's references; a C# file is otherwise full of ordinary type/namespace references.
-                    foreach (var reference in node.GetReferences<IReference>()
-                                 .Where(reference => reference.GetType().Assembly == typeof(ScopeHelper).Assembly))
-                    {
-                        var start = document.GetCoordsByOffset(reference.GetDocumentRange().StartOffset.Offset);
-                        var resolved = reference.Resolve();
-                        writer.WriteLine(
-                            $"({(int)start.Line + 1},{(int)start.Column + 1}) '{reference.GetDocumentRange().GetText()}' " +
-                            $"[{reference.GetType().Name}] -> {resolved.ResolveErrorType}: {Describe(resolved.DeclaredElement)}");
-                    }
-                }
-            });
-        }
+        Layout = layout;
+        (ProjectName, SecondProjectName) = ProjectLayoutSupport.ProjectNames(layout, ProjectName, SecondProjectName);
     }
 
-    private static string Describe(IDeclaredElement element) => element switch
-    {
-        null => "<nothing>",
-        ITypeElement type => $"type {type.GetClrName().FullName}",
-        ITypeMember member => $"{member.GetElementType().PresentableName} {member.ContainingType?.GetClrName().FullName}.{member.ShortName}",
-        _ => $"{element.GetType().Name} {element.ShortName}",
-    };
+    public ProjectLayout Layout { get; }
+
+    /// <summary>Off for fixtures that check what happens with no RimWorld types around.</summary>
+    protected virtual bool ReferenceRimworld => true;
+
+    protected override bool CanReuseSolution(ISolution solution) =>
+        ProjectLayoutSupport.CanReuse(base.CanReuseSolution(solution), solution, ProjectName);
+
+    protected override IEnumerable<string> GetReferencedAssemblies(TargetFrameworkId targetFrameworkId) =>
+        ProjectLayoutSupport.ReferencedAssemblies(base.GetReferencedAssemblies(targetFrameworkId), ReferenceRimworld);
+
+    protected override Pair<IProjectDescriptor, IList<Pair<IProjectReferenceDescriptor, IProjectReferenceProperties>>>
+        CreateProjectDescriptor(string projectName, string outputAssemblyName,
+            ICollection<FileSystemPath> absoluteFileSet,
+            ICollection<KeyValuePair<TargetFrameworkId, IEnumerable<string>>> libraries, Guid projectGuid,
+            FileSystemPath projectLocation = null) =>
+        base.CreateProjectDescriptor(projectName, outputAssemblyName, absoluteFileSet,
+            ProjectLayoutSupport.Libraries(Layout, projectName, ProjectName, libraries), projectGuid, projectLocation);
+
+    protected override void DoNamedTest(params string[] otherFiles) =>
+        ProjectLayoutSupport.BuildSolution(Layout, TestName, otherFiles, RelativeTestDataPath,
+            _ => base.DoNamedTest(otherFiles),
+            (xmlProjectFiles, cSharpProjectFiles) => DoTestSolution(xmlProjectFiles, cSharpProjectFiles));
+
+    // Only the plugin's references; a C# file is otherwise full of ordinary type/namespace references.
+    protected override bool AcceptReference(IReference reference) =>
+        reference.GetType().Assembly == typeof(ScopeHelper).Assembly;
 }
