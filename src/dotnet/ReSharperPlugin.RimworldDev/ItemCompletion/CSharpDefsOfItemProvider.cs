@@ -21,9 +21,9 @@ public class CSharpDefsOfItemProvider : ItemsProviderOfSpecificContext<CSharpCod
     {
         var node = context.NodeInFile;
         if (!node.Language.IsLanguage(CSharpLanguage.Instance)) return false;
-        if (node.Parent is not IFieldDeclaration fieldDeclaration) return false;
-        if (fieldDeclaration.Type is not IDeclaredType) return false;
-        if (fieldDeclaration.GetContainingTypeElement() is not IClass containingClass) return false;
+        if (GetFieldType(node) is null) return false;
+        if (node.Parent is not ICSharpTypeMemberDeclaration memberDeclaration) return false;
+        if (memberDeclaration.GetContainingTypeElement() is not IClass containingClass) return false;
         if (containingClass
                 .GetAttributeInstances(AttributesSource.Self)
                 .FirstOrDefault(attribute => attribute.GetClrName().FullName == "RimWorld.DefOf") is null) return false;
@@ -35,8 +35,7 @@ public class CSharpDefsOfItemProvider : ItemsProviderOfSpecificContext<CSharpCod
     {
         var node = context.NodeInFile;
 
-        if (node.Parent is not IFieldDeclaration fieldDeclaration) return false;
-        if (fieldDeclaration.Type is not IDeclaredType fieldType) return false;
+        if (GetFieldType(node) is not { } fieldType) return false;
 
         var defTypeName = fieldType.GetClrName().ShortName;
         var xmlSymbolTable = context.NodeInFile.GetSolution().GetComponent<RimworldSymbolScope>();
@@ -57,4 +56,17 @@ public class CSharpDefsOfItemProvider : ItemsProviderOfSpecificContext<CSharpCod
         
         return base.AddLookupItems(context, collector);
     }
+
+    private static IDeclaredType GetFieldType(ITreeNode node) => node.Parent switch
+    {
+        // We have two possibilities we need to account for: With a `;` already in place and without one. With it in
+        // place, Rider reports that it's a IFieldDeclaration. Without it, it'll report that it's a IMethodDeclaration.
+        // In the case that there's no trailing `;` and Rider thinks it's a method Declaration, we can also check that
+        // there's no left parenthesis, which would be the opening of the signature for the method. If there's not,
+        // we'll just keep treating it like a field.
+        IFieldDeclaration fieldDeclaration => fieldDeclaration.Type as IDeclaredType,
+        IMethodDeclaration { LPar: null } methodDeclaration when methodDeclaration.NameIdentifier == node =>
+            methodDeclaration.Type as IDeclaredType,
+        _ => null
+    };
 }
