@@ -12,8 +12,11 @@ using NUnit.Framework;
 namespace ReSharperPlugin.RimworldDev.Tests.SmokeTests;
 
 /// <summary>
-/// Dumps how the test shell sees an .xml file in the in-memory project. Exists to answer "is XML even parsed as
-/// XML here?" when XML completion returns nothing.
+/// The smoke tests are here to prove that tests, in general, are functioning. This is in case we do an upgrade and find
+/// our automated tests are no longer functioning. It allows us to narrow it down to whether tests are broken, parsing
+/// is broken, completion is broken or just our specific tests are broken.
+///
+/// This test is about whether we can parse XML files.
 /// </summary>
 [TestFileExtension(".xml")]
 public class XmlParsing : BaseTestWithSingleProject

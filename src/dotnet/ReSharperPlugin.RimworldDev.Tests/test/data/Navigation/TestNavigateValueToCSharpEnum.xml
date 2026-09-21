@@ -1,0 +1,5 @@
+<Defs>
+    <DutyDef>
+        <hook>High{on}Priority</hook>
+    </DutyDef>
+</Defs>

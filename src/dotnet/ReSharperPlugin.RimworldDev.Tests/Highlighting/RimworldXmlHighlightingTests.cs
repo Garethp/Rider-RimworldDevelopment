@@ -12,8 +12,10 @@ public class RimworldXmlHighlightingTests(ProjectLayout layout) : RimworldHighli
 
     [Test] public void TestValidValues() => DoNamedTest();
 
-    // Float values are only reported when loaded up XmlProjects, they don't actually get matched properly in CSharp
-    // projects
+    /// <summary>
+    /// Float values are only reported when loaded up XmlProjects, they don't actually get matched properly in CSharp
+    /// projects
+    /// </summary>
     [ProjectLayouts(ProjectLayout.XmlProject)]
     [Test] public void TestInvalidValues() => DoNamedTest();
 }

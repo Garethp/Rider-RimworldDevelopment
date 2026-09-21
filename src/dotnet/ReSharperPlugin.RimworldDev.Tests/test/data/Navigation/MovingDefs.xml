@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Things -->
 <Defs>
     <ThingDef><defName>ThingA</defName></ThingDef>
     <ThingDef><defName>ThingB</defName></ThingDef>
-    <ThingDef Name="BaseThing" Abstract="True">
-    </ThingDef>
 </Defs>

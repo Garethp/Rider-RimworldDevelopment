@@ -4,8 +4,11 @@ using NUnit.Framework;
 namespace ReSharperPlugin.RimworldDev.Tests.SmokeTests;
 
 /// <summary>
-/// Proves that CodeCompletionTestBase + gold files work in this harness at all, with nothing RimWorld-specific
-/// involved. If this is red, the completion pipeline itself is broken, not our provider.
+/// The smoke tests are here to prove that tests, in general, are functioning. This is in case we do an upgrade and find
+/// our automated tests are no longer functioning. It allows us to narrow it down to whether tests are broken, parsing
+/// is broken, completion is broken or just our specific tests are broken.
+///
+/// This test is specific to completion and just tests if we can assert on autocompleting a C# variable.
 /// </summary>
 public class CSharpCompletion : CodeCompletionTestBase
 {
