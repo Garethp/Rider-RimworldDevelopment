@@ -74,13 +74,13 @@ Phase B's XML + index setup, caret in a `.cs` file, different providers.
 | # | Step | New variable | Status |
 |---|---|---|---|
 | 19 | Drop Krafs from references, `SkipAssemblyDiscovery = false`, copy Krafs' `Assembly-CSharp.dll` into a temp `RimWorldWin64_Data/Managed/`, point `RimworldPath` at it via `[TestSetting]`, rerun step 1's input | `ScopeHelper.AddRef` / `IAssemblyFactory.AddRef` / settings accessor — the real XML-only-mod mechanism. Expect teardown cookie/leak issues | — |
-| 20 | Alt+Insert property generator via the SDK's generate test base | the generate workflow; `PropertyOrdering` makes gold order meaningful | — |
+| 20 | Alt+Insert property generator via the SDK's generate test base | the generate workflow; `PropertyOrdering` makes gold order meaningful | ✅ |
 
 ## Phase H — beyond the current test project (boundary-finding only)
 
 | # | Step | New variable | Status |
 |---|---|---|---|
-| 21 | Test one trivial Rider-only thing (e.g. `RimworldProjectMark` parsing an `About.xml`) | the test project references the **RESHARPER** csproj, which excludes `RimworldXmlProject/`, `Remodder/`, `TemplateParameters/`; can a test project reference the Rider csproj and still boot? | — |
+| 21 | Test one trivial Rider-only thing (e.g. `RimworldProjectMark` parsing an `About.xml`) | the test project references the **RESHARPER** csproj, which excludes `RimworldXmlProject/`, `Remodder/`, `TemplateParameters/`; can a test project reference the Rider csproj and still boot? | ❌ |
 | 22 | Remodder `Decompiler` against a tiny Harmony-patched assembly | mostly non-PSI; cheap once 21 works | — |
 | 23 | (Separate track) plain JUnit for `QuickStartUtils` setup/teardown against a temp Ludeon dir | Kotlin side, no IDE; highest-stakes code (it can destroy the user's mod list) | — |
 
@@ -121,8 +121,12 @@ query time, or defer resolution until after commit.
 
 **Fixed (2026-09-18):** the index now stores `(sourceFile, offset, isAbstract)` and `GetTagByDef` finds the node on
 query (`isAbstract` is computed in `Build` and persisted). Both Action tests pass unchanged against their golds.
-`SymbolScope/RimworldSymbolScopeTests` edits a def file and checks the node handed back is the live one at the def's new
-offset, including a def moving onto another def's old offset (checked by removing the cached-node check: it fails).
+`RimworldNavigationAfterEditTests` resolves the references in an open file, grows a comment above the defs it points at
+by exactly one def line, then Ctrl+Clicks `ThingA`: it has to land on `ThingA`, which now sits at `ThingB`'s old offset
+while `ThingB`'s node survives the reparse. Checked against the plugin: removing the offset comparison in `FindDefNode`,
+or the whole cached-node check, sends it to `ThingB`; the pre-fix index fails it with the "uncommitted document" error.
+(It replaced a white-box `RimworldSymbolScopeTests`, which deleted a def instead; the reparse threw those nodes away,
+so it never caught a missing offset comparison.)
 
 **Step 9c ⚠️ — plugin bug (load order).** A `MyMod.CustomThingDef` def is not offered where a `ThingDef` is expected.
 Traced: when the index merges on load, `ScopeHelper.RimworldScope` is still `null` (symbol caches not ready), so
@@ -276,10 +280,9 @@ case).
 | Suite | Layouts | Why |
 |---|---|---|
 | `RimworldXmlHighlightingTests` | both | `TestInvalidValues` narrowed to the XML layout (boundary 8) |
-| `RimworldSymbolScopeTests` | both | |
 | `AcceptCompletion.RimworldXmlTests` | both | |
 | `RimworldXmlCompletionTests` | C# only | keyword-less type column and empty def-name lists in the XML layout |
-| `RimworldNavigationTests` | C# only | nothing to navigate to in the XML layout; not investigated |
+| `RimworldNavigationTests`, `RimworldNavigationAfterEditTests` | C# only | nothing to navigate to in the XML layout; not investigated |
 | `RimworldFindUsagesFromXmlTests` | C# only | no usages found in the XML layout; not investigated |
 | `RimworldReferenceTests` | C# only | its one `.cs`-driven test lands in the referenceless project |
 | `RimworldCSharpCompletionTests`, `RimworldFindUsagesFromCSharpTests`, `…WithoutRimworldTests` | C# only | the layout isn't what they're about |
@@ -334,6 +337,74 @@ Next step for #2: give the XML project the project properties the real host uses
 project bare. `GetProjectProperties` is virtual but doesn't know which project it's building, so it needs a field set
 from `CreateProjectDescriptor`. Once that behaves, turn the completion suite on with the attribute and gold both
 layouts.
+
+### Phase G step 20 (2026-09-20) — the Generate menu tests like any other feature
+
+Tests: `Generate/RimworldGenerateTests.cs`, data `test/data/Generate/`, base `TestBases/RimworldGenerateTestBase.cs`.
+
+`GenerateTestBase` (namespace `JetBrains.ReSharper.FeaturesTestFramework.Generate`) is language-agnostic, so the XML
+generator drives it unchanged. The gold is the list of properties the menu offers, in the order it offers them,
+followed by the document after generating the selected ones - which pins `PropertyOrdering` (`drawSize` and
+`graphicClass` come before `name`, not alphabetical order) and the filter that hides tags the def already has.
+
+Input directives are `${NAME:value}` in an XML comment, the same shape the accept-completion tests use:
+`${KIND:RimworldPropertyGenerator}` (required - the base asserts on it), then either `${SELECTALL:true}` or numbered
+`${SELECT0:…}`, `${SELECT1:…}` whose values are the `TestDescriptor` strings from the dump (`drawSize:UnityEngine
+.Vector2`). The numbering matters: the reader stops at the first index it can't find. The base also decapitalises the
+first test file, so the input and gold are `testGenerateProperties.xml`, not `Test…`.
+
+Two things the base has to supply that the IDE supplies in real life, both in `RimworldGenerateTestBase`:
+
+- `ScopeHelper.UpdateScopes` before the workflow is created. The generator reads `ScopeHelper.RimworldScope` directly
+  and offers nothing when it is null; in the IDE some other feature has filled it in by then. Same fragility as the
+  daemon stage (see Phase E).
+- A write lock around the test. `DefPropertiesGeneratorBuilderXml.Process` calls `ModificationUtil.AddChildAfter`
+  without one, and the harness - unlike the IDE action - doesn't hold one, so the run logs "This operation requires a
+  writer lock" and fails on the logged error.
+
+`TestGenerateProperties` runs in the XML layout only: the descriptor dump prints generic type arguments
+(`List\`1[T -> Verse.ShaderParameter]`) where they resolve, which they don't in a mod's own project. The offered
+fields and their order are the same in both. `TestGenerateInListItem` runs in both.
+
+### Phase H step 21 (2026-09-20) — the Rider build compiles into the tests, but its solution components don't
+
+Swapping the test project's `ProjectReference` to `ReSharperPlugin.RimworldDev.Rider.csproj` (plus the
+`InternalsVisibleTo` the ReSharper csproj carries, since the tests use `ScopeHelper`'s internals) **compiles cleanly**
+- both backends already reference `JetBrains.Rider.SDK` through `Directory.Build.props`, so the Remodder and project
+model packages come along without complaint.
+
+It does not run. 40 of 44 tests then fail with:
+
+```
+The component ReSharperPlugin.RimworldDev.RimworldXmlProject.RimworldProjectMarkProvider
+constructor requires JetBrains.ProjectModel.ProjectsHost.ISolutionMark, which we do not have.
+```
+
+`RimworldProjectMarkProvider` is a `[SolutionInstanceComponent]` taking `ISolutionMark`, and a test solution is built
+in memory rather than opened from a `.sln`, so the container has no solution mark to give it. The container's
+dependency check runs for every test that opens a solution, which is nearly all of them.
+
+Gating it out doesn't work as easily as it looks: a `[ZoneMarker]` on the `RimworldXmlProject` namespace requiring
+`JetBrains.Rider.Model.IRiderModelZone` changes nothing, because the test environment activates that zone too. The
+plugin has no zone markers at all today, so every component it defines is fair game wherever the assembly is scanned.
+
+**Giving the tests a real `.sln` doesn't help.** `BaseTestWithExistingSolution` opens one from test data, but it only
+renames the in-memory solution's file path - the container still has no `ISolutionMark` descriptor at all ("Could not
+find the component's ISolutionMark descriptor"). The mark is made by the project *host* (`SolutionMarkFactory` in
+`JetBrains.Platform.ProjectModel.Host.dll`), which this shell never starts.
+
+The one base that does run that pipeline, `BaseTestWithExistingSolutionLoadedByMsbuild`, wants a `global.json` under
+the test project root and then fails fetching `JetBrains.MSBuildForTests` from `packages.jetbrains.team` - a JetBrains
+internal test-data feed we have no access to. So that route is closed as well.
+
+To make the Rider build testable, one of these has to happen first, and both are plugin changes rather than test ones:
+
+- take `ISolution` in that constructor and look the mark up on demand, so the component can be built without one; or
+- define a zone the test environment does not activate and mark the Rider-only namespaces with it, which means giving
+  the plugin a zone graph it currently doesn't have.
+
+Until then the tests stay on the ReSharper build, and `RimworldXmlProject/`, `Remodder/` and `TemplateParameters/` are
+out of reach. Everything reverted; the suite is back to 41 passed, 3 skipped.
 
 ### Phase F (2026-09-18) — Find Usages runs; C# usages are missed, cause found
 

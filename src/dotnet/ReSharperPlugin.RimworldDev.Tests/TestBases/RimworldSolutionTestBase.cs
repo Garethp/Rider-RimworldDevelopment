@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using JetBrains.ProjectModel;
 using JetBrains.ProjectModel.Update;
 using JetBrains.Util;
@@ -39,10 +38,4 @@ public abstract class RimworldSolutionTestBase : BaseTestWithSingleProject, IPro
             FileSystemPath projectLocation = null) =>
         base.CreateProjectDescriptor(projectName, outputAssemblyName, absoluteFileSet,
             ProjectLayoutSupport.Libraries(Layout, projectName, ProjectName, libraries), projectGuid, projectLocation);
-
-    /// <summary>For fixtures that name their own files instead of going through DoNamedTest.</summary>
-    protected void DoLayoutTestSolution(params string[] files) =>
-        ProjectLayoutSupport.BuildSolution(Layout, files.First(), files.Skip(1), RelativeTestDataPath,
-            files => DoTestSolution(files),
-            (xmlProjectFiles, cSharpProjectFiles) => DoTestSolution(xmlProjectFiles, cSharpProjectFiles));
 }
