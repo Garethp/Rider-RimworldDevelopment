@@ -21,7 +21,6 @@ namespace ReSharperPlugin.RimworldDev.Tests.Navigation;
 [TestFileExtension(".xml")]
 public class RimworldNavigationTests(ProjectLayout layout) : RimworldNavigationTestBase(layout)
 {
-    protected override string ExtraPath => "";
     protected override string RelativeTestDataPath => "Navigation";
 
     [Test] public void TestNavigatePropertyToCSharpField() => DoNamedTest();

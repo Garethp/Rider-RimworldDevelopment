@@ -12,6 +12,8 @@ namespace ReSharperPlugin.RimworldDev.Tests.TestBases;
 /// <summary>Navigation and Find Usages the way the IDE runs them, in the layout the fixture asks for.</summary>
 public abstract class RimworldNavigationTestBase : AllNavigationProvidersTestBase, IProjectLayoutFixture
 {
+    protected sealed override string ExtraPath => "";
+    
     protected RimworldNavigationTestBase(ProjectLayout layout)
     {
         Layout = layout;

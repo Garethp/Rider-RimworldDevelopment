@@ -28,7 +28,6 @@ public class RimworldNavigationAfterEditTests(ProjectLayout layout) : RimworldNa
     private const string DefsFile = "MovingDefs.xml";
     private const string ThingALine = "    <ThingDef><defName>ThingA</defName></ThingDef>\n";
 
-    protected override string ExtraPath => "";
     protected override string RelativeTestDataPath => "Navigation";
 
     [Test] public void TestNavigateAfterDefsMove() => DoNamedTest(DefsFile);
