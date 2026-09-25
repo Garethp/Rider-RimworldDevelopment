@@ -24,6 +24,7 @@ class RunState(
     private val rimworldLocation: String,
     private val saveFilePath: String,
     private val modListPath: String,
+    private val commandLineOptions: String,
     private val rimworldState: RunProfileState,
     remoteConfiguration: RemoteConfiguration,
     executionEnvironment: ExecutionEnvironment,
@@ -97,7 +98,10 @@ class RunState(
             val bashScriptPath = "${Path(rimworldLocation).parent}/run.sh"
             withContext(Dispatchers.IO) {
                 val logFile = File(System.getProperty("java.io.tmpdir"), "rimworld-doorstop.log")
-                ProcessBuilder("/bin/sh", bashScriptPath, rimworldLocation)
+                val cmdArgs = mutableListOf("/bin/sh", bashScriptPath, rimworldLocation)
+                val extraArgs = commandLineOptions.split(' ').filter { it.isNotEmpty() }
+                cmdArgs.addAll(extraArgs)
+                ProcessBuilder(cmdArgs)
                     .redirectErrorStream(true)
                     .redirectOutput(logFile)
                     .start()
