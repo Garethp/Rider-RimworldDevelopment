@@ -2,6 +2,7 @@
 Prefix: "cus"
 Count: 3
 Focus: Hard
+Rules: [\w] => add_to_prefix
 Range: "<cus♦"
          ▲▲▲▲
 
@@ -9,7 +10,7 @@ Range: "<cus♦"
 
                             [PrefixMatch]
 c̣ụṣtomField                 int    <==
-                            [FromSingleCompletion^, FromLightAndDynamicEvaluation^, NormalSelectionPriority^, Other^]
+                            [FromLightEvaluation^, NormalSelectionPriority^, Other^]
 c̣anBeỤṣedUnderRoof          bool
 hasC̣ụṣtomRectForSelector    bool
 

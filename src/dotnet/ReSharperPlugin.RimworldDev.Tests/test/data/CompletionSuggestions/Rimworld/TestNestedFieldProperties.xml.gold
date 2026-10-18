@@ -1,11 +1,12 @@
 ﻿Completion: Basic
 Count: 34
 Focus: Hard
+Rules: [\w] => add_to_prefix
 Range: "<♦"
 
 ##### RELEVANCE SORT #####
 
-                            [FromSingleCompletion, FromLightAndDynamicEvaluation, NormalSelectionPriority, Other]
+                            [FromLightEvaluation, NormalSelectionPriority, Other]
 addTopAltitudeBias          bool    <==
 allowAtlasing               bool
 allowFlip                   bool

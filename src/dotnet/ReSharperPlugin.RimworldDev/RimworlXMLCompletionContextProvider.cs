@@ -72,7 +72,7 @@ namespace ReSharperPlugin.RimworldDev
 
             TextLookupRanges textLookupRanges = CodeCompletionContextProviderBase.GetTextLookupRanges(context, documentRange);
             return new RimworldXmlCodeCompletionContext(context, xmlFile,
-                xmlFile.FindNodeAt(unterminatedContext.Range), textLookupRanges);
+                xmlFile.FindNodeAt(context.SelectedTreeRange), textLookupRanges);
         }
     }
 }

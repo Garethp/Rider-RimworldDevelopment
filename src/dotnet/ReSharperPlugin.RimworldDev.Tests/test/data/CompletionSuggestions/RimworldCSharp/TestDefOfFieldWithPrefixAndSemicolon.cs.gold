@@ -2,12 +2,13 @@
 Prefix: "Mod"
 Count: 4
 Focus: Hard
+Rules: [\w] => add_to_prefix
 Range: "public static ThingDef Mod♦;"
                                ▲▲▲▲
 
 ##### RELEVANCE SORT #####
 
-                            [FromSingleCompletion, FromLightAndDynamicEvaluation, PrefixMatch, NotObsolete, ObsoleteRuleApplied, NormalSelectionPriority, Other]
+                            [FromLightEvaluation, PrefixMatch, NotObsolete, ObsoleteRuleApplied, NormalSelectionPriority, Other]
 ṂọḍDef                      <==
 ṂọḍThingA
 ṂọḍThingB

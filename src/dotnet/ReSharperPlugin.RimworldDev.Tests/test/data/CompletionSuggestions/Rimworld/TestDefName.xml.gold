@@ -2,12 +2,13 @@
 Prefix: "Thou"
 Count: 1
 Focus: Hard
+Rules: [\w] => add_to_prefix
 Range: "<Thou♦"
          ▲▲▲▲▲
 
 ##### RELEVANCE SORT #####
 
-                            [FromSingleCompletion, FromLightAndDynamicEvaluation, PrefixMatch, NormalSelectionPriority, Other]
+                            [FromLightEvaluation, PrefixMatch, NormalSelectionPriority, Other]
 ṬḥọụghtDef                  OrderStr='ThoughtDef T'    <==
 
 ##### ALPHABETIC SORT #####
