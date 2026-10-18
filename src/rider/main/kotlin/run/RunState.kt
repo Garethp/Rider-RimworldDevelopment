@@ -2,16 +2,15 @@ package RimworldDev.Rider.run
 
 import RimworldDev.Rider.helpers.ScopeHelper
 import com.intellij.execution.ExecutionResult
-import com.intellij.execution.Executor
 import com.intellij.execution.configurations.RunProfileState
 import com.intellij.execution.process.*
 import com.intellij.execution.runners.ExecutionEnvironment
-import com.intellij.execution.runners.ProgramRunner
+import com.intellij.execution.ui.ConsoleView
 import com.intellij.util.system.OS
 import com.jetbrains.rd.util.lifetime.Lifetime
 import com.jetbrains.rider.debugger.DebuggerWorkerProcessHandler
+import com.jetbrains.rider.plugins.unity.run.UnityDebugEngine
 import com.jetbrains.rider.plugins.unity.run.configurations.UnityAttachProfileState
-import com.jetbrains.rider.run.configurations.remote.RemoteConfiguration
 import com.jetbrains.rider.run.getProcess
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -25,11 +24,13 @@ class RunState(
     private val saveFilePath: String,
     private val modListPath: String,
     private val rimworldState: RunProfileState,
-    remoteConfiguration: RemoteConfiguration,
     executionEnvironment: ExecutionEnvironment,
     targetName: String
 ) :
-    UnityAttachProfileState(remoteConfiguration, executionEnvironment, targetName), RunProfileState {
+    UnityAttachProfileState(executionEnvironment, targetName, false), RunProfileState {
+    // Doorstop's debugger agent listens on localhost:56000; we connect to it rather than waiting for the game to dial in
+    override fun getDebugEngine(): UnityDebugEngine = UnityDebugEngine.Mono("localhost", 56000, false)
+
     private val resources = mapOf(
         OS.Windows to listOf(
             ".doorstop_version",
@@ -77,8 +78,7 @@ class RunState(
     )
     
     override suspend fun execute(
-        executor: Executor,
-        runner: ProgramRunner<*>,
+        workerConsole: ConsoleView,
         workerProcessHandler: DebuggerWorkerProcessHandler,
         lifetime: Lifetime
     ): ExecutionResult {
@@ -104,10 +104,10 @@ class RunState(
             }
         } else {
             // Windows: rimworldState handles env vars and process lifecycle normally.
-            rimworldState.execute(executor, runner)?.processHandler?.getProcess()
+            rimworldState.execute(executionEnvironment.executor, executionEnvironment.runner)?.processHandler?.getProcess()
         }
 
-        val result = super.execute(executor, runner, workerProcessHandler)
+        val result = super.execute(workerConsole, workerProcessHandler, lifetime)
         ProcessTerminatedListener.attach(workerProcessHandler.debuggerWorkerRealHandler)
         workerProcessHandler.debuggerWorkerRealHandler.addProcessListener(object : ProcessAdapter() {
             override fun processTerminated(event: ProcessEvent) {

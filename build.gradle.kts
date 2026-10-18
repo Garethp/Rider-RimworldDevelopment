@@ -166,6 +166,11 @@ dependencies {
 
         bundledPlugin("com.intellij.resharper.unity")
         bundledModule("intellij.spellchecker")
+
+        // Since 2026.3 these are separate product modules rather than part of the core classpath. rdclient.dotnet has
+        // RiderTypingPolicy/RiderEditorActionPolicy, SimpleOptionsPage and Project.solution; languages has the C# PSI.
+        bundledModule("intellij.rider.rdclient.dotnet")
+        bundledModule("intellij.rider.languages")
     }
 }
 
