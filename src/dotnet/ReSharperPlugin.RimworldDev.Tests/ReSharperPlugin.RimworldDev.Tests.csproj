@@ -75,15 +75,16 @@
 
   <!-- NuGet gives a .NET host the net8.0 builds of these two packages, but the SDK's component scanner cannot read
        the net8.0 JetBrains.Lifetimes metadata (MaybeNullWhenAttribute resolution fails and the shell never starts)
-       once anything makes it scan our plugin assembly. JetBrains' own test projects always run the net472 builds, which
-       the runtime loads fine, so use those. -->
+       once anything makes it scan our plugin assembly. Use the netstandard2.0 builds: from 2026.3 the Rider.Backend
+       package also ships DotFiles/NetCore/netstandard2.0/JetBrains.Lifetimes.dll into the output, and the shell's
+       assembly binder refuses to start if the root copy is a different build (e.g. net472) with a different MVID. -->
   <Target Name="UseNetFrameworkJetBrainsLibs" AfterTargets="Build">
     <ItemGroup>
       <!-- Whatever version NuGet resolved, so this follows SdkVersion with no hard-coded package path; the net472 build
            sits next to the one NuGet picked, in the same package folder. -->
       <_JetPinnedLib Include="@(RuntimeCopyLocalItems)"
                      Condition="'%(RuntimeCopyLocalItems.Extension)' == '.dll' And ('%(RuntimeCopyLocalItems.NuGetPackageId)' == 'JetBrains.Lifetimes' Or '%(RuntimeCopyLocalItems.NuGetPackageId)' == 'JetBrains.RdFramework')" />
-      <_JetNetFxLib Include="@(_JetPinnedLib->'%(RootDir)%(Directory)..\net472\%(Filename)%(Extension)')" />
+      <_JetNetFxLib Include="@(_JetPinnedLib->'%(RootDir)%(Directory)..\netstandard2.0\%(Filename)%(Extension)')" />
     </ItemGroup>
     <Error Condition="'@(_JetNetFxLib->Count())' != '2'"
            Text="Expected JetBrains.Lifetimes and JetBrains.RdFramework among the resolved packages, found: @(_JetPinnedLib->'%(NuGetPackageId) %(NuGetPackageVersion)')" />

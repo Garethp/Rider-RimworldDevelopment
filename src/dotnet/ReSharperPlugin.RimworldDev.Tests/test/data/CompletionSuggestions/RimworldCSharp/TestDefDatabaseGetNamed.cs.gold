@@ -1,11 +1,12 @@
 ﻿Completion: Basic
 Count: 2
 Focus: Hard
+Rules: [\w] => add_to_prefix
 Range: "public static ThingDef Get() => DefDatabase<ThingDef>.GetNamed("♦");"
 
 ##### RELEVANCE SORT #####
 
-                            [FromSingleCompletion, FromLightAndDynamicEvaluation, NotObsolete, ObsoleteRuleApplied, NormalSelectionPriority, Other]
+                            [FromLightEvaluation, NotObsolete, ObsoleteRuleApplied, NormalSelectionPriority, Other]
 ModThingA                   <==
 ModThingB
 

@@ -1,11 +1,12 @@
 ﻿Completion: Basic
 Count: 5
 Focus: Hard
+Rules: [\w] => add_to_prefix
 Range: "<defaultPlacingRot>♦</defaultPlacingRot>"
 
 ##### RELEVANCE SORT #####
 
-                            [FromSingleCompletion, FromLightAndDynamicEvaluation, NormalSelectionPriority, Other]
+                            [FromLightEvaluation, NormalSelectionPriority, Other]
 East                        Rot4    <==
 Invalid                     Rot4
 North                       Rot4

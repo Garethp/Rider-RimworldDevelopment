@@ -7,8 +7,8 @@ using JetBrains.ProjectModel;
 using JetBrains.ReSharper.Feature.Services.CodeCompletion.Infrastructure;
 using JetBrains.ReSharper.Feature.Services.CodeCompletion.Infrastructure.AspectLookupItems.BaseInfrastructure;
 using JetBrains.ReSharper.Feature.Services.CodeCompletion.Infrastructure.AspectLookupItems.Info;
-using JetBrains.ReSharper.Feature.Services.CodeCompletion.Infrastructure.AspectLookupItems.Matchers;
 using JetBrains.ReSharper.Feature.Services.CodeCompletion.Infrastructure.AspectLookupItems.Presentations;
+using JetBrains.ReSharper.Feature.Services.CodeCompletion.Infrastructure.Match;
 using JetBrains.ReSharper.Feature.Services.CSharp.CodeCompletion.Infrastructure;
 using JetBrains.ReSharper.Features.Intellisense.CodeCompletion.CSharp;
 using JetBrains.ReSharper.Features.Intellisense.CodeCompletion.CSharp.AspectLookupItems;
@@ -27,9 +27,8 @@ using JetBrains.Util.Special;
 
 namespace ReSharperPlugin.RimworldDev;
 
-// Note, this class is mostly copy-pasted from Jetbrains CSharpLookupFactory class, I just made some minor additions
-// so that the autocomplete would display a bit nicer
-
+// Note, this class is mostly copy-pasted from Jetbrains' CSharpLookupItemFactory (SDK 2021.2), I just made some minor
+// additions so that the autocomplete would display a bit nicer
 public class RimworldCSharpLookupFactory
 {
     private readonly Func<LookupItem<CSharpDeclaredElementInfo>, ILookupItemPresentation>
@@ -62,9 +61,6 @@ public class RimworldCSharpLookupFactory
 
     private readonly Func<LookupItem<CSharpDeclaredElementInfo>, ILookupItemBehavior> myFGetDeclaredElementBehavior =
         item => new CSharpDeclaredElementBehavior<CSharpDeclaredElementInfo>(item);
-
-    private readonly Func<LookupItem<CSharpDeclaredElementInfo>, ILookupItemMatcher> myFGetDeclaredElementMatcher =
-        item => new DeclaredElementMatcher(item.Info, "@");
 
     private readonly Func<LookupItem<TypeElementInfo>, ILookupItemBehavior> myFGetTypeElementBehavior =
         item => new CSharpDeclaredElementBehavior<TypeElementInfo>(item);
@@ -211,7 +207,7 @@ public class RimworldCSharpLookupFactory
         var dataHolder = LookupItemFactory.CreateLookupItem(declaredElementInfo)
             .WithPresentation(fGetPresentation)
             .WithBehavior(myFGetDeclaredElementBehavior)
-            .WithMatcher(myFGetDeclaredElementMatcher);
+            .WithMatcher(LookupItemMatcher.CSharpIdentifier);
 
         var typeOwner = element as ITypeOwner;
         if (instance.Element is IAnonymousTypeProperty)

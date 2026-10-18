@@ -107,7 +107,6 @@ class RunConfiguration(project: Project, factory: ConfigurationFactory, name: St
             getSaveFilePath(),
             getModListPath(),
             getRimworldState(environment),
-            UnityDebugRemoteConfiguration(),
             environment,
             "CustomPlayer"
         );
