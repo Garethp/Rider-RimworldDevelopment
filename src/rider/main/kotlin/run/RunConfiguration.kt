@@ -1,5 +1,6 @@
 package RimworldDev.Rider.run
 
+import RimworldDev.Rider.helpers.ScopeHelper
 import com.intellij.execution.Executor
 import com.intellij.execution.configuration.EnvironmentVariablesData
 import com.intellij.execution.configurations.*
@@ -11,32 +12,11 @@ import com.intellij.openapi.options.SettingsEditor
 import com.intellij.openapi.project.Project
 import com.intellij.util.system.OS
 import com.jetbrains.rider.debugger.IRiderDebuggable
-import com.jetbrains.rider.plugins.unity.run.configurations.UnityAttachToPlayerFactory
-import com.jetbrains.rider.plugins.unity.run.configurations.UnityPlayerDebugConfigurationOptions
 import com.jetbrains.rider.run.configurations.AsyncRunConfiguration
 import org.jetbrains.concurrency.Promise
-import com.jetbrains.rider.plugins.unity.UnityBundle
 import com.jetbrains.rider.plugins.unity.run.configurations.unityExe.UnityExeConfiguration
 import com.jetbrains.rider.run.RiderRunBundle
-import icons.UnityIcons
-
-internal class UnityPlayerDebugConfigurationTypeInternal : ConfigurationTypeBase(
-    ID,
-    UnityBundle.message("configuration.type.name.attach.to.unity.player"),
-    UnityBundle.message("configuration.type.description.attach.to.unity.player.and.debug"),
-    UnityIcons.RunConfigurations.AttachToPlayer
-), VirtualConfigurationType {
-    val attachToPlayerFactory = UnityAttachToPlayerFactory(this)
-
-    init {
-        addFactory(attachToPlayerFactory)
-    }
-
-    companion object {
-        const val ID = "UnityPlayer"
-    }
-}
-
+import java.io.File
 
 class RunConfiguration(project: Project, factory: ConfigurationFactory, name: String) :
     RunConfigurationBase<ConfigurationOptions>(project, factory, name),
@@ -92,25 +72,23 @@ class RunConfiguration(project: Project, factory: ConfigurationFactory, name: St
         executor: Executor,
         environment: ExecutionEnvironment
     ): RunProfileState {
-        val attachToDebugFactory = UnityAttachToPlayerFactory(UnityPlayerDebugConfigurationTypeInternal())
-        val attachToDebug = attachToDebugFactory.createTemplateConfiguration(project)
-        attachToDebug.name = "Custom Player"
-
-        val attachToDebugOptions = UnityPlayerDebugConfigurationOptions()
-        attachToDebugOptions.playerId = "CustomPlayer(localhost:56000)"
-        attachToDebugOptions.projectName = "Custom"
-
-        attachToDebug.loadState(attachToDebugOptions)
-
-        return RunState(
-            getScriptName(),
-            getSaveFilePath(),
+        // For older versions of Rimworld (pre-1.7) we needed to use Unity Doorstop to debug Rimworld. This meant
+        // setting up doorstop files in the directory and manually attaching a debugger as a second process.
+        if (ScopeHelper.findRimworldVersion(getScriptName())?.isOrGreaterThan(1, 7) != true) {
+            return DoorstopRunState.create(
+                getScriptName(),
+                getModListPath(),
+                getSaveFilePath(),
+                getRimworldState(environment),
+                environment
+            )
+        }
+        return DirectAttachRunState.launch(
+            createRimworldCommandLine(directLaunch = true),
             getModListPath(),
-            getRimworldState(environment),
-            UnityDebugRemoteConfiguration(),
-            environment,
-            "CustomPlayer"
-        );
+            getSaveFilePath(),
+            environment
+        )
     }
 
     override fun getConfigurationEditor(): SettingsEditor<out RunConfiguration> {
@@ -120,19 +98,7 @@ class RunConfiguration(project: Project, factory: ConfigurationFactory, name: St
     private fun getRimworldState(environment: ExecutionEnvironment): CommandLineState {
         return object : CommandLineState(environment) {
             override fun startProcess(): ProcessHandler {
-                val scriptName = getScriptName()
-                val extraArgs = getCommandLineOptions().split(' ').filter { it.isNotEmpty() }
-
-                val commandLine = when {
-                    OS.CURRENT == OS.macOS -> {
-                        val params = if (extraArgs.isEmpty()) listOf(scriptName)
-                                     else listOf(scriptName, "--args") + extraArgs
-                        GeneralCommandLine("open").withParameters(params)
-                    }
-                    else -> GeneralCommandLine(scriptName).withParameters(extraArgs)
-                }
-
-                EnvironmentVariablesData.create(getEnvData(), true).configureCommandLine(commandLine, true)
+                val commandLine = createRimworldCommandLine(directLaunch = false)
 
                 QuickStartUtils.setup(getModListPath(), getSaveFilePath())
 
@@ -144,6 +110,32 @@ class RunConfiguration(project: Project, factory: ConfigurationFactory, name: St
                 return processHandler
             }
         }
+    }
+
+    /**
+     * [directLaunch] runs the game binary itself even on macOS, where we'd otherwise go through `open`: `open` hands the
+     * launch to launchd, so the process we start isn't the game and its PID is useless for attaching a debugger.
+     */
+    private fun createRimworldCommandLine(directLaunch: Boolean): GeneralCommandLine {
+        val scriptName = getScriptName()
+        val extraArgs = getCommandLineOptions().split(' ').filter { it.isNotEmpty() }
+
+        val commandLine = when {
+            OS.CURRENT == OS.macOS && !directLaunch -> {
+                val params = if (extraArgs.isEmpty()) listOf(scriptName)
+                             else listOf(scriptName, "--args") + extraArgs
+                GeneralCommandLine("open").withParameters(params)
+            }
+            OS.CURRENT == OS.macOS && scriptName.endsWith(".app") -> {
+                val binary = File(scriptName, "Contents/MacOS").listFiles()?.firstOrNull { it.isFile && it.canExecute() }
+                GeneralCommandLine(binary?.absolutePath ?: scriptName).withParameters(extraArgs)
+            }
+            else -> GeneralCommandLine(scriptName).withParameters(extraArgs)
+        }
+
+        if (directLaunch) commandLine.withWorkDirectory(File(scriptName).parentFile)
+        EnvironmentVariablesData.create(getEnvData(), true).configureCommandLine(commandLine, true)
+        return commandLine
     }
 
     private fun createProcessListener(siblingProcessHandler: ProcessHandler?): ProcessListener {

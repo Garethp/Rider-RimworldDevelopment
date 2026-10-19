@@ -1,5 +1,6 @@
 package RimworldDev.Rider.helpers
 
+import com.intellij.openapi.util.Version
 import java.io.File
 import java.nio.file.Files
 import javax.xml.parsers.DocumentBuilderFactory
@@ -86,8 +87,8 @@ class ScopeHelper {
         }
 
         fun findInstalledHarmonyDll(): String? {
-            val version = findRimworldVersion()
-            if (version == null) return null
+            val rimworldVersion = findRimworldVersion() ?: return null
+            val version = "${rimworldVersion.major}.${rimworldVersion.minor}"
 
             val directoriesToCheck = findModDirectories()
 
@@ -112,15 +113,22 @@ class ScopeHelper {
             return null
         }
 
-        fun findRimworldVersion(): String? {
-            val directory = findRimworldDirectory()
-            if (directory == null) return null
+        fun findRimworldVersion(startingLocation: String? = null): Version? {
+            var directory: File? = File(startingLocation ?: findRimworldDirectory() ?: return null)
 
-            if (!File("${directory}/Version.txt").exists()) return null
+            // For OSX the Version.txt file might be in a parent folder of the executable that we're asking the version
+            // for, so we'll look upwards if we need to.
+            for (i in 0 until 5) {
+                if (directory == null || !directory.exists()) break
 
-            val contents = File("${directory}/Version.txt").readText()
+                val versionFile = File(directory, "Version.txt")
+                // A BOM or leading whitespace would make the major version unparseable
+                if (versionFile.isFile) return Version.parseVersion(versionFile.readText().removePrefix("﻿").trim())
 
-            return contents.substring(0, 3)
+                directory = directory.parentFile
+            }
+
+            return null
         }
     }
 }

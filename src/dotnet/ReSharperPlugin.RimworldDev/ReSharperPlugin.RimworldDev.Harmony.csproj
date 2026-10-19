@@ -26,7 +26,9 @@
     <Target Name="CopyHarmony" AfterTargets="Build">
 
         <ItemGroup>
-            <HarmonyDll Include="$(PkgLib_Harmony)\lib\**\0Harmony.dll" />
+            <!-- Only the net472 build loads under the game's Mono; lib\** would copy every TFM onto the same file
+                 and ship whichever came last (e.g. netcoreapp3.1, which can't resolve System.Runtime in-game) -->
+            <HarmonyDll Include="$(PkgLib_Harmony)\lib\net472\0Harmony.dll" />
         </ItemGroup>
 
         <Copy

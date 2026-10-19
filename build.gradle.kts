@@ -200,8 +200,10 @@ tasks.runIde {
     }
 }
 
-// The Rider SDK archive omits certain DLLs that are present in a full Rider installation.
+// The Rider SDK archive omits certain DLLs that are present in a full Rider installation (on every OS — without them,
+// starting a Unity debug session in the sandbox fails with "Unknown plugin file ...PausePoint.Helper.dll").
 // Copy the missing Unity plugin DotFiles DLLs from the local Rider installation so the sandbox can load them.
+// Pass -PriderInstallPath=<dir> if your Rider isn't in one of the default locations below.
 //
 // This is a side-effect on the extracted SDK (intellijPlatform.platformPath) — *not* a declared task output — because
 // other tasks (patchPluginXml, buildPlugin, etc.) read from that same directory. Declaring it as an OutputDirectory
@@ -210,8 +212,23 @@ tasks.runIde {
 //
 // All Project-API access (file(), intellijPlatform.platformPath, system properties) is hoisted to configuration time
 // and captured into locals so the action stays compatible with the configuration cache.
-if (!isWindows) {
-    val riderInstallCandidates: List<File> = if (Os.isFamily(Os.FAMILY_MAC)) {
+run {
+    val explicitRiderInstall = providers.gradleProperty("riderInstallPath").orNull?.let { listOf(File(it)) }.orEmpty()
+
+    val riderInstallCandidates: List<File> = explicitRiderInstall + if (isWindows) {
+        // Toolbox installs into "<install_location>\Rider" (install_location defaults to %LOCALAPPDATA%\Programs);
+        // the standalone installer uses Program Files.
+        val localAppData = providers.environmentVariable("LOCALAPPDATA").orNull
+        val toolboxLocation = localAppData
+            ?.let { File(it, "JetBrains/Toolbox/.settings.json") }
+            ?.takeIf { it.exists() }
+            ?.let { Regex("\"install_location\"\\s*:\\s*\"((?:[^\"\\\\]|\\\\.)*)\"").find(it.readText()) }
+            ?.groupValues?.get(1)?.replace("\\\\", "\\")
+        val roots = listOfNotNull(toolboxLocation, localAppData?.let { "$it/Programs" }, "C:/Program Files/JetBrains")
+        roots.flatMap { root ->
+            File(root).listFiles { f -> f.isDirectory && f.name.contains("Rider") }?.toList().orEmpty()
+        }
+    } else if (Os.isFamily(Os.FAMILY_MAC)) {
         listOf(File("/Applications/Rider.app/Contents"))
     } else {
         // Linux: check JetBrains Toolbox and common standalone install paths
