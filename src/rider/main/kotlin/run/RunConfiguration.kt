@@ -50,7 +50,23 @@ class RunConfiguration(project: Project, factory: ConfigurationFactory, name: St
     fun setEnvData(data: MutableMap<String, String>) = options.setEnvironmentVariables(data)
 
     override fun getState(executor: Executor, environment: ExecutionEnvironment): RunProfileState {
+        conditionallyUpdateRimworldExecutable()
         return getRimworldState(environment)
+    }
+
+    /**
+     * RimWorld 1.7 renamed the game's executable (e.g. RimWorldWin64.exe -> RimWorld.exe), so switching Steam branch
+     * between 1.6 and 1.7 leaves the configuration pointing at a file that no longer exists. Only then, and only if the
+     * executable for the installed version is actually there, do we point the configuration at it.
+     */
+    private fun conditionallyUpdateRimworldExecutable() {
+        val executable = File(getScriptName())
+        val expectedExecutable = ScopeHelper.findExecutableForInstalledVersion(executable.parent ?: "")
+            ?.let { File(executable.parentFile, it) }
+
+        if (!executable.exists() && expectedExecutable?.exists() == true) {
+            setScriptName(expectedExecutable.absolutePath)
+        }
     }
 
     @Suppress("UsagesOfObsoleteApi")
@@ -72,6 +88,8 @@ class RunConfiguration(project: Project, factory: ConfigurationFactory, name: St
         executor: Executor,
         environment: ExecutionEnvironment
     ): RunProfileState {
+        conditionallyUpdateRimworldExecutable()
+
         // For older versions of Rimworld (pre-1.7) we needed to use Unity Doorstop to debug Rimworld. This meant
         // setting up doorstop files in the directory and manually attaching a debugger as a second process.
         if (ScopeHelper.findRimworldVersion(getScriptName())?.isOrGreaterThan(1, 7) != true) {
@@ -127,8 +145,7 @@ class RunConfiguration(project: Project, factory: ConfigurationFactory, name: St
                 GeneralCommandLine("open").withParameters(params)
             }
             OS.CURRENT == OS.macOS && scriptName.endsWith(".app") -> {
-                val binary = File(scriptName, "Contents/MacOS").listFiles()?.firstOrNull { it.isFile && it.canExecute() }
-                GeneralCommandLine(binary?.absolutePath ?: scriptName).withParameters(extraArgs)
+                GeneralCommandLine(ScopeHelper.findMacBundleExecutable(scriptName) ?: scriptName).withParameters(extraArgs)
             }
             else -> GeneralCommandLine(scriptName).withParameters(extraArgs)
         }

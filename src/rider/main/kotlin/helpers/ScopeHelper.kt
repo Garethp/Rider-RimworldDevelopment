@@ -1,9 +1,11 @@
 package RimworldDev.Rider.helpers
 
 import com.intellij.openapi.util.Version
+import com.intellij.util.system.OS
 import java.io.File
 import java.nio.file.Files
 import javax.xml.parsers.DocumentBuilderFactory
+import org.w3c.dom.Node
 
 class ScopeHelper {
     companion object {
@@ -108,6 +110,58 @@ class ScopeHelper {
 
                     return File("${child.absolutePath}/Current/Assemblies/0Harmony.dll").absolutePath
                 }
+            }
+
+            return null
+        }
+
+        private val executableNames: Map<OS, Pair<String, String>> = mapOf(
+            OS.Windows to ("RimWorldWin64.exe" to "RimWorld.exe"),
+            OS.Linux to ("RimWorldLinux" to "RimWorld"),
+            OS.macOS to ("RimWorldMac.app" to "RimWorld.app"),
+        )
+
+        /**
+         * The expected binary name for RimWorld for the currently installed version, or null if we can't detect the
+         * installed version.
+         */
+        fun findExecutableForInstalledVersion(gameDirectory: String): String? {
+            val (legacyName, waylithName) = executableNames[OS.CURRENT] ?: return null
+            
+            // Pre-1.7 on macOS keeps Version.txt inside the bundle (RimWorldMac.app/Version.txt) rather than next to it
+            val version = findRimworldVersion(gameDirectory)
+                ?: findRimworldVersion(File(gameDirectory, legacyName).path)
+                ?: return null
+
+            return if (version.isOrGreaterThan(1, 7)) waylithName else legacyName
+        }
+
+        /**
+         * The binary inside a macOS .app bundle, as named by CFBundleExecutable in its Info.plist. Contents/MacOS holds
+         * other executables too (1.7 ships .NET's `createdump` there), so we can't just pick the first one.
+         */
+        fun findMacBundleExecutable(appBundle: String): String? {
+            val infoPlist = File(appBundle, "Contents/Info.plist")
+            if (!infoPlist.isFile) return null
+
+            val keys = try {
+                val factory = DocumentBuilderFactory.newInstance()
+                // Info.plist's DOCTYPE points at apple.com; don't go to the network for it
+                factory.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false)
+                factory.newDocumentBuilder().parse(infoPlist).getElementsByTagName("key")
+            } catch (_: Exception) {
+                return null
+            }
+
+            for (i in 0 until keys.length) {
+                if (keys.item(i).textContent != "CFBundleExecutable") continue
+
+                // In a plist <dict>, a key's value is the next element after it
+                var value = keys.item(i).nextSibling
+                while (value != null && value.nodeType != Node.ELEMENT_NODE) value = value.nextSibling
+
+                val executable = File(appBundle, "Contents/MacOS/${value?.textContent ?: return null}")
+                return if (executable.isFile) executable.absolutePath else null
             }
 
             return null
