@@ -9,6 +9,7 @@
 
     <PropertyGroup>
         <TargetFramework>net10.0</TargetFramework>
+        <IsPackable>false</IsPackable>
     </PropertyGroup>
     
     <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
