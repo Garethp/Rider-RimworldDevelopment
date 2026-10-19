@@ -1,5 +1,8 @@
 # Changelog
 
+## 2025.1.12
+ * Update the Rimworld Run Configuration to support both 1.6 and 1.7 at the same time
+
 ## 2025.1.11
  * Fixed the language folder in the Rimworld template, thanks to @Halicade
  * Updated the Rimworld Dictionary for Biotech, Anomaly and Odyssey

@@ -46,7 +46,7 @@ dll_search_path_override=""
 debug_enable="1"
 
 # When debug_enabled is 1, specifies the address to use for the debugger server
-debug_address="127.0.0.1:56000"
+debug_address="127.0.0.1:29410"
 
 # If 1 and debug_enabled is 1, Mono debugger server will suspend the game execution until a debugger is attached
 debug_suspend="0"

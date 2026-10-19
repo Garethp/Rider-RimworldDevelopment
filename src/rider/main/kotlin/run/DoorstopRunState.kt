@@ -20,11 +20,15 @@ import java.io.FileOutputStream
 import java.nio.file.Files
 import kotlin.io.path.Path
 
-class RunState(
+/**
+ * Debugging for RimWorld before 1.7 means using Doorstop to open up a Mono debugger that we can connect to.
+ */
+class DoorstopRunState private constructor(
     private val rimworldLocation: String,
     private val saveFilePath: String,
     private val modListPath: String,
     private val rimworldState: RunProfileState,
+    private val debugPort: Int,
     remoteConfiguration: RemoteConfiguration,
     executionEnvironment: ExecutionEnvironment,
     targetName: String
@@ -83,7 +87,6 @@ class RunState(
         lifetime: Lifetime
     ): ExecutionResult {
         setupDoorstop()
-        QuickStartUtils.setup(modListPath, saveFilePath)
 
         // On macOS/Linux we must bypass rimworldState.execute() for two reasons:
         //  1. CommandLineState.execute() has implicit EDT dependencies (console view creation)
@@ -94,6 +97,10 @@ class RunState(
         // and has no IntelliJ threading requirements. Windows uses DLL hijacking (winhttp.dll)
         // instead of DYLD injection, so rimworldState.execute() works fine there.
         val gameProcess: Process? = if (OS.CURRENT == OS.macOS || OS.CURRENT == OS.Linux) {
+            // On Windows, rimworldState's startProcess() does this. Doing it twice would back up the already-swapped
+            // ModsConfig.xml over the real one, and tearDown would then "restore" the wrong mod list.
+            QuickStartUtils.setup(modListPath, saveFilePath)
+
             val bashScriptPath = "${Path(rimworldLocation).parent}/run.sh"
             withContext(Dispatchers.IO) {
                 val logFile = File(System.getProperty("java.io.tmpdir"), "rimworld-doorstop.log")
@@ -139,9 +146,19 @@ class RunState(
             file.createNewFile()
 
             val resourceStream = this.javaClass.getResourceAsStream("$basePath/$name") ?: return
+            var bytes = resourceStream.readAllBytes()
+
+            // The shipped config/launch script default to 127.0.0.1:29410, but we're also scanning for free ports
+            // above that if that's taken. So before we copy things in, let's adjust our config to match whichever port
+            // we picked
+            if (name == "doorstop_config.ini" || name == "run.sh") {
+                bytes = String(bytes, Charsets.UTF_8)
+                    .replace("127.0.0.1:29410", "${UnityDebugRemoteConfiguration.host}:$debugPort")
+                    .toByteArray(Charsets.UTF_8)
+            }
 
             val fileWriteStream = FileOutputStream(file)
-            fileWriteStream.write(resourceStream.readAllBytes())
+            fileWriteStream.write(bytes)
             fileWriteStream.close()
         }
 
@@ -171,5 +188,28 @@ class RunState(
         }
 
         removeResource("Doorstop/")
+    }
+
+    companion object {
+        fun create(
+            rimworldLocation: String,
+            modListPath: String,
+            saveFilePath: String,
+            rimworldState: RunProfileState,
+            executionEnvironment: ExecutionEnvironment
+        ): DoorstopRunState {
+            val debugPort = UnityDebugRemoteConfiguration.findAvailableDebugPort()
+
+            return DoorstopRunState(
+                rimworldLocation,
+                saveFilePath,
+                modListPath,
+                rimworldState,
+                debugPort,
+                UnityDebugRemoteConfiguration(debugPort),
+                executionEnvironment,
+                "CustomPlayer"
+            )
+        }
     }
 }
