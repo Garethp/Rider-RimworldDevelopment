@@ -173,7 +173,8 @@ public class ScopeHelper
             "RimWorldWin64_Data/Managed/Assembly-CSharp.dll",
             "RimWorldWin_Data/Managed/Assembly-CSharp.dll",
             "RimWorldLinux_Data/Managed/Assembly-CSharp.dll",
-            "Contents/Resources/Data/Managed/Assembly-CSharp.dll"
+            "Contents/Resources/Data/Managed/Assembly-CSharp.dll",
+            "Assembly-CSharp.dll"
         };
 
         var location = fileRelativePaths.FirstOrDefault(path =>

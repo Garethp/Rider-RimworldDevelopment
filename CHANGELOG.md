@@ -1,5 +1,8 @@
 # Changelog
 
+## 2025.1.13
+ * Updates support for XML Only mods to work with both 1.6 and 1.7
+
 ## 2025.1.12
  * Update the Rimworld Run Configuration to support both 1.6 and 1.7 at the same time
 

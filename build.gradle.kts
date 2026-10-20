@@ -190,13 +190,26 @@ tasks.runIde {
     // part of a plugin, but there are dangers about keeping plugins in sync
     autoReload = false
 
-    // What the sandbox opens. Defaults to the checked-in example mod; the highlighting fixtures under example-mods/
-    // are opened with e.g. -PrunIdeSolution=example-mods/XmlOnlyMod (a folder is fine, it doesn't have to be a .sln).
-    val solutionToOpen = providers.gradleProperty("runIdeSolution").getOrElse("example-mod/AshAndDust.sln")
-    val exampleModSolution = layout.projectDirectory.file(solutionToOpen).asFile.absolutePath
+    // What the sandbox opens: `runIde --args=XmlOnlyMod` (a folder under example-mods/) or `--args=<path>` (absolute,
+    // or relative to the repo root); nothing opens example-mods/AshAndDust. A folder holding exactly one .sln opens
+    // that solution, any other folder opens as-is (XML-only mods). --args is JavaExec's own option, resolved here at
+    // execution time, so the lambda may only capture locals to stay configuration-cache compatible.
+    val projectDir = layout.projectDirectory.asFile
+    doFirst {
+        val target = args.orEmpty()
+        if (target.size > 1) throw GradleException("runIde: --args takes one mod or path (quote it if it has spaces), got $target")
+        val name = target.firstOrNull()?.trim()?.ifEmpty { null } ?: "AshAndDust"
 
-    argumentProviders += CommandLineArgumentProvider {
-        listOf(exampleModSolution)
+        val exampleMods = projectDir.resolve("example-mods")
+        val found = listOf(File(name), projectDir.resolve(name), exampleMods.resolve(name))
+            .firstOrNull { it.isAbsolute && it.exists() }
+            ?: throw GradleException(
+                "runIde: '$name' is neither an existing path nor a folder under example-mods/. " +
+                    "Example mods: ${exampleMods.listFiles(File::isDirectory)?.map { it.name }?.sorted()}"
+            )
+        val solutions = if (found.isDirectory) found.listFiles { f -> f.extension == "sln" }.orEmpty() else emptyArray()
+
+        setArgs(listOf((solutions.singleOrNull() ?: found).canonicalPath))
     }
 }
 

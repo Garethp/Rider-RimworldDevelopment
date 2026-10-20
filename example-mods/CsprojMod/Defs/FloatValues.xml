@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Every value here is invalid. Expected in a real install: all six reported.
+  The four float ones are the question - see example-mods/README.md.
+-->
+<Defs>
+    <ThingDef>
+        <defName>FixtureFloatValues</defName>
+
+        <!-- float, declared on ThingDef -->
+        <deepCommonality>lots</deepCommonality>
+
+        <!-- float, inherited from BuildableDef -->
+        <uiIconScale>lots</uiIconScale>
+
+        <!-- float, one class down (GraphicData) -->
+        <graphicData>
+            <onGroundRandomRotateAngle>lots</onGroundRandomRotateAngle>
+        </graphicData>
+
+        <!-- float, inside a list item (StatModifier.value) -->
+        <statBases>
+            <li>
+                <stat>MaxHitPoints</stat>
+                <value>lots</value>
+            </li>
+        </statBases>
+
+        <!-- int: reported in the test shell too, so it shows the analyser is running -->
+        <stackLimit>lots</stackLimit>
+
+        <!-- FloatRange: resolves by full type name, reported in both -->
+        <startingHpRange>lots~2</startingHpRange>
+    </ThingDef>
+</Defs>

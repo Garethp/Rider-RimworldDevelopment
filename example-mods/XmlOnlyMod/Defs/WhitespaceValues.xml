@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  The second open question. Every value here is invalid too.
+  The test shell reports only the first one (trailing whitespace); it skips every value that has whitespace
+  before it, which is any value written on its own line.
+-->
+<Defs>
+    <ThingDef>
+        <defName>FixtureWhitespaceValues</defName>
+
+        <!-- trailing whitespace only -->
+        <stackLimit>lots </stackLimit>
+
+        <!-- leading whitespace -->
+        <deepCountPerCell> lots</deepCountPerCell>
+
+        <!-- value on its own line -->
+        <deepCountPerPortion>
+            lots
+        </deepCountPerPortion>
+
+        <leaveResourcesWhenKilled>
+            maybe
+        </leaveResourcesWhenKilled>
+
+        <category>
+            Bulding
+        </category>
+    </ThingDef>
+</Defs>

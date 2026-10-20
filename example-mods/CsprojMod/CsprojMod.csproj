@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- The csproj deliberately sits at the MOD ROOT rather than in Source/, so Defs/*.xml are files of this C# project.
+       That is the one arrangement the SDK test shell can build (docs/testing-plan.md, boundary 8) and, we think, the
+       thing that decides whether float values get validated. A normal mod keeps its csproj in Source/, which leaves
+       the Defs folder outside every C# project. -->
+
+  <PropertyGroup>
+    <TargetFramework>net472</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <AssemblyName>CsprojModFixture</AssemblyName>
+    <RootNamespace>CsprojModFixture</RootNamespace>
+    <OutputPath>bin\</OutputPath>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- RimWorld's public API, the same package the backend tests use -->
+    <PackageReference Include="Krafs.Rimworld.Ref" Version="1.6.4871" />
+  </ItemGroup>
+
+</Project>

@@ -29,4 +29,4 @@ packages/
 # NuGetLocks are committed on purpose: the lock files pin test-framework package versions
 
 # Example Mod
-example-mod/.idea
+example-mods/*/.idea
