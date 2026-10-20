@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project>
+	<PropertyGroup>
+        <Configurations>1.5;1.6;1.7</Configurations>
+        <Configuration Condition="'$(Configuration)' == ''">1.6</Configuration>
+        <UsingWaylith Condition="'$(Configuration)' == '1.5' OR '$(Configuration)' == '1.6'">false</UsingWaylith>
+        <UsingWaylith Condition="'$(Configuration)' != '1.5' AND '$(Configuration)' != '1.6'">true</UsingWaylith>
+        <TargetFramework Condition="!'$(UsingWaylith)'">net472</TargetFramework>
+        <TargetFramework Condition="'$(UsingWaylith)'">net10.0</TargetFramework>
+        <OutputPath>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)'))/../$(Configuration)/Assemblies</OutputPath>        
+        <!-- MSB3052: allow 1.5/1.6 style def names -->
+        <!-- MSB3246: skip native dlls -->
+        <NoWarn>$(NoWarn);MSB3246;MSB3052</NoWarn>
+        <!-- Deterministic builds are suprisingly involved, and requires the 10.0 sdk to be installed to reliably work. This can still target older framework versions -->
+        <Deterministic>true</Deterministic>
+        <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
+        <!-- This avoids leaking the full path in debug symbols -->
+        <DeterministicSourcePaths>true</DeterministicSourcePaths>
+        <PathMap>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)'))=./</PathMap>
+        <DebugSymbols>true</DebugSymbols>
+        <DebugType>portable</DebugType>
+
+        <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+        <CopyLocalLockFileAssemblies>false</CopyLocalLockFileAssemblies>
+        <LangVersion>latest</LangVersion>
+        <IsPackable>false</IsPackable>
+        <GenerateDependencyFile>false</GenerateDependencyFile>
+        <DefineConstants>TRACE</DefineConstants>
+        <ErrorReport>prompt</ErrorReport>
+        <WarningLevel>4</WarningLevel>
+        <PublicizeAll>false</PublicizeAll>
+        <Optimize>false</Optimize>
+	</PropertyGroup>
+
+    <ItemGroup>
+        <!-- required for the DeterministicSourcePaths option -->
+        <SourceRoot Include="$(MSBuildThisFileDirectory)/"/>
+    </ItemGroup>
+</Project>
