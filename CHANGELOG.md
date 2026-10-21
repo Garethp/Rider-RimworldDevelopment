@@ -1,5 +1,8 @@
 # Changelog
 
+## 2025.1.14
+ * Allows for multiple values to be passed in when an Enum has a `[Flags]` attribute
+
 ## 2025.1.13
  * Update support for XML Only mods to allow launching directly through Rider
  * Update support for XML Only mods to work with both 1.6 and 1.7

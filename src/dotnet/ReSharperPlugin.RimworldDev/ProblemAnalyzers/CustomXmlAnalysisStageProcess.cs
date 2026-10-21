@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using JetBrains.Annotations;
@@ -270,11 +271,25 @@ public sealed class CustomXmlAnalysisStageProcess : XmlDaemonStageProcessBase, I
     private void ProcessEnum(string textValue, DocumentRange range, ITypeElement context)
     {
         if (context.GetType().Name != "Enum") return;
+
+        var isFlagAttribute = context.GetAttributeInstances(AttributesSource.Self)
+            .Any(attr => attr.GetClrName().FullName == "System.FlagsAttribute");
+
+        var textValues = isFlagAttribute ? textValue.Split(",").Select(item => item.Trim()) : [textValue];
         
         var enumValues = context.GetMembers().Select(x => x.ShortName).ToList();
-        if (!enumValues.Contains(textValue))
+        foreach (var value in textValues)
         {
-            AddError($"\"{textValue}\" is not a valid value for {context.ShortName}", range);
+            if (enumValues.Contains(value)) continue;
+            
+            var valueIndex = textValue.IndexOf(value, StringComparison.Ordinal);
+                
+            var targetedRange = new DocumentRange(
+                range.Document,
+                new TextRange(range.TextRange.StartOffset + valueIndex, range.TextRange.StartOffset + valueIndex + value.Length)
+            );
+                
+            AddError($"\"{value}\" is not a valid value for {context.ShortName}", targetedRange);
         }
     }
     
