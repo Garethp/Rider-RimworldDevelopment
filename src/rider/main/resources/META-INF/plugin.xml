@@ -17,6 +17,10 @@ in your mods!</p>
   
   <change-notes>Will be auto-generated</change-notes>
 
+  <actions>
+    <action id="RunMigrationSampleAction" class="RimworldDev.Rider.migrator.RunMigrationSampleAction" text="Run Migration Sample" />
+  </actions>
+
   <extensions defaultExtensionNs="com.intellij">
     <applicationConfigurable groupId="language" instance="RimworldDev.Rider.settings.RimworldSettings" displayName="Rimworld" id="preferences.build.rimworldPlugin" />
 
