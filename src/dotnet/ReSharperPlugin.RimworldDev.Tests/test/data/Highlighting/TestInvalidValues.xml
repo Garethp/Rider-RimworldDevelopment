@@ -58,8 +58,23 @@
         <deepLumpSizeRange>1~two</deepLumpSizeRange>
         <startingHpRange>0.5~high</startingHpRange>
         <uiIconOffset>left,2</uiIconOffset>
+        <defaultPlacingRot>North, South</defaultPlacingRot>
         <graphicData>
             <drawOffset>(1,2,down)</drawOffset>
         </graphicData>
     </ThingDef>
+
+    <PawnRenderTreeDef>
+        <root Class="PawnRenderNodeProperties_Parent">
+            <children>
+                <li>
+                    <children>
+                        <li Class="PawnRenderNodeProperties_Tattoo" MayRequire="Ludeon.RimWorld.Ideology">
+                            <rotDrawMode>Fresh, Invalid</rotDrawMode>
+                        </li>
+                    </children>
+                </li>
+            </children>
+        </root>
+    </PawnRenderTreeDef>
 </Defs>

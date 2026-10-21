@@ -62,6 +62,20 @@
             <drawOffset>(0,0,0)</drawOffset>
         </graphicData>
     </ThingDef>
+
+    <PawnRenderTreeDef>
+        <root Class="PawnRenderNodeProperties_Parent">
+            <children>
+                <li>
+                    <children>
+                        <li Class="PawnRenderNodeProperties_Tattoo" MayRequire="Ludeon.RimWorld.Ideology">
+                            <rotDrawMode>Fresh, Rotting</rotDrawMode>
+                        </li>
+                    </children>
+                </li>
+            </children>
+        </root>
+    </PawnRenderTreeDef>
 </Defs>
 
 ---------------------------------------------------------
