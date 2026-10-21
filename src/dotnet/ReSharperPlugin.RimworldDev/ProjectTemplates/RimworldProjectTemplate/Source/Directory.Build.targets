@@ -116,7 +116,7 @@
     </PropertyGroup>
 
     <ItemGroup Condition=" !'$(UsingWaylith)' ">
-        <PackageReference Include="Krafs.Rimworld.Ref" Version="$(Configuration).*" />
+        <PackageReference Include="Krafs.Rimworld.Ref" Version="$(RimWorldVersion).*" />
     </ItemGroup>
     <ItemGroup Condition=" '$(UsingWaylith)' ">
         <PackageReference Include="Krafs.Rimworld.Ref" Version="1.7.4979-alpha" />
@@ -131,7 +131,7 @@
     
     <ItemGroup Condition="'$(SteamModsDirectory)' != ''">
         <Reference Include="0Harmony">
-            <HintPath>$(SteamModsDirectory)2009463077/$(Configuration)/Assemblies/0Harmony.dll</HintPath>
+            <HintPath>$(SteamModsDirectory)2009463077/$(RimWorldVersion)/Assemblies/0Harmony.dll</HintPath>
             <Private>False</Private>
         </Reference>
     </ItemGroup>
