@@ -14,6 +14,7 @@
         <!-- Deterministic builds are suprisingly involved, and requires the 10.0 sdk to be installed to reliably work. This can still target older framework versions -->
         <Deterministic>true</Deterministic>
         <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
+        <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
         <!-- This avoids leaking the full path in debug symbols -->
         <DeterministicSourcePaths>true</DeterministicSourcePaths>
         <PathMap>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)'))=./</PathMap>
