@@ -115,12 +115,9 @@
         <SteamModsDirectory Condition="'$(SteamModsDirectory)' != ''">$([MSBuild]::NormalizeDirectory('$(SteamModsDirectory)'))</SteamModsDirectory>
     </PropertyGroup>
 
-    <ItemGroup Condition=" !'$(UsingWaylith)' ">
-        <PackageReference Include="Krafs.Rimworld.Ref" Version="$(RimWorldVersion).*" />
+    <ItemGroup>
+        <PackageReference Include="Krafs.Rimworld.Ref" Version="$(RimWorldVersion).*-*" />
     </ItemGroup>
-    <ItemGroup Condition=" '$(UsingWaylith)' ">
-        <PackageReference Include="Krafs.Rimworld.Ref" Version="1.7.4979-alpha" />
-	</ItemGroup>
     
     <ItemGroup Condition="!'$(UsingWaylith)' AND '$(SteamModsDirectory)' == ''">
         <PackageReference Include="Lib.Harmony" version="2.4.*" />
