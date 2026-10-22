@@ -166,6 +166,14 @@ dependencies {
 
         bundledPlugin("com.intellij.resharper.unity")
         bundledModule("intellij.spellchecker")
+
+        bundledModule("intellij.rider.rdclient.dotnet")
+        bundledModule("intellij.rider.languages")
+
+        // RiderAnAction (in intellij.rider.rdclient.dotnet) implements traits from intellij.rd.client. bundledModule()
+        // is the natural spelling, but on 2026.2 it makes resolution fail with ClosedFileSystemException
+        // (intellij-platform-gradle-plugin#2192, fixed by #2269, unreleased as of 2.15.0). Swap back once that ships.
+        bundledLibrary("lib/intellij.rd.client.jar")
     }
 }
 

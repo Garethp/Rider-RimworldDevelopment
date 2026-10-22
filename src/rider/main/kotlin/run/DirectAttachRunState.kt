@@ -1,15 +1,15 @@
 package RimworldDev.Rider.run
 
 import com.intellij.execution.ExecutionResult
-import com.intellij.execution.Executor
 import com.intellij.execution.configurations.GeneralCommandLine
 import com.intellij.execution.process.ProcessListener
 import com.intellij.execution.process.ProcessEvent
 import com.intellij.execution.process.ProcessInfo
 import com.intellij.execution.process.ProcessTerminatedListener
 import com.intellij.execution.runners.ExecutionEnvironment
-import com.intellij.execution.runners.ProgramRunner
+import com.intellij.execution.ui.ConsoleView
 import com.intellij.util.system.OS
+import com.jetbrains.rd.util.lifetime.Lifetime
 import com.jetbrains.rider.debugger.DebuggerWorkerProcessHandler
 import com.jetbrains.rider.model.debuggerHelper.PlatformArchitecture
 import com.jetbrains.rider.run.dotNetCore.DotNetCoreAttachProfileState
@@ -32,12 +32,12 @@ class DirectAttachRunState private constructor(
     "RimWorld"
 ) {
     override suspend fun execute(
-        executor: Executor,
-        runner: ProgramRunner<*>,
-        workerProcessHandler: DebuggerWorkerProcessHandler
+        workerConsole: ConsoleView,
+        workerProcessHandler: DebuggerWorkerProcessHandler,
+        lifetime: Lifetime
     ): ExecutionResult {
         val result = try {
-            super.execute(executor, runner, workerProcessHandler)
+            super.execute(workerConsole, workerProcessHandler, lifetime)
         } catch (e: Throwable) {
             // e.g. the attach failing because the game already exited
             cleanUp(gameProcess, saveFilePath)

@@ -4,7 +4,7 @@
     <!-- THE Rider/ReSharper version. Everything else is derived from it: WaveVersion below, and Gradle's ProductVersion
          (build.gradle.kts reads this line). Exact NuGet form, e.g. 2026.1.5.2 / 2026.2.0-rc01 / 2026.3.0-eap02.
          See docs/rider-version.md. -->
-    <SdkVersion>2026.1.5.2</SdkVersion>
+    <SdkVersion>2026.2.3.1</SdkVersion>
 
     <Title>Rimworld Development Environment</Title>
     <Description>Bring the intelligence of your IDE to Rimworld XML files. Use information backed by Rimworlds DLL file to autocomplete your XML, Ctrl+Click into the C# that your XML gets translated into and see what options you have when adding items in your mods!</Description>

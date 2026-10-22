@@ -2,11 +2,10 @@ package RimworldDev.Rider.run
 
 import RimworldDev.Rider.helpers.ScopeHelper
 import com.intellij.execution.ExecutionResult
-import com.intellij.execution.Executor
 import com.intellij.execution.configurations.RunProfileState
 import com.intellij.execution.process.*
 import com.intellij.execution.runners.ExecutionEnvironment
-import com.intellij.execution.runners.ProgramRunner
+import com.intellij.execution.ui.ConsoleView
 import com.intellij.util.system.OS
 import com.jetbrains.rd.util.lifetime.Lifetime
 import com.jetbrains.rider.debugger.DebuggerWorkerProcessHandler
@@ -81,8 +80,7 @@ class DoorstopRunState private constructor(
     )
     
     override suspend fun execute(
-        executor: Executor,
-        runner: ProgramRunner<*>,
+        workerConsole: ConsoleView,
         workerProcessHandler: DebuggerWorkerProcessHandler,
         lifetime: Lifetime
     ): ExecutionResult {
@@ -111,10 +109,10 @@ class DoorstopRunState private constructor(
             }
         } else {
             // Windows: rimworldState handles env vars and process lifecycle normally.
-            rimworldState.execute(executor, runner)?.processHandler?.getProcess()
+            rimworldState.execute(executionEnvironment.executor, executionEnvironment.runner)?.processHandler?.getProcess()
         }
 
-        val result = super.execute(executor, runner, workerProcessHandler)
+        val result = super.execute(workerConsole, workerProcessHandler, lifetime)
         ProcessTerminatedListener.attach(workerProcessHandler.debuggerWorkerRealHandler)
         workerProcessHandler.debuggerWorkerRealHandler.addProcessListener(object : ProcessAdapter() {
             override fun processTerminated(event: ProcessEvent) {
