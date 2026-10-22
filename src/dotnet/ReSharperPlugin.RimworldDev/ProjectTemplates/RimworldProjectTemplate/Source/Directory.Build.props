@@ -3,7 +3,7 @@
 	<PropertyGroup>
         <Configurations>1.5;1.6;1.7</Configurations>
         <Configuration Condition="'$(Configuration)' == ''">1.6</Configuration>
-        <RimWorldVersion>$(Configuration)<RimWorldVersion>
+        <RimWorldVersion>$(Configuration)</RimWorldVersion>
         <UsingWaylith Condition="'$(RimWorldVersion)' == '1.5' OR '$(RimWorldVersion)' == '1.6'">false</UsingWaylith>
         <UsingWaylith Condition="'$(RimWorldVersion)' != '1.5' AND '$(RimWorldVersion)' != '1.6'">true</UsingWaylith>
         <TargetFramework Condition="!'$(UsingWaylith)'">net472</TargetFramework>
