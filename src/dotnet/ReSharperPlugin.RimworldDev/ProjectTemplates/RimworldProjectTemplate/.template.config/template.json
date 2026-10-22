@@ -34,10 +34,10 @@
       "isRequired": "true",
       "defaultValue": ""
     },
-    "RimworldDLL": {
+    "RimworldDir": {
       "type": "parameter",
       "datatype": "text",
-      "replaces": "Assembly-CSharp.dll",
+      "replaces": "RimworldDir",
       "isRequired": "false",
       "defaultValue": ""
     },
@@ -73,20 +73,13 @@
       "isRequired": "false",
       "defaultValue": "true"
     },
-    "AssemblyDir": {
-      "type": "derived",
-      "valueSource": "RimworldDLL",
-      "valueTransform": "BaseDirectory",
-      "replaces": "AssemblyDir",
-      "description": "The directory containing the RimWorld DLL"
-    },
-    "assemblyExists": {
+    "RimworldDirExists": {
       "type": "generated",
       "generator": "regexMatch",
       "datatype": "bool",
       "parameters": {
         "pattern": "[a-zA-Z0-9]",
-        "source": "RimworldDLL"
+        "source": "RimworldDir"
       }
     }
   },
@@ -156,6 +149,12 @@
     },
     {
       "path": "Source/MyRimWorldMod.csproj"
+    },
+    {
+      "path": "Source/Directory.Build.props"
+    },
+    {
+      "path": "Source/Directory.Build.targets"
     },
     {
       "path": "Source/MyRimWorldMod.cs"
